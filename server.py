@@ -1,7 +1,6 @@
 from flask import Flask, send_from_directory, request
 import random
 import requests
-import logging
 
 import feedparser
 

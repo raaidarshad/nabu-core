@@ -1,18 +1,28 @@
 <script>
-	export let name;
+	import Lane from './Lane.svelte';
+
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<h1>News Dashboard</h1>
+	<div>
+		<Lane rssUrl="https://www.vox.com/rss/index.xml"/>
+		<Lane rssUrl="https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"/>
+		<Lane rssUrl="http://www.npr.org/rss/rss.php?id=1001"/>
+		<Lane rssUrl="http://feeds.foxnews.com/foxnews/national"/>
+		<Lane rssUrl="http://feeds.feedburner.com/breitbart"/>
+	</div>
 </main>
 
 <style>
 	main {
 		text-align: center;
 		padding: 1em;
-		max-width: 240px;
 		margin: 0 auto;
+	}
+
+	div {
+		display: flex;
 	}
 
 	h1 {
