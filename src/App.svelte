@@ -69,12 +69,13 @@
 	];
 
 	let farLeft = [
-		{ id: 1, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
+		{ id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed`},
+		{ id: 2, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
 		{
 			id: 2,
 			text: `BuzzfeedNews (Home)`,
 			url: `https://www.buzzfeed.com/index.xml`,
-		},
+		}
 	];
 </script>
 
