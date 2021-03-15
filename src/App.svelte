@@ -159,7 +159,7 @@
 
 	.header {
 		max-width: 300px;
-		min-width: 300px;
+		min-width: 250px;
 		margin: 0 auto;
 		padding: 0 10px;
 		color: #555555;
