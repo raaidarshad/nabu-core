@@ -85,11 +85,11 @@
 		the U.S.
 	</h5>
 	<div class="lanes">
-		<p class="header">Far left</p>
 		<p class="header">Left</p>
+		<p class="header">Left-leaning</p>
 		<p class="header">Center</p>
+		<p class="header">Right-leaning</p>
 		<p class="header">Right</p>
-		<p class="header">Far right</p>
 	</div>
 	<div class="lanes">
 		<div class="farleft lane">
