@@ -69,13 +69,13 @@
 	];
 
 	let farLeft = [
-		{ id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed`},
+		{ id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed` },
 		{ id: 2, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
 		{
 			id: 2,
 			text: `BuzzfeedNews (Home)`,
 			url: `https://www.buzzfeed.com/index.xml`,
-		}
+		},
 	];
 </script>
 
@@ -85,21 +85,23 @@
 		A simple RSS feed dashboard to quickly view the full spectrum of news in
 		the U.S.
 	</h5>
-	<div class="lanes">
-		<p class="header">Left</p>
-		<p class="header">Left-leaning</p>
-		<p class="header">Center</p>
-		<p class="header">Right-leaning</p>
-		<p class="header">Right</p>
-	</div>
-	<div class="lanes">
-		<div class="farleft lane">
-			<Lane class="farleft" rssOptions={farLeft} />
+	<div class="scrolling-wrapper">
+		<div class="lanes">
+			<p class="header">Left</p>
+			<p class="header">Left-leaning</p>
+			<p class="header">Center</p>
+			<p class="header">Right-leaning</p>
+			<p class="header">Right</p>
 		</div>
-		<div class="left lane"><Lane rssOptions={left} /></div>
-		<div class="center lane"><Lane rssOptions={center} /></div>
-		<div class="right lane"><Lane rssOptions={right} /></div>
-		<div class="farright lane"><Lane rssOptions={farRight} /></div>
+		<div class="lanes">
+			<div class="farleft lane">
+				<Lane class="farleft" rssOptions={farLeft} />
+			</div>
+			<div class="left lane"><Lane rssOptions={left} /></div>
+			<div class="center lane"><Lane rssOptions={center} /></div>
+			<div class="right lane"><Lane rssOptions={right} /></div>
+			<div class="farright lane"><Lane rssOptions={farRight} /></div>
+		</div>
 	</div>
 	<div class="about">
 		<p>
@@ -180,6 +182,11 @@
 
 	.lanes {
 		display: flex;
+	}
+
+	.scrolling-wrapper {
+		overflow-x: scroll;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	h1 {
