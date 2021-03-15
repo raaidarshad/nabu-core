@@ -6,8 +6,6 @@
     $: targetUrl = selected.url;
 
     async function getFeed(rssUrl) {
-        console.log(selected);
-        console.log(rssUrl);
         const res = await fetch(`./feed?rssUrl=${rssUrl}&limit=${limit}`);
         const theJson = await res.json();
 
