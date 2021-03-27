@@ -22,13 +22,13 @@
 </script>
 
 <main>
-    <select bind:value={selected} on:change="{handleChange}">
-		{#each rssOptions as rssOption}
-			<option value={rssOption}>
-				{rssOption.text}
-			</option>
-		{/each}
-	</select>
+    <select bind:value={selected} on:change={handleChange}>
+        {#each rssOptions as rssOption}
+            <option value={rssOption}>
+                {rssOption.text}
+            </option>
+        {/each}
+    </select>
     {#await promise}
         <p>Waiting...</p>
     {:then response}

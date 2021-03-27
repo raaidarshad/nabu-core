@@ -1,5 +1,9 @@
 <script>
 	import Lane from "./Lane.svelte";
+	import About from "./About.svelte";
+	import Contact from "./Contact.svelte";
+	import Footer from "./Footer.svelte";
+	import Header from "./Header.svelte";
 
 	let farRight = [
 		{
@@ -80,56 +84,35 @@
 </script>
 
 <main>
-	<h1>Pop the Bubble News</h1>
-	<h5>
-		A simple RSS feed dashboard to quickly view the full spectrum of news in
-		the U.S.
-	</h5>
-	<div class="scrolling-wrapper">
-		<div class="lanes">
-			<p class="header">Left</p>
-			<p class="header">Left-leaning</p>
-			<p class="header">Center</p>
-			<p class="header">Right-leaning</p>
-			<p class="header">Right</p>
-		</div>
-		<div class="lanes">
-			<div class="farleft lane">
-				<Lane class="farleft" rssOptions={farLeft} />
+	<div class="maincontent">
+		<Header />
+		<h1>Pop the Bubble News</h1>
+		<h5>
+			A simple RSS feed dashboard to quickly view the full spectrum of
+			news in the U.S.
+		</h5>
+		<div class="scrolling-wrapper">
+			<div class="lanes">
+				<p class="header">Left</p>
+				<p class="header">Left-leaning</p>
+				<p class="header">Center</p>
+				<p class="header">Right-leaning</p>
+				<p class="header">Right</p>
 			</div>
-			<div class="left lane"><Lane rssOptions={left} /></div>
-			<div class="center lane"><Lane rssOptions={center} /></div>
-			<div class="right lane"><Lane rssOptions={right} /></div>
-			<div class="farright lane"><Lane rssOptions={farRight} /></div>
+			<div class="lanes">
+				<div class="farleft lane">
+					<Lane class="farleft" rssOptions={farLeft} />
+				</div>
+				<div class="left lane"><Lane rssOptions={left} /></div>
+				<div class="center lane"><Lane rssOptions={center} /></div>
+				<div class="right lane"><Lane rssOptions={right} /></div>
+				<div class="farright lane"><Lane rssOptions={farRight} /></div>
+			</div>
 		</div>
 	</div>
-	<div class="about">
-		<p>
-			I often find myself wondering how people can live in such entirely
-			different realities. One commonly discussed idea is that of online
-			"bubbles", where we only consume news from certain sources and only
-			talk about it with like-minded people. These bubbles often reinforce
-			our prior beliefs and further distance us from those in other
-			bubbles. One small way to help bridge this gap is to simply be aware
-			of the full spectrum of news available to us. I've tried doing this
-			by following a variety of accounts on Twitter, but there is so much
-			noise on that platform.
-		</p>
-		<p>
-			In response, I made this super simple news dashboard. It is divided
-			into five columns, ranging from one end of the political spectrum to
-			the other (as defined by
-			<a href="https://www.allsides.com/media-bias/media-bias-ratings"
-				>AllSides research</a
-			>). Each lane lists the top 10 news stories from an RSS feed of that
-			news source, and you can click the headline to visit the source
-			article to read further. You can also click on the news source name
-			(try clicking on "Vox (Home)") to select a different news source.
-			With this tool, you can get an idea of what news is disseminated
-			across the political spectrum at a quick glance. In short, you can
-			pop the bubble.
-		</p>
-	</div>
+	<About />
+	<Contact />
+	<Footer />
 </main>
 
 <style>
@@ -165,15 +148,7 @@
 		color: #555555;
 	}
 
-	.about {
-		color: #777777;
-		font-weight: 1;
-		text-align: center;
-		width: 80%;
-		margin: 50px auto;
-	}
-
-	main {
+	.maincontent {
 		text-align: center;
 		padding: 1em;
 		margin: 0 auto;
