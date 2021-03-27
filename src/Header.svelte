@@ -10,7 +10,7 @@
     }
 
     a {
-        color: black;
+        color: #555555;
     }
     
     .aboutlink {

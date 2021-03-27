@@ -134,7 +134,7 @@
 
 	.lane {
 		max-width: 300px;
-		min-width: 250px;
+		min-width: 200px;
 		margin: 0 auto;
 		padding: 0 10px;
 		border: 1px solid lightgrey;
