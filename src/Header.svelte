@@ -1,17 +1,13 @@
 <main>
     <div>
-        <p class="alignleft">
-            <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://support.mozilla.org/en-US/kb/how-to-set-the-home-page"
-                >Make this your home page</a
-            >
-        </p>
-        <p class="alignright">
-            <a class="aboutlink" href="#about">About</a>
-            <a href="#contact">Contact</a>
-        </p>
+        <a
+            class="headermargin"
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://support.mozilla.org/en-US/kb/how-to-set-the-home-page"
+            >Make this your home page</a>
+        <a class="headermargin" href="#about">About</a>
+        <a href="#contact">Contact</a>
     </div>
 </main>
 
@@ -24,15 +20,7 @@
         color: #555555;
     }
 
-    .aboutlink {
+    .headermargin {
         margin-right: 1em;
-    }
-
-    .alignleft {
-        float: left;
-    }
-
-    .alignright {
-        float: right;
     }
 </style>

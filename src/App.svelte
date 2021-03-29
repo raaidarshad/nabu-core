@@ -93,20 +93,13 @@
 		</h5>
 		<div class="scrolling-wrapper">
 			<div class="lanes">
-				<p class="header">Left</p>
-				<p class="header">Left-leaning</p>
-				<p class="header">Center</p>
-				<p class="header">Right-leaning</p>
-				<p class="header">Right</p>
-			</div>
-			<div class="lanes">
-				<div class="farleft lane">
-					<Lane class="farleft" rssOptions={farLeft} />
+				<div class="lane">
+					<Lane class="farleft" rssOptions={farLeft} title="Left" bgcolor="#99aeff33"/>
 				</div>
-				<div class="left lane"><Lane rssOptions={left} /></div>
-				<div class="center lane"><Lane rssOptions={center} /></div>
-				<div class="right lane"><Lane rssOptions={right} /></div>
-				<div class="farright lane"><Lane rssOptions={farRight} /></div>
+				<div class="lane"><Lane rssOptions={left} title="Left-leaning" bgcolor="#cce1ff33"/></div>
+				<div class="lane"><Lane rssOptions={center} title="Center"/></div>
+				<div class="lane"><Lane rssOptions={right} title="Right-leaning" bgcolor="#ffe0e933"/></div>
+				<div class="lane"><Lane rssOptions={farRight} title="Right" bgcolor="#ffadb633"/></div>
 			</div>
 		</div>
 	</div>
@@ -116,36 +109,10 @@
 </main>
 
 <style>
-	.farleft {
-		background-color: #99aeff33;
-	}
-
-	.left {
-		background-color: #cce1ff33;
-	}
-
-	.farright {
-		background-color: #ffadb633;
-	}
-
-	.right {
-		background-color: #ffe0e933;
-	}
-
 	.lane {
 		max-width: 300px;
 		min-width: 200px;
 		margin: 0 auto;
-		padding: 0 10px;
-		border: 1px solid lightgrey;
-	}
-
-	.header {
-		max-width: 300px;
-		min-width: 200px;
-		margin: 0 auto;
-		padding: 0 10px;
-		color: #555555;
 	}
 
 	.maincontent {
@@ -161,6 +128,7 @@
 
 	.scrolling-wrapper {
 		overflow-x: scroll;
+		overflow-y: hidden;
 		-webkit-overflow-scrolling: touch;
 	}
 

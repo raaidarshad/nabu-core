@@ -1,5 +1,7 @@
 <script>
     import Headline from "./Headline.svelte";
+    export let title;
+    export let bgcolor = "transparent";
     export let rssOptions;
     export let limit = 10;
     let selected = rssOptions[0];
@@ -22,22 +24,25 @@
 </script>
 
 <main>
-    <select bind:value={selected} on:change={handleChange}>
-        {#each rssOptions as rssOption}
-            <option value={rssOption}>
-                {rssOption.text}
-            </option>
-        {/each}
-    </select>
-    {#await promise}
-        <p>Waiting...</p>
-    {:then response}
-        <ul>
-            {#each response.entries as article}
-                <li><Headline {article} /></li>
+    <p class="title">{title}</p>
+    <div style="background-color: {bgcolor}; height: 100%;">
+        <select bind:value={selected} on:change={handleChange}>
+            {#each rssOptions as rssOption}
+                <option value={rssOption}>
+                    {rssOption.text}
+                </option>
             {/each}
-        </ul>
-    {/await}
+        </select>
+        {#await promise}
+            <p>Waiting...</p>
+        {:then response}
+            <ul>
+                {#each response.entries as article}
+                    <li><Headline {article} /></li>
+                {/each}
+            </ul>
+        {/await}
+    </div>
 </main>
 
 <style>
@@ -62,5 +67,20 @@
         text-align: left;
         padding-left: 0;
         margin-top: 0;
+    }
+
+    .title {
+        margin: 0 auto;
+        padding: 0 10px;
+        color: #555555;
+    }
+
+    div {
+		padding: 0 10px;
+		border: 1px solid lightgrey;
+    }
+
+    main {
+        height: 100%;
     }
 </style>
