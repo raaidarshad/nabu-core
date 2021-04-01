@@ -139,7 +139,7 @@
 	}
 
 	h5 {
-		color: #555555;
+		color: #444444;
 		font-size: 1em;
 		font-weight: 5;
 	}

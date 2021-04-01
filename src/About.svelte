@@ -34,8 +34,8 @@
 
 <style>
     p {
-        color: #eeeeee;
-        font-weight: 1;
+        color: white;
+        font-weight: 10;
         text-align: center;
         width: 80%;
         margin: 30px auto;
@@ -50,7 +50,7 @@
     }
 
     h1 {
-		color: #eeeeee;
+		color: white;
 		font-size: 2em;
 		font-weight: 10;
 	}

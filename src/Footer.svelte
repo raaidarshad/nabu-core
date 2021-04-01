@@ -12,8 +12,8 @@
 
 <style>
     p {
-        color: #eeeeee;
-        font-weight: 1;
+        color: white;
+        font-weight: 10;
         text-align: center;
         width: 70%;
         margin: 30px auto;
