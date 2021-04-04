@@ -4,7 +4,6 @@
 <main>
     <div>
         <hr>
-        <!-- <img src={article.media_content[0].url} alt="ohno" height="100"> -->
         <a href={article.link} target="_blank" rel="noopener noreferrer">{@html article.title}</a>
     </div>
 </main>

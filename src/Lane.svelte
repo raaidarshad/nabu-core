@@ -76,8 +76,8 @@
     }
 
     div {
-		padding: 0 10px;
-		border: 1px solid lightgrey;
+        padding: 0 10px;
+        border: 1px solid lightgrey;
     }
 
     main {

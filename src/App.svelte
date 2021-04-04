@@ -4,6 +4,7 @@
 	import Contact from "./Contact.svelte";
 	import Footer from "./Footer.svelte";
 	import Header from "./Header.svelte";
+	import Support from "./Support.svelte";
 
 	let farRight = [
 		{
@@ -103,6 +104,7 @@
 			</div>
 		</div>
 	</div>
+	<Support />
 	<About />
 	<Contact />
 	<Footer />
