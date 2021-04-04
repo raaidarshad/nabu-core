@@ -40,8 +40,6 @@
     .support-wrapper {
         text-align: center;
         margin-top: 50px;
-        /* padding-top: 30px;
-        padding-bottom: 30px; */
         padding: 30px auto;
         background-color: #e6e6fa2c;
     }
@@ -80,4 +78,16 @@
         font-size: 2em;
         font-weight: 10;
     }
+
+    @media screen and (max-width: 600px) {
+    .sub-wrapper {
+        justify-content: unset;
+        overflow-x: scroll;
+        overflow-y: hidden;
+    }
+
+    .sub-section {
+        margin: 0 10px;
+    }
+}
 </style>
