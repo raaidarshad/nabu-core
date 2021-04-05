@@ -90,4 +90,11 @@
     main {
         height: 100%;
     }
+
+    @media screen and (max-width: 650px) {
+        .title {
+            visibility: hidden;
+        }
+    }
+
 </style>

@@ -5,6 +5,7 @@
 	import Footer from "./Footer.svelte";
 	import Header from "./Header.svelte";
 	import Support from "./Support.svelte";
+	import debounce from "lodash/debounce";
 
 	let farRight = [
 		{
@@ -82,6 +83,28 @@
 			url: `https://www.buzzfeed.com/index.xml`,
 		},
 	];
+
+	let current = "";
+
+	const handleScroll = debounce(
+		(e) => updateCurrent(e.target.scrollLeft),
+		100
+	);
+
+	function updateCurrent(scroll_from_left) {
+		console.log(scroll_from_left);
+		if (scroll_from_left < 300) {
+			current = "left";
+		} else if (scroll_from_left < 500) {
+			current = "left-lean";
+		} else if (scroll_from_left < 1000) {
+			current = "center";
+		} else if (scroll_from_left < 1500) {
+			current = "right-lean";
+		} else {
+			current = "right";
+		}
+	}
 </script>
 
 <main>
@@ -92,9 +115,40 @@
 			A simple RSS feed dashboard to quickly view the full spectrum of
 			news in the U.S.
 		</h5>
-		<div class="scrolling-wrapper">
+		<div class="anchor-nav">
+			<a
+				class={current === "left" ? "selected lane-nav" : "lane-nav"}
+				href="#left"
+				on:click={() => (current = "left")}>Left</a
+			>
+			<a
+				class={current === "left-lean"
+					? "selected lane-nav"
+					: "lane-nav"}
+				href="#left-lean"
+				on:click={() => (current = "left-lean")}>Left-lean</a
+			>
+			<a
+				class={current === "center" ? "selected lane-nav" : "lane-nav"}
+				href="#center"
+				on:click={() => (current = "center")}>Center</a
+			>
+			<a
+				class={current === "right-lean"
+					? "selected lane-nav"
+					: "lane-nav"}
+				href="#right-lean"
+				on:click={() => (current = "right-lean")}>Right-lean</a
+			>
+			<a
+				class={current === "right" ? "selected lane-nav" : "lane-nav"}
+				href="#right"
+				on:click={() => (current = "right")}>Right</a
+			>
+		</div>
+		<div class="scrolling-wrapper" on:scroll={handleScroll}>
 			<div class="lanes">
-				<div class="lane">
+				<div id="left" class="lane">
 					<Lane
 						class="farleft"
 						rssOptions={farLeft}
@@ -102,24 +156,24 @@
 						bgcolor="#99aeff33"
 					/>
 				</div>
-				<div class="lane">
+				<div id="left-lean" class="lane">
 					<Lane
 						rssOptions={left}
 						title="Left-leaning"
 						bgcolor="#cce1ff33"
 					/>
 				</div>
-				<div class="lane">
+				<div id="center" class="lane">
 					<Lane rssOptions={center} title="Center" />
 				</div>
-				<div class="lane">
+				<div id="right-lean" class="lane">
 					<Lane
 						rssOptions={right}
 						title="Right-leaning"
 						bgcolor="#ffe0e933"
 					/>
 				</div>
-				<div class="lane">
+				<div id="right" class="lane">
 					<Lane
 						rssOptions={farRight}
 						title="Right"
@@ -136,6 +190,10 @@
 </main>
 
 <style>
+	.selected {
+		text-decoration: underline !important;
+	}
+
 	.lane {
 		max-width: 300px;
 		min-width: 200px;
@@ -171,11 +229,20 @@
 		font-weight: 5;
 	}
 
+	.anchor-nav {
+		display: flex;
+		position: relative;
+		z-index: 10;
+		visibility: hidden;
+	}
+
 	@media screen and (max-width: 650px) {
 		.scrolling-wrapper {
 			overflow-x: auto;
 			scroll-snap-type: x mandatory;
 			scroll-behavior: smooth;
+			margin-top: -15px;
+			z-index: 1;
 		}
 
 		.lane {
@@ -188,12 +255,36 @@
 			position: relative;
 			width: 98%;
 			max-width: 98%;
+			padding-top: 2em;
+			margin-top: -2em;
+		}
+
+		.lane-nav {
+			visibility: visible;
+			height: 1.5rem;
+			color: #444444;
+			text-decoration: none;
+			position: relative;
+			margin: auto;
+		}
+		.lane-nav:focus {
+			text-decoration: underline;
+		}
+		.anchor-nav {
+			visibility: visible;
 		}
 	}
 
 	@media (min-width: 650px) {
 		main {
 			max-width: none;
+		}
+	}
+
+	/* Don't need button navigation */
+	@supports (scroll-snap-type) {
+		.lane-nav {
+			display: none;
 		}
 	}
 </style>
