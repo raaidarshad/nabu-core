@@ -92,7 +92,6 @@
 	);
 
 	function updateCurrent(scroll_from_left) {
-		console.log(scroll_from_left);
 		if (scroll_from_left < 300) {
 			current = "left";
 		} else if (scroll_from_left < 500) {
