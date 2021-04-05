@@ -84,6 +84,7 @@
         justify-content: unset;
         overflow-x: scroll;
         overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     .sub-section {

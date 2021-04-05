@@ -2,9 +2,9 @@
     <div>
         <h1 id="contact">Contact</h1>
         <p>
-            I appreciate your thoughts on how to make this better and more usable. Please direct
-            all comments, questions, feature requests, and more to my email at <a href = "mailto: raaid@protonmail.com">raaid@protonmail.com</a>.
-            I am actively working on this (though I intend to keep it simple) and will respond!
+            We appreciate your thoughts on how to make this better and more usable. Please direct
+            all comments, questions, feature requests, and more to <a href = "mailto: team@popthebubble.news">team@popthebubble.news</a>.
+            We are actively working on this and are excited for your feedback!
         </p>
     </div>
 </main>

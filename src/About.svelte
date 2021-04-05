@@ -5,18 +5,18 @@
     <div>
         <h1 id="about">About</h1>
         <p>
-            I often find myself wondering how people can live in such entirely
+            We often find ourselves wondering how people can live in such entirely
             different realities. One commonly discussed idea is that of online
             "bubbles", where we only consume news from certain sources and only
             talk about it with like-minded people. These bubbles often reinforce
             our prior beliefs and further distance us from those in other
             bubbles. One small way to help bridge this gap is to simply be aware
-            of the full spectrum of news available to us. I've tried doing this
+            of the full spectrum of news available to us. We've tried doing this
             by following a variety of accounts on Twitter, but there is so much
             noise on that platform.
         </p>
         <p>
-            In response, I made this super simple news dashboard. It is divided
+            In response, we made this super simple news dashboard. It is divided
             into five columns, ranging from one end of the political spectrum to
             the other (as defined by
             <a href="https://www.allsides.com/media-bias/media-bias-ratings"

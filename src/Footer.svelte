@@ -5,7 +5,7 @@
             Content is owned/copyrighted by the individual author, contributor or news site, and should not be used without proper permission.
         </p>
         <p>
-            Copyright 2021 by Raaid Arshad
+            Copyright 2021 by Pop the Bubble News
         </p>
 </div>
 </main>
