@@ -95,12 +95,37 @@
 		<div class="scrolling-wrapper">
 			<div class="lanes">
 				<div class="lane">
-					<Lane class="farleft" rssOptions={farLeft} title="Left" bgcolor="#99aeff33"/>
+					<Lane
+						class="farleft"
+						rssOptions={farLeft}
+						title="Left"
+						bgcolor="#99aeff33"
+					/>
 				</div>
-				<div class="lane"><Lane rssOptions={left} title="Left-leaning" bgcolor="#cce1ff33"/></div>
-				<div class="lane"><Lane rssOptions={center} title="Center"/></div>
-				<div class="lane"><Lane rssOptions={right} title="Right-leaning" bgcolor="#ffe0e933"/></div>
-				<div class="lane"><Lane rssOptions={farRight} title="Right" bgcolor="#ffadb633"/></div>
+				<div class="lane">
+					<Lane
+						rssOptions={left}
+						title="Left-leaning"
+						bgcolor="#cce1ff33"
+					/>
+				</div>
+				<div class="lane">
+					<Lane rssOptions={center} title="Center" />
+				</div>
+				<div class="lane">
+					<Lane
+						rssOptions={right}
+						title="Right-leaning"
+						bgcolor="#ffe0e933"
+					/>
+				</div>
+				<div class="lane">
+					<Lane
+						rssOptions={farRight}
+						title="Right"
+						bgcolor="#ffadb633"
+					/>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -146,7 +171,27 @@
 		font-weight: 5;
 	}
 
-	@media (min-width: 640px) {
+	@media screen and (max-width: 650px) {
+		.scrolling-wrapper {
+			overflow-x: auto;
+			scroll-snap-type: x mandatory;
+			scroll-behavior: smooth;
+		}
+
+		.lane {
+			scroll-snap-align: start;
+			flex-shrink: 0;
+			margin-right: 100px;
+			transform-origin: center center;
+			transform: scale(1);
+			transition: transform 0.5s;
+			position: relative;
+			width: 98%;
+			max-width: 98%;
+		}
+	}
+
+	@media (min-width: 650px) {
 		main {
 			max-width: none;
 		}

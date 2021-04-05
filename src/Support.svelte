@@ -32,6 +32,16 @@
                     <p class="square-text">$10.00/month</p></a
                 >
             </div>
+            <div class="sub-section">
+                <a
+                    class="subscribe"
+                    target="_blank"
+                    href="https://checkout.square.site/merchant/MLEN4D7S80T7W/checkout/IGO7MUKGYN26XPDXXXBJXEUK?src=embed"
+                >
+                    <p class="square-text">Make it yours</p>
+                    <p class="square-text">Any/month</p></a
+                >
+            </div>
         </div>
     </div>
 </main>
@@ -58,7 +68,7 @@
     .square-text {
         font-size: 18px;
         line-height: 24px;
-        font-weight: 500;
+        font-weight: 20;
     }
 
     .sub-wrapper {
@@ -79,16 +89,13 @@
         font-weight: 10;
     }
 
-    @media screen and (max-width: 600px) {
+    @media screen and (max-width: 650px) {
     .sub-wrapper {
-        justify-content: unset;
-        overflow-x: scroll;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
+        flex-wrap: wrap;
     }
 
     .sub-section {
-        margin: 0 10px;
+        margin: 10px;
     }
 }
 </style>
