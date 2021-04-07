@@ -19,16 +19,31 @@
             text: `New York Post (Home)`,
             url: `https://nypost.com/feed/`,
         },
+        {
+            id: 4,
+            text: `Daily Mail (Latest)`,
+            url: `https://www.dailymail.co.uk/articles.rss`
+        }
     ];
 
     let right = [
         {
             id: 1,
-            text: `Fox News (National)`,
-            url: `http://feeds.foxnews.com/foxnews/national`,
+            text: `Fox News (Latest)`,
+            url: `http://feeds.foxnews.com/foxnews/latest`,
         },
         {
             id: 2,
+            text: `Fox News (World)`,
+            url: `http://feeds.foxnews.com/foxnews/world`,
+        },
+        {
+            id: 3,
+            text: `The Washington Times (Home)`,
+            url: `https://www.washingtontimes.com/rss/headlines/news/`,
+        },
+        {
+            id: 4,
             text: `Newsmax (Home)`,
             url: `https://www.newsmax.com/rss/Newsfront/16`,
         },
@@ -42,11 +57,16 @@
         },
         {
             id: 2,
-            text: `Reuters (U.S.)`,
-            url: `https://www.reutersagency.com/feed/?best-regions=north-america&post_type=best`,
+            text: `The Wall Street Journal (World News)`,
+            url: `https://feeds.a.dj.com/rss/RSSWorldNews.xml`,
         },
         {
             id: 3,
+            text: `Reuters (World)`,
+            url: `https://www.reutersagency.com/feed/?taxonomy=best-regions&post_type=best`
+        },
+        {
+            id: 4,
             text: `The BBC (World)`,
             url: `http://feeds.bbci.co.uk/news/rss.xml`,
         },
@@ -65,6 +85,11 @@
         },
         {
             id: 3,
+            text: `The Washington Post (World)`,
+            url: `http://feeds.washingtonpost.com/rss/world?itid=lk_inline_manual_43`,
+        },
+        {
+            id: 4,
             text: `The Guardian (World)`,
             url: `https://www.theguardian.com/world/rss`,
         },
@@ -72,9 +97,10 @@
 
     let farLeft = [
         { id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed` },
-        { id: 2, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
+        { id: 2, text: `The intercept (All)`, url: `https://theintercept.com/feed/?lang=en`},
+        { id: 3, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
         {
-            id: 2,
+            id: 4,
             text: `BuzzfeedNews (Home)`,
             url: `https://www.buzzfeed.com/index.xml`,
         },
