@@ -6,11 +6,6 @@
 	import Header from "./Header.svelte";
 	import Support from "./Support.svelte";
 
-	// onMount(() => {
-	// 	if (document.querySelector(".scrolling-wrapper").scrollLeftMax !== 0 && window.innerWidth < 650) {
-	// 		document.querySelector(".scrolling-wrapper").scrollLeft = 872;
-	// 	}
-	// });
 </script>
 
 <main>
