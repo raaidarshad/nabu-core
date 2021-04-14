@@ -13,7 +13,7 @@
 <style>
     p {
         color: white;
-        font-weight: 200;
+        font-weight: 300;
         text-align: center;
         width: 70%;
         margin: 30px auto;

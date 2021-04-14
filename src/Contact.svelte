@@ -12,7 +12,7 @@
 <style>
     p {
         color: #222222;
-        font-weight: 200;
+        font-weight: 300;
         text-align: center;
         width: 80%;
         margin: 30px auto;
@@ -28,6 +28,6 @@
     h1 {
 		color: #111111;
 		font-size: 2em;
-		font-weight: 200;
+		font-weight: 300;
 	}
 </style>

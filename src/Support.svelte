@@ -68,7 +68,7 @@
     .square-text {
         font-size: 18px;
         line-height: 24px;
-        font-weight: 200;
+        font-weight: 300;
     }
 
     .sub-wrapper {
@@ -86,7 +86,7 @@
     h1 {
         color: #111111;
         font-size: 2em;
-        font-weight: 200;
+        font-weight: 300;
     }
 
     @media screen and (max-width: 650px) {
