@@ -35,7 +35,7 @@
 <style>
     p {
         color: white;
-        font-weight: 10;
+        /* font-weight: 10; */
         text-align: center;
         width: 80%;
         margin: 30px auto;

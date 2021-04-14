@@ -97,7 +97,7 @@
 
     let farLeft = [
         { id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed` },
-        { id: 2, text: `The intercept (All)`, url: `https://theintercept.com/feed/?lang=en`},
+        { id: 2, text: `The Intercept (All)`, url: `https://theintercept.com/feed/?lang=en`},
         { id: 3, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
         {
             id: 4,
