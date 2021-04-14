@@ -35,13 +35,13 @@
 	h1 {
 		color: #111111;
 		font-size: 2em;
-		font-weight: 10;
+		font-weight: 200;
 	}
 
 	h5 {
 		color: #444444;
 		font-size: 1em;
-		font-weight: 5;
+		font-weight: 200;
 	}
 
 	@media (min-width: 650px) {
