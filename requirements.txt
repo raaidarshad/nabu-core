@@ -1,4 +1,11 @@
-flask
-requests
+aiohttp
+beautifulsoup4
 feedparser
+flask
 gunicorn
+pandas
+prefect
+requests
+requests-cache
+scikit-learn
+spacy
