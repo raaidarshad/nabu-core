@@ -3,13 +3,13 @@ from functools import partial
 import logging
 import threading
 
-import requests
 import time
 
 import feedparser
 import numpy as np
 import pandas
 import pandas as pd
+import requests_cache
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import spacy
@@ -26,7 +26,7 @@ nlp = spacy.load("en_core_web_lg")
 
 def get_session():
     if not hasattr(thread_local, "session"):
-        session = requests.Session()
+        session = requests_cache.CachedSession()
         session.headers = headers
         thread_local.session = session
     return thread_local.session
@@ -100,7 +100,10 @@ def clusterify(df: pandas.DataFrame) -> set[Cluster]:
     for idx, cluster in enumerate(clusters):
         current = cluster
         for comp in clusters:
-            if current.intersection(comp):
+            # option 1
+            # if current.intersection(comp):
+            # option 2
+            if len(current.intersection(comp)) > len(comp.difference(current)):
                 current = current.union(comp)
         merged_clusters.append(current)
         clusters[idx] = cluster
