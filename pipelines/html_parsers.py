@@ -1,125 +1,97 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
+from typing import Union
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, element
 
 
-class BaseParser:
+class BaseParser(metaclass=ABCMeta):
     def __init__(self, content: str):
         self.soup = BeautifulSoup(content, "html.parser")
 
+    @property
     @abstractmethod
-    def extract(self) -> str:
+    def target(self) -> dict:
+        # this represent the kwargs, as a dict, to pass to the bs4 soup.find method
         pass
+
+    def extract(self) -> str:
+        return self.extract_paragraphs(self.extract_story())
+
+    def extract_story(self) -> Union[element.Tag, element.NavigableString]:
+        return self.soup.find(**self.target)
+
+    @staticmethod
+    def extract_paragraphs(story: Union[element.Tag, element.NavigableString]) -> str:
+        paragraphs = story.find_all("p")
+        return " ".join([p.text for p in paragraphs])
+
+
+ClassEntryContentParser = type("ClassEntryContentParser", (BaseParser,), {"target": {"class_": "entry-content"}})
 
 
 # right
-class OANParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find(class_="entry-content")
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+class OANParser(ClassEntryContentParser):
+    pass
 
 
-class BreitbartParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find(class_="entry-content")
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+class BreitbartParser(ClassEntryContentParser):
+    pass
 
 
-class NYTPostParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find(class_="entry-content")
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+class NYTPostParser(ClassEntryContentParser):
+    pass
 
 
 class DailyMailParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find("div", attrs={"itemprop": "articleBody"})
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(name="div", attrs={"itemprop": "articleBody"})
 
 
 # lean-right
 class FoxNewsParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find(class_="article-body")
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="article-body")
 
 
 class WashingtonTimesParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find(class_="bigtext")
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="bigtext")
 
 
 class NewsmaxParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find("div", attrs={"itemprop": "articleBody"})
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(name="div", attrs={"itemprop": "articleBody"})
 
 
 # center
 class NPRParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(id="storytext")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(id="storytext")
 
 
 class ReutersParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(class_="et_pb_post_content")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="et_pb_post_content")
 
 
 class WSJParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(class_="article-content")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="article-content")
 
 
 # lean-left
 class NYTParser(BaseParser):
-    def extract(self) -> str:
-        story = self.soup.find("section", attrs={"name": "articleBody"})
-        paragraphs = story.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(name="section", attrs={"name": "articleBody"})
 
 
 class TheGuardianParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(class_="article-body-commercial-selector")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="article-body-commercial-selector")
 
 
 # left
 class JacobinParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(id="post-content")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(id="post-content")
 
 
 class TheInterceptParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(class_="PostContent")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="PostContent")
 
 
 class VoxParser(BaseParser):
-    def extract(self) -> str:
-        storytext = self.soup.find(class_="c-entry-content")
-        paragraphs = storytext.find_all("p")
-        return " ".join([p.text for p in paragraphs])
+    target = dict(class_="c-entry-content")
 
 
 url_to_parser = {

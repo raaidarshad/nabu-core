@@ -18,7 +18,7 @@ from pipelines.common import Article, ArticleCluster, Cluster, Feed, Lean, Tagge
 
 logging.basicConfig(filename="statsSession.log",
                     format='%(asctime)s %(levelname)s %(message)s',
-                    datefmt='%Y-%m-%d %I:%M:%S %p',
+                    datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 thread_local = threading.local()
 nlp = spacy.load("en_core_web_lg")
