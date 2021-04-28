@@ -24,9 +24,17 @@ class Feed:
 
 
 @dataclass
+class Entry:
+    link: str
+    summary: str
+    title: str
+
+
+@dataclass
 class Article:
     id: str
     source: str
+    entry: Entry
     content: str
 
     def __hash__(self):

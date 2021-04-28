@@ -48,7 +48,7 @@ def feeds_to_articles(feeds: list[Feed]) -> list[Article]:
         except:
             logging.info(f"Article with URL {entry.link} was not parsed successfully")
             text = entry.summary
-        return Article(id=entry.link, source=feed.content.url, content=text)
+        return Article(id=entry.link, source=feed.content.url, entry=entry, content=text)
 
     articles = []
 
@@ -101,12 +101,12 @@ def clusterify(df: pandas.DataFrame) -> set[Cluster]:
         current = cluster
         for comp in clusters:
             # option 1
-            # if current.intersection(comp):
+            if current.intersection(comp):
             # option 2
-            if len(current.intersection(comp)) > len(comp.difference(current)):
+            # if len(current.intersection(comp)) > len(comp.difference(current)):
                 current = current.union(comp)
         merged_clusters.append(current)
-        clusters[idx] = cluster
+        clusters[idx] = current
 
     # dedupe merged sets
     return set([frozenset(s) for s in merged_clusters])
@@ -137,7 +137,7 @@ articles = feeds_to_articles(feeds=feeds)
 logging.info(f"Articles obtained: {time.time() - start_time}")
 sim_df = compute_similarity(articles)
 logging.info(f"Similarity df computed: {time.time() - start_time}")
-sat_df = saturate_data(sim_df, threshold=0.2)
+sat_df = saturate_data(sim_df, threshold=0.45)
 logging.info(f"Dataframe saturated: {time.time() - start_time}")
 clusters = clusterify(sat_df)
 logging.info(f"Clusters identified: {time.time() - start_time}")
@@ -149,7 +149,7 @@ for merp in article_clusters:
     if len(merp) > 1:
         clusters_bigger_than_1 += 1
         for flerp in merp:
-            print(flerp.id)
+            print(flerp.entry.title)
         print("- - - - - -")
 
 logging.info(f"There are {clusters_bigger_than_1} clusters with more than 1 article")
