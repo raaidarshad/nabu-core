@@ -4,7 +4,7 @@ from enum import Enum
 
 import feedparser
 
-from pipelines.html_parsers import url_to_parser
+from pipelines.html_parsers import BaseParser, url_to_parser
 
 
 class Lean(Enum):
@@ -20,7 +20,7 @@ class Feed:
         self.url = url
         self.lean = lean
         self.content = content
-        self.html_parser = url_to_parser[self.url]
+        self.html_parser: BaseParser = url_to_parser[self.url]
 
 
 @dataclass

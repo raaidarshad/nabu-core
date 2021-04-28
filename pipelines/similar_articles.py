@@ -44,7 +44,7 @@ def feeds_to_articles(feeds: list[Feed]) -> list[Article]:
     def parse_content(entry, feed: Feed) -> Article:
         try:
             with get_session().get(entry.link) as response:
-                text = feed.html_parser(content=response.content).extract()
+                text = feed.html_parser.extract(content=response.content)
         except:
             logging.info(f"Article with URL {entry.link} was not parsed successfully")
             text = entry.summary
