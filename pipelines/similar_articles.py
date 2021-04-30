@@ -149,7 +149,7 @@ for merp in article_clusters:
     if len(merp) > 1:
         clusters_bigger_than_1 += 1
         for flerp in merp:
-            print(flerp.entry.title)
+            print(f"{flerp.source}: {flerp.entry.title}")
         print("- - - - - -")
 
 logging.info(f"There are {clusters_bigger_than_1} clusters with more than 1 article")

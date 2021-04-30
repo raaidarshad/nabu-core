@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 import feedparser
@@ -15,11 +15,14 @@ class Lean(Enum):
     RIGHT = "RIGHT"
 
 
+@dataclass
 class Feed:
-    def __init__(self, url: str, lean: Lean, content: feedparser.util.FeedParserDict):
-        self.url = url
-        self.lean = lean
-        self.content = content
+    url: str
+    lean: Lean
+    content: feedparser.util.FeedParserDict
+    html_parser: BaseParser = field(init=False)
+
+    def __post_init__(self):
         self.html_parser: BaseParser = url_to_parser[self.url]
 
 
