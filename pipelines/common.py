@@ -20,10 +20,12 @@ class Feed:
     url: str
     lean: Lean
     content: feedparser.util.FeedParserDict
+    title: str = field(init=False)
     html_parser: BaseParser = field(init=False)
 
     def __post_init__(self):
-        self.html_parser: BaseParser = url_to_parser[self.url]
+        self.html_parser = url_to_parser[self.url]
+        self.title = self.content.feed.title
 
 
 @dataclass
@@ -36,7 +38,8 @@ class Entry:
 @dataclass
 class Article:
     id: str
-    source: str
+    feed_url: str
+    feed_title: str
     entry: Entry
     content: str
 

@@ -48,7 +48,7 @@ def feeds_to_articles(feeds: list[Feed]) -> list[Article]:
         except:
             logging.info(f"Article with URL {entry.link} was not parsed successfully")
             text = entry.summary
-        return Article(id=entry.link, source=feed.content.url, entry=entry, content=text)
+        return Article(id=entry.link, feed_url=feed.url, feed_title=feed.title, entry=entry, content=text)
 
     articles = []
 
@@ -149,7 +149,7 @@ for merp in article_clusters:
     if len(merp) > 1:
         clusters_bigger_than_1 += 1
         for flerp in merp:
-            print(f"{flerp.source}: {flerp.entry.title}")
+            print(f"{flerp.feed_title}: {flerp.entry.title}")
         print("- - - - - -")
 
 logging.info(f"There are {clusters_bigger_than_1} clusters with more than 1 article")
