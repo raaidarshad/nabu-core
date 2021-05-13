@@ -14,7 +14,20 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import spacy
 
-from pipelines.common import Article, ArticleCluster, Cluster, Feed, Lean, TaggedCluster, Tags, headers, urls_and_leans
+from etl.pipelines.common import Article, ArticleCluster, Cluster, Feed, Lean, TaggedCluster, Tags, headers, urls_and_leans
+
+logFormatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+rootLogger = logging.getLogger()
+logPath = "logs"
+fileName = "main"
+
+fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
 
 logging.basicConfig(filename="statsSession.log",
                     format='%(asctime)s %(levelname)s %(message)s',
@@ -38,7 +51,6 @@ def get_feed(url: str, lean: Lean, limit: int = 10) -> Feed:
     return Feed(lean=lean, content=feed, url=url)
 
 
-# @task
 def feeds_to_articles(feeds: list[Feed]) -> list[Article]:
 
     def parse_content(entry, feed: Feed) -> Article:
@@ -100,10 +112,7 @@ def clusterify(df: pandas.DataFrame) -> set[Cluster]:
     for idx, cluster in enumerate(clusters):
         current = cluster
         for comp in clusters:
-            # option 1
             if current.intersection(comp):
-            # option 2
-            # if len(current.intersection(comp)) > len(comp.difference(current)):
                 current = current.union(comp)
         merged_clusters.append(current)
         clusters[idx] = current

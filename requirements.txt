@@ -1,10 +1,11 @@
 aiohttp
 beautifulsoup4
+dagit
+dagster
 feedparser
 flask
 gunicorn
 pandas
-prefect
 requests
 requests-cache
 scikit-learn

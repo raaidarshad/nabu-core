@@ -4,7 +4,7 @@ from enum import Enum
 
 import feedparser
 
-from pipelines.html_parsers import BaseParser, url_to_parser
+from etl.pipelines.html_parsers import BaseParser, url_to_parser
 
 
 class Lean(Enum):
