@@ -10,3 +10,4 @@ requests
 requests-cache
 scikit-learn
 spacy
+sqlalchemy
