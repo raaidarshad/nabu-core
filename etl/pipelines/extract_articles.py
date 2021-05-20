@@ -14,3 +14,14 @@ Solids
     5. parse_article: Entry -> Article
 """
 
+from dagster import ModeDefinition, pipeline
+
+local_mode = ModeDefinition(name="local")
+dev_mode = ModeDefinition(name="dev")
+prod_mode = ModeDefinition(name="prod")
+test_mode = ModeDefinition(name="test")
+
+
+@pipeline(mode_defs=[local_mode, dev_mode, prod_mode, test_mode])
+def extract_articles():
+    pass

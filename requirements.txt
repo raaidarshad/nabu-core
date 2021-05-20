@@ -6,6 +6,7 @@ feedparser
 flask
 gunicorn
 pandas
+pydantic
 requests
 requests-cache
 scikit-learn

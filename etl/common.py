@@ -34,7 +34,7 @@ class AfAccuracy(Enum):
     pass
 
 
-class AllSidesBias(Enum):
+class AsBias(Enum):
     LEFT = "LEFT"
     LEAN_LEFT = "LEAN_LEFT"
     CENTER = "CENTER"
