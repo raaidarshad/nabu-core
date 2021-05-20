@@ -13,10 +13,14 @@ Solids
     4. feed_to_entry: Feed -> Entry
     5. parse_article: Entry -> Article
 """
-
 from dagster import ModeDefinition, pipeline
 
-local_mode = ModeDefinition(name="local")
+from etl.resources.database_client import local_database_client
+
+local_mode = ModeDefinition(
+    name="local",
+    resource_defs={"database_client": local_database_client}
+)
 dev_mode = ModeDefinition(name="dev")
 prod_mode = ModeDefinition(name="prod")
 test_mode = ModeDefinition(name="test")

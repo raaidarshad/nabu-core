@@ -7,6 +7,7 @@ flask
 gunicorn
 pandas
 pydantic
+pyyaml
 requests
 requests-cache
 scikit-learn
