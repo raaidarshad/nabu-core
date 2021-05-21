@@ -37,6 +37,7 @@ class Feed(BaseModel):
     entries: list[FeedEntry]
     url: HttpUrl = Field(alias="link")
     updated_at: datetime = Field(alias="updated")
+    source_id: UUID
 
 
 class Article(BaseModel):

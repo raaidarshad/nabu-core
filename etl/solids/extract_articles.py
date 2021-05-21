@@ -1,7 +1,6 @@
 import datetime
-
-from requests import Response
-from typing import Iterator
+import requests
+import threading
 
 from dagster import solid
 from dagster.experimental import DynamicOutput, DynamicOutputDefinition
@@ -13,7 +12,7 @@ from etl.models import Article, Feed, FeedEntry, Source
 
 @solid(required_resource_keys={"database_client"}, output_defs=[DynamicOutputDefinition(Source)])
 def get_all_sources(context: Context):
-    # hits db to get all Sources
+    # TODO might need to cast to pydantic type here? idk if dagster will like this
     sources = context.resources.database_client.query(DbSource).all()
     context.log.info(f"Got {len(sources)} sources")
     for src in sources:
@@ -25,7 +24,7 @@ def get_latest_feed(context: Context, source: Source) -> Feed:
     # TODO wrap in try/except to handle when retrieval/parsing unsuccessful
     raw = context.resources.rss_parser.parse(source.rss_url)
     entries = [FeedEntry(**e) for e in raw.entries]
-    return Feed(entries=entries, **raw.feed)
+    return Feed(entries=entries, source_id=source.id, **raw.feed)
 
 
 @solid
@@ -47,12 +46,12 @@ def filter_out_old_entries():
     pass
 
 
-def get_article_response(context: Context, feed_entry: FeedEntry) -> Response:
-    # hit url for response
+@solid(required_resource_keys={"http_client"})
+def get_article_response(context: Context, feed_entry: FeedEntry) -> requests.Response:
     pass
 
 
-def extract_article(context: Context, feed_entry: FeedEntry, response: Response) -> Article:
+def extract_article(context: Context, feed_entry: FeedEntry, response: requests.Response) -> Article:
     # create Article object from feed_entry metadata and parsed content of response
     pass
 
