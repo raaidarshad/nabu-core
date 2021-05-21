@@ -15,7 +15,7 @@ Solids
 """
 from dagster import ModeDefinition, pipeline
 
-from etl.resources import local_database_client, http_client, rss_parser, thread_local
+from etl.resources import local_database_client, html_parser, http_client, rss_parser, thread_local
 from etl.solids.extract_articles import get_all_sources, get_latest_feed
 
 local_mode = ModeDefinition(
@@ -24,7 +24,8 @@ local_mode = ModeDefinition(
         "database_client": local_database_client,
         "rss_parser": rss_parser,
         "http_client": http_client,
-        "thread_local": thread_local
+        "thread_local": thread_local,
+        "html_parser": html_parser
     }
 )
 dev_mode = ModeDefinition(name="dev")

@@ -1,6 +1,5 @@
 import datetime
 import requests
-import threading
 
 from dagster import solid
 from dagster.experimental import DynamicOutput, DynamicOutputDefinition
@@ -8,6 +7,7 @@ from dagster.experimental import DynamicOutput, DynamicOutputDefinition
 from etl.common import Context
 from etl.db.models import Source as DbSource
 from etl.models import Article, Feed, FeedEntry, Source
+from etl.resources.html_parser import BaseParser
 
 
 @solid(required_resource_keys={"database_client"}, output_defs=[DynamicOutputDefinition(Source)])
@@ -48,12 +48,25 @@ def filter_out_old_entries():
 
 @solid(required_resource_keys={"http_client"})
 def get_article_response(context: Context, feed_entry: FeedEntry) -> requests.Response:
-    pass
+    # TODO wrap in try/except, handle error cases
+    http_session: requests.Session = context.resources.http_client
+    return http_session.get(feed_entry.url)
 
 
-def extract_article(context: Context, feed_entry: FeedEntry, response: requests.Response) -> Article:
-    # create Article object from feed_entry metadata and parsed content of response
-    pass
+@solid(required_resource_keys={"html_parser"})
+def extract_article(
+        context: Context,
+        response: requests.Response,
+        feed_entry: FeedEntry,
+        source: Source) -> Article:
+    parser: BaseParser = context.resources.html_parser
+    # TODO make try/except better here
+    try:
+        text = parser.extract(content=response.content, parse_config=source.html_parser_config)
+    except:
+        context.log.info(f"Entry with URL {feed_entry.url} was not parsed successfully")
+        text = feed_entry.summary
+    return Article(source_id=source.id, parsed_content=text, **feed_entry.dict())
 
 
 def collect_articles(context: Context):

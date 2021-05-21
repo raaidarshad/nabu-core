@@ -13,6 +13,7 @@ class Source(BaseModel):
     short_name: Optional[str]
     long_name: Optional[str]
     rss_url: HttpUrl
+    html_parser_config: dict
     allsides_bias: Optional[AsBias]
     mbfc_bias: Optional[MbfcBias]
     mbfc_accuracy: Optional[MbfcAccuracy]
@@ -46,7 +47,6 @@ class Article(BaseModel):
     source_id: UUID
     summary: Optional[str]
     title: str
-    raw_content: str  # JSON?
     parsed_content: Optional[str]
     published_at: datetime
     authors: str
