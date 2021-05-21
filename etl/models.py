@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 
 from etl.common import AfAccuracy, AfBias, AsBias, MbfcAccuracy, MbfcBias
 
 
 class Source(BaseModel):
-    id: UUID = uuid4()
+    id: UUID = Field(default_factory=uuid4)
     name: str
     short_name: Optional[str]
     long_name: Optional[str]
@@ -19,25 +19,28 @@ class Source(BaseModel):
     af_bias: Optional[AfBias]
     af_accuracy: Optional[AfAccuracy]
 
+    class Config:
+        orm_mode = True
+
 
 class FeedEntry(BaseModel):
     title: str
     summary: str
-    published: datetime
-    url: HttpUrl  # TODO "link"
-    authors: str  # TODO .author (without s) contains just the value from ^; might be better to use that
+    published_at: datetime = Field(alias="published")
+    url: HttpUrl = Field(alias="link")
+    authors: str = Field(alias="author")
 
 
 class Feed(BaseModel):
     title: str
     subtitle: Optional[str]
     entries: list[FeedEntry]
-    url: HttpUrl  # TODO "link"
-    updated: datetime
+    url: HttpUrl = Field(alias="link")
+    updated_at: datetime = Field(alias="updated")
 
 
 class Article(BaseModel):
-    id: UUID = uuid4()
+    id: UUID = Field(default_factory=uuid4)
     url: HttpUrl
     source_id: UUID
     summary: Optional[str]
@@ -46,3 +49,6 @@ class Article(BaseModel):
     parsed_content: Optional[str]
     published_at: datetime
     authors: str
+
+    class Config:
+        orm_mode = True
