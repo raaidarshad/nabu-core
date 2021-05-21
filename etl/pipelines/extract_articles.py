@@ -1,22 +1,12 @@
 """
-Pipeline that takes FeedData as input and outputs Articles. The input comes from constants, and the output
-goes to a Postgres DB.
-
-IOManagers
-1. FeedData input
-2. Article dataset output
-
-Solids
-1. get_feeds: <input> -> Feeds
-    2. get_feed: url, limit -> Feed
-3. feed_to_articles: Feed -> Articles
-    4. feed_to_entry: Feed -> Entry
-    5. parse_article: Entry -> Article
+Pipeline that gets all Sources from DB and writes newly published Articles to DB.
 """
+
 from dagster import ModeDefinition, pipeline
 
 from etl.resources import local_database_client, html_parser, http_client, rss_parser, thread_local
-from etl.solids.extract_articles import get_all_sources, get_latest_feed
+from etl.solids.extract_articles import get_all_sources, get_latest_feeds, filter_to_updated_feeds, \
+    filter_to_new_entries, extract_articles, load_articles
 
 local_mode = ModeDefinition(
     name="local",
@@ -36,7 +26,16 @@ test_mode = ModeDefinition(name="test")
 @pipeline(mode_defs=[local_mode, dev_mode, prod_mode, test_mode])
 def extract_articles():
     sources = get_all_sources()
-    feeds = sources.map(get_latest_feed)
+    source_map = {s.id: s for s in sources}
+
+    feeds = get_latest_feeds(sources)
+    filtered_feeds = filter_to_updated_feeds(feeds)
+    filtered_entries = filter_to_new_entries(filtered_feeds)
+    articles = extract_articles(filtered_entries, source_map)
+    load_articles(articles)
+
+
+
 
 
 

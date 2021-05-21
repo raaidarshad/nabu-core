@@ -30,6 +30,7 @@ class FeedEntry(BaseModel):
     published_at: datetime = Field(alias="published")
     url: HttpUrl = Field(alias="link")
     authors: str = Field(alias="author")
+    source_id: UUID
 
 
 class Feed(BaseModel):
