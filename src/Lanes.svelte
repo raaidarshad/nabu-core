@@ -18,11 +18,6 @@
             id: 3,
             text: `New York Post (Home)`,
             url: `https://nypost.com/feed/`,
-        },
-        {
-            id: 4,
-            text: `Daily Mail (Latest)`,
-            url: `https://www.dailymail.co.uk/articles.rss`
         }
     ];
 

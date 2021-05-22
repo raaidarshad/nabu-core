@@ -17,10 +17,9 @@ url_to_parser = {
     "https://www.oann.com/category/newsroom/feed": BaseParser(target=dict(class_="entry-content")),
     "http://feeds.feedburner.com/breitbart": BaseParser(target=dict(class_="entry-content")),
     "https://nypost.com/feed/": BaseParser(target=dict(class_="entry-content")),
-    "https://www.dailymail.co.uk/articles.rss": BaseParser(target=dict(name="div", attrs={"itemprop": "articleBody"})),
     # lean-right
     "http://feeds.foxnews.com/foxnews/latest": BaseParser(target=dict(class_="article-body")),
-    # "http://feeds.foxnews.com/foxnews/world": BaseParser(target=dict(class_="article-body")),
+    "http://feeds.foxnews.com/foxnews/world": BaseParser(target=dict(class_="article-body")),
     "https://www.washingtontimes.com/rss/headlines/news/": BaseParser(target=dict(class_="bigtext")),
     "https://www.newsmax.com/rss/Newsfront/16": BaseParser(target=dict(name="div", attrs={"itemprop": "articleBody"})),
     # center
