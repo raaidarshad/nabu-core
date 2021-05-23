@@ -63,7 +63,7 @@ urls_and_leans = [
     ("https://www.oann.com/category/newsroom/feed", Lean.RIGHT),
     ("http://feeds.feedburner.com/breitbart", Lean.RIGHT),
     ("https://nypost.com/feed/", Lean.RIGHT),
-    ("https://www.dailymail.co.uk/articles.rss", Lean.RIGHT),
+    # ("https://www.dailymail.co.uk/articles.rss", Lean.RIGHT),
     # lean right
     ("http://feeds.foxnews.com/foxnews/latest", Lean.LEAN_RIGHT),
     ("http://feeds.foxnews.com/foxnews/world", Lean.LEAN_RIGHT),

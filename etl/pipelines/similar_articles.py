@@ -21,10 +21,6 @@ rootLogger = logging.getLogger()
 logPath = "logs"
 fileName = "main"
 
-fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
-fileHandler.setFormatter(logFormatter)
-rootLogger.addHandler(fileHandler)
-
 consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
