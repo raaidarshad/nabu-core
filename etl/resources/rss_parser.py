@@ -4,8 +4,8 @@ import feedparser
 
 class RssParser:
     @staticmethod
-    def parse(**kwargs):
-        return feedparser.parse(**kwargs)
+    def parse(*args, **kwargs):
+        return feedparser.parse(*args, **kwargs)
 
 
 @resource

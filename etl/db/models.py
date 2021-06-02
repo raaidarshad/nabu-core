@@ -10,7 +10,7 @@ from etl.common import AfAccuracy, AfBias, AsBias, MbfcAccuracy, MbfcBias
 
 class Source(Base):
     __tablename__ = "sources"
-    id = Column(UUID, primary_key=True, default=uuid.uuid4, unique=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
     name = Column(String, nullable=False)
     short_name = Column(String)
     long_name = Column(String)
@@ -25,9 +25,9 @@ class Source(Base):
 
 class Article(Base):
     __tablename__ = "articles"
-    id = Column(UUID, primary_key=True, default=uuid.uuid4, unique=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
     url = Column(String, nullable=False, unique=True)
-    source_id = Column(UUID, ForeignKey("sources.id"), nullable=False)
+    source_id = Column(UUID(as_uuid=True), ForeignKey("sources.id"), nullable=False)
     summary = Column(String)
     title = Column(String)
     parsed_content = Column(String)

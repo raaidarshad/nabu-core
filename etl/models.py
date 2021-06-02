@@ -27,9 +27,9 @@ class Source(BaseModel):
 class FeedEntry(BaseModel):
     title: str
     summary: str
-    published_at: datetime = Field(alias="published")
+    published_at: datetime
     url: HttpUrl = Field(alias="link")
-    authors: str = Field(alias="author")
+    authors: Optional[str] = Field(alias="author")
     source_id: UUID
 
 
@@ -38,7 +38,7 @@ class Feed(BaseModel):
     subtitle: Optional[str]
     entries: list[FeedEntry]
     url: HttpUrl = Field(alias="link")
-    updated_at: datetime = Field(alias="updated")
+    updated_at: datetime
     source_id: UUID
 
 
@@ -50,7 +50,7 @@ class Article(BaseModel):
     title: str
     parsed_content: Optional[str]
     published_at: datetime
-    authors: str
+    authors: Optional[str]
 
     class Config:
         orm_mode = True

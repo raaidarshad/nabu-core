@@ -6,6 +6,7 @@ feedparser
 flask
 gunicorn
 pandas
+psycopg2
 pydantic
 pyyaml
 requests

@@ -3,7 +3,7 @@ import datetime
 import requests
 from uuid import UUID
 
-from dagster import solid
+from dagster import String, solid
 from sqlalchemy.orm import Session
 
 from etl.common import Context
@@ -14,46 +14,69 @@ from etl.resources.html_parser import BaseParser
 
 @solid(required_resource_keys={"database_client"})
 def get_all_sources(context: Context) -> list[Source]:
-    # TODO might need to cast to pydantic type here? idk if dagster will like this
     db_client: Session = context.resources.database_client
     sources = db_client.query(DbSource).all()
     context.log.info(f"Got {len(sources)} sources")
-    return sources
+    return [Source(**s.__dict__) for s in sources]
 
 
-@solid(required_resource_keys={"rss_parser"})
+@solid
+def create_source_map(context: Context, sources: list[Source]) -> dict[UUID, Source]:
+    return {s.id: s for s in sources}
+
+
+@solid(required_resource_keys={"rss_parser"}, config_schema={"time_threshold": String})
 def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
+
+    time_threshold_str = context.solid_config["time_threshold"]
+    time_threshold = datetime.datetime.strptime(time_threshold_str, "%Y-%m-%d %H:%M:%S.%f%z")
+    last_modified_header = time_threshold.strftime("%a, %d %m %Y %H:%M:%S GMT")
+
+    def _parse_raw_to_feed(raw_feed, entries: list[FeedEntry], source_id: UUID) -> Feed:
+        try:
+            updated = raw_feed.updated
+        except AttributeError:
+            context.log.debug(f"Raw feed for source with id {source_id} doesn't have 'updated' field")
+            updated = str(datetime.datetime.now(datetime.timezone.utc))
+        return Feed(entries=entries, source_id=source_id, updated_at=_format_time(updated), **raw_feed)
+
+    def _format_time(raw_time: str) -> datetime.datetime:
+        for fmt in ("%a, %d %b %Y %H:%M:%S %z",
+                    "%a, %d %b %Y %H:%M:%S %Z",
+                    "%Y-%m-%dT%H:%M:%SZ",
+                    "%Y-%m-%dT%H:%M:%S%z",
+                    "%Y-%m-%d %H:%M:%S.%f%z"):
+            try:
+                dt = datetime.datetime.strptime(raw_time, fmt)
+                if not dt.tzinfo:
+                    dt = dt.astimezone(datetime.timezone.utc)
+                return dt
+            except ValueError:
+                pass
+        raise ValueError(f"no valid date format found for {raw_time}")
 
     def _get_latest_feed(source: Source) -> Feed:
         # TODO wrap in try/except to handle when retrieval/parsing unsuccessful
-        raw = context.resources.rss_parser.parse(source.rss_url)
-        entries = [FeedEntry(**e) for e in raw.entries]
-        return Feed(entries=entries, source_id=source.id, **raw.feed)
+        raw = context.resources.rss_parser.parse(source.rss_url, modified=last_modified_header)
 
-    return [_get_latest_feed(source) for source in sources]
+        if raw.status == 200:
+            entries = [FeedEntry(source_id=source.id, published_at=_format_time(e.published), **e) for e in raw.entries]
+            return _parse_raw_to_feed(raw_feed=raw.feed, entries=entries, source_id=source.id)
 
-
-@solid
-def filter_to_updated_feeds(context: Context, feeds: list[Feed]) -> list[Feed]:
-    # TODO timezones? also, "N" minutes? get from context?
-
-    def time_filter(feed: Feed, later_than: datetime.datetime) -> bool:
-        return feed.updated_at > later_than
-
-    time_threshold = datetime.datetime.now() - datetime.timedelta(minutes=15)
-    filtered = [f for f in feeds if time_filter(f, time_threshold)]
-    context.log.info(f"Started with {len(feeds)} feeds")
-    context.log.info(f"Filtered down to {len(filtered)} feeds updated since {time_threshold}")
-    return filtered
+    filtered_feeds = list(filter(None, [_get_latest_feed(source) for source in sources]))
+    context.log.info(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")
+    return filtered_feeds
 
 
-@solid
+@solid(config_schema={"time_threshold": String})
 def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry]:
 
     def time_filter(entry: FeedEntry, later_than: datetime.datetime) -> bool:
         return entry.published_at > later_than
 
-    time_threshold = datetime.datetime.now() - datetime.timedelta(minutes=15)
+    time_threshold_str = context.solid_config["time_threshold"]
+    time_threshold = datetime.datetime.strptime(time_threshold_str, "%Y-%m-%d %H:%M:%S.%f%z")
+
     entries = []
     for feed in feeds:
         entries.extend([entry for entry in feed.entries if time_filter(entry, time_threshold)])

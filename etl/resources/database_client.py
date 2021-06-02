@@ -12,4 +12,4 @@ def database_client(init_context) -> Session:
 
 @configured(configurable=database_client)
 def local_database_client(_init_context):
-    return {"connection_string": "postgresql://postgres:postgres@localhost:5432/test"}
+    return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
