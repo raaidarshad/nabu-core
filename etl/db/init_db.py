@@ -1,10 +1,26 @@
+import os
 import json
+from urllib import parse
 
+from sqlalchemy import create_engine
 from sqlalchemy.orm.session import Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine.url import URL
 
-from etl.db.database import DbSession, engine
 from etl.db.models import Source as DbSource, Base
 from etl.models import Source
+
+
+SQLALCHEMY_DATABASE_URL = URL.create(
+    drivername=os.getenv("DB_DRIVER"),
+    username=os.getenv("DB_USERNAME"),
+    password=parse.quote_plus(os.getenv("DB_PASSWORD")),
+    host=os.getenv("DB_HOST"),
+    port=int(os.getenv("DB_PORT")),
+    database=os.getenv("DB_NAME"))
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+DbSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def load_sources_from_file():
