@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from dagster import SolidExecutionResult, execute_solid
 
@@ -21,6 +21,13 @@ def test_get_all_sources():
     )
 
     assert result.success
+    assert len(result.output_value()) == 1
+    test_source = result.output_value()[0]
+    assert isinstance(test_source, Source)
+    assert test_source.name == "name"
+    assert test_source.rss_url == "https://fake.com"
+    assert test_source.html_parser_config == {"id": "merp"}
+    assert isinstance(test_source.id, UUID)
 
 
 def test_create_source_map():
