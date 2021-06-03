@@ -11,7 +11,6 @@ def test_extract_articles():
         mode="test",
         run_config={
             "solids": {
-
                 "get_latest_feeds": {
                     "config": {
                         "time_threshold": str(datetime.now(timezone.utc))
@@ -22,7 +21,6 @@ def test_extract_articles():
                         "time_threshold": str(datetime.now(timezone.utc))
                     }
                 }
-                
             }
         }
     )
