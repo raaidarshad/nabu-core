@@ -38,6 +38,10 @@ def test_create_source_map():
     )
 
     assert result.success
+    assert len(result.output_value()) == len(sources)
+    for i, (k, v) in enumerate(result.output_value().items()):
+        assert k == sources[i].id
+        assert v == sources[i]
 
 
 def test_get_latest_feeds():
