@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 from dagster import configured, resource
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -13,3 +15,8 @@ def database_client(init_context) -> Session:
 @configured(configurable=database_client)
 def local_database_client(_init_context):
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
+
+
+@resource
+def test_database_client(_init_context) -> Session:
+    return MagicMock(spec=Session)

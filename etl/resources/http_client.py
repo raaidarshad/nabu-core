@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import requests
+from unittest.mock import Mock
 
 from dagster import resource, InitResourceContext
 
@@ -25,3 +26,8 @@ def http_client(init_context: InitResourceContext) -> requests.Session:
         session.headers = headers
         thread_local.session = session
     return thread_local.session
+
+
+@resource(required_resource_keys={"thread_local"})
+def test_http_client(_init_context) -> requests.Session:
+    return Mock(spec=requests.Session)

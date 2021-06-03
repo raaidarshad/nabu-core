@@ -8,6 +8,7 @@ gunicorn
 pandas
 psycopg2
 pydantic
+pytest
 pyyaml
 requests
 requests-cache

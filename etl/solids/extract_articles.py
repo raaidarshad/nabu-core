@@ -21,7 +21,7 @@ def get_all_sources(context: Context) -> list[Source]:
 
 
 @solid
-def create_source_map(context: Context, sources: list[Source]) -> dict[UUID, Source]:
+def create_source_map(_context: Context, sources: list[Source]) -> dict[UUID, Source]:
     return {s.id: s for s in sources}
 
 

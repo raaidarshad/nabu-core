@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from bs4 import BeautifulSoup
 from dagster import resource
 
@@ -14,3 +16,10 @@ class BaseParser:
 @resource
 def html_parser(_init_context) -> BaseParser:
     return BaseParser()
+
+
+@resource
+def test_html_parser(_init_context) -> BaseParser:
+    bp = Mock(spec=BaseParser)
+    bp.extract = Mock(return_value="fake joined text")
+    return bp
