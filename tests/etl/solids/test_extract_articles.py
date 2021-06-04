@@ -61,6 +61,21 @@ def test_get_latest_feeds():
     )
 
     assert result.success
+    assert len(result.output_value()) == len(sources)
+    for idx, output in enumerate(result.output_value()):
+        # doing lots of asserts because the time is generated in the test resource
+        # so we can't precisely assert it
+        assert isinstance(output, Feed)
+        assert output.source_id == sources[idx].id
+        assert output.url == "https://www.fake.com"
+        assert output.title == "myfeed_title"
+        assert len(output.entries) == 1
+        entry = output.entries[0]
+        assert entry.source_id == sources[idx].id
+        assert entry.title == "fake_title"
+        assert entry.summary == "fake_summary"
+        assert entry.url == "https://www.fake.com"
+        assert entry.authors == "pencil mcpen"
 
 
 def test_filter_to_new_entries():
