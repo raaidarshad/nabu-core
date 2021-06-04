@@ -1,10 +1,13 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
+from unittest.mock import MagicMock, Mock
 
-from dagster import SolidExecutionResult, execute_solid
+from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
+from etl.resources.database_client import test_database_client
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
     extract_articles, load_articles
 
@@ -15,13 +18,36 @@ sources = [
 
 
 def test_get_all_sources():
+    @dataclass
+    class FakeSource:
+        id: UUID
+        name: str
+        rss_url: str
+        html_parser_config: dict
+
+    fake_sources = [
+        FakeSource(**{"id": uuid4(),
+                      "name": "name",
+                      "rss_url": "https://fake.com",
+                      "html_parser_config": {"id": "merp"}
+                      })
+    ]
+
+    def _test_db_client(_init_context):
+        db = test_database_client()
+        t_query = Mock()
+        t_query.all = Mock(return_value=fake_sources)
+        db.query = Mock(return_value=t_query)
+        return db
+
     result: SolidExecutionResult = execute_solid(
         get_all_sources,
-        mode_def=test_mode
+        # needs a database_client that returns a list of Source-like objects when db.query().all() is called
+        mode_def=ModeDefinition(name="test1", resource_defs={"database_client": ResourceDefinition(_test_db_client)})
     )
 
     assert result.success
-    assert len(result.output_value()) == 1
+    assert len(result.output_value()) == len(fake_sources)
     test_source = result.output_value()[0]
     assert isinstance(test_source, Source)
     assert test_source.name == "name"
@@ -103,6 +129,8 @@ def test_filter_to_new_entries():
 
     assert result.success
 
+    # TODO assert output is correct, pull Feed out from input_values and populate entries
+
 
 def test_extract_articles():
     sid = uuid4()
@@ -127,6 +155,8 @@ def test_extract_articles():
 
     assert result.success
 
+    # TODO assert output is correct, pull out input_values
+
 
 def test_load_articles():
     result: SolidExecutionResult = execute_solid(
@@ -143,3 +173,5 @@ def test_load_articles():
     )
 
     assert result.success
+
+    # TODO assert db_client.add_all is called with correct args, otherwise no output to check

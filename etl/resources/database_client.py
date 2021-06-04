@@ -22,21 +22,4 @@ def local_database_client(_init_context):
 
 @resource
 def test_database_client(_init_context) -> Session:
-    @dataclass
-    class FakeSource:
-        id: UUID
-        name: str
-        rss_url: str
-        html_parser_config: dict
-
-    db = MagicMock(spec=Session)
-    t_query = Mock()
-    t_query.all = Mock(return_value=[
-        FakeSource(**{"id": uuid4(),
-                      "name": "name",
-                      "rss_url": "https://fake.com",
-                      "html_parser_config": {"id": "merp"}
-                      })
-    ])
-    db.query = Mock(return_value=t_query)
-    return db
+    return MagicMock(Session)
