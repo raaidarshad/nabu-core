@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 
+from etl.db.models import Article as DbArticle
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
 from etl.resources.database_client import test_database_client
@@ -43,7 +44,8 @@ def test_get_all_sources():
     result: SolidExecutionResult = execute_solid(
         get_all_sources,
         # needs a database_client that returns a list of Source-like objects when db.query().all() is called
-        mode_def=ModeDefinition(name="test1", resource_defs={"database_client": ResourceDefinition(_test_db_client)})
+        mode_def=ModeDefinition(name="test_get_all_sources",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)})
     )
 
     assert result.success
@@ -159,19 +161,33 @@ def test_extract_articles():
 
 
 def test_load_articles():
+    articles = [
+        Article(id=uuid4(),
+                url="https://fake.com",
+                source_id=uuid4(),
+                title="title",
+                published_at=datetime.now(timezone.utc))
+    ]
+
+    db_articles = [DbArticle(**article.dict()) for article in articles]
+
+    db_mock = test_database_client()
+
+    def _test_db_client(_init_context):
+        db_mock.add_all = Mock(return_value=1)
+        db_mock.commit = Mock(return_value=1)
+        return db_mock
+
     result: SolidExecutionResult = execute_solid(
         load_articles,
-        mode_def=test_mode,
-        input_values={
-            "articles": [
-                Article(id=uuid4(),
-                        url="https://fake.com",
-                        source_id=uuid4(),
-                        title="title",
-                        published_at=datetime.now(timezone.utc))
-            ]}
+        # needs a database_client that has add_all and commit methods
+        mode_def=ModeDefinition(name="test_load_articles",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
+        input_values={"articles": articles}
     )
 
     assert result.success
+    assert db_mock.add_all.called_once_with(db_articles)
+    assert db_mock.commit.called_once()
 
     # TODO assert db_client.add_all is called with correct args, otherwise no output to check
