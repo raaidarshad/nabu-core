@@ -4,11 +4,13 @@ from uuid import UUID, uuid4
 from unittest.mock import MagicMock, Mock
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
+import feedparser
 
 from etl.db.models import Article as DbArticle
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
 from etl.resources.database_client import test_database_client
+from etl.resources.rss_parser import test_rss_parser
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
     extract_articles, load_articles
 
@@ -73,9 +75,32 @@ def test_create_source_map():
 
 
 def test_get_latest_feeds():
+    parsed = feedparser.FeedParserDict({
+        "status": 200,
+        "feed": feedparser.FeedParserDict(
+            {"updated": str(datetime.now(timezone.utc)),
+             "link": "https://www.fake.com",
+             "title": "myfeed_title",
+             "subtitle": "myfeed_subtitle"
+             }),
+        "entries": [feedparser.FeedParserDict(
+            {"title": "fake_title",
+             "summary": "fake_summary",
+             "published": str(datetime.now(timezone.utc)),
+             "link": "https://www.fake.com",
+             "author": "pencil mcpen"
+             })]
+    })
+
+    def _test_rss_parser(_init_context):
+        rss_mock = test_rss_parser()
+        rss_mock.parse = Mock(return_value=parsed)
+        return rss_mock
+
     result: SolidExecutionResult = execute_solid(
         get_latest_feeds,
-        mode_def=test_mode,
+        mode_def=ModeDefinition(name="test_get_latest_feeds",
+                                resource_defs={"rss_parser": ResourceDefinition(_test_rss_parser)}),
         input_values={"sources": sources},
         run_config={
             "solids": {
@@ -91,19 +116,22 @@ def test_get_latest_feeds():
     assert result.success
     assert len(result.output_value()) == len(sources)
     for idx, output in enumerate(result.output_value()):
-        # doing lots of asserts because the time is generated in the test resource
-        # so we can't precisely assert it
         assert isinstance(output, Feed)
-        assert output.source_id == sources[idx].id
-        assert output.url == "https://www.fake.com"
-        assert output.title == "myfeed_title"
-        assert len(output.entries) == 1
-        entry = output.entries[0]
-        assert entry.source_id == sources[idx].id
-        assert entry.title == "fake_title"
-        assert entry.summary == "fake_summary"
-        assert entry.url == "https://www.fake.com"
-        assert entry.authors == "pencil mcpen"
+        assert output == Feed(title=parsed.feed.title,
+                              subtitle=parsed.feed.subtitle,
+                              entries=[
+                                  FeedEntry(
+                                      title=parsed.entries[0].title,
+                                      summary=parsed.entries[0].summary,
+                                      published_at=parsed.entries[0].published,
+                                      link=parsed.entries[0].link,
+                                      author=parsed.entries[0].author,
+                                      source_id=sources[idx].id
+                                  )
+                              ],
+                              link=parsed.feed.link,
+                              updated_at=parsed.feed.updated,
+                              source_id=sources[idx].id)
 
 
 def test_filter_to_new_entries():
