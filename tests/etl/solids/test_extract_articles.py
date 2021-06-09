@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 import feedparser
@@ -10,6 +10,9 @@ from etl.db.models import Article as DbArticle
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
 from etl.resources.database_client import test_database_client
+from etl.resources.html_parser import test_html_parser
+from etl.resources.http_client import test_http_client
+from etl.resources.thread_local import test_thread_local
 from etl.resources.rss_parser import test_rss_parser
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
     extract_articles, load_articles
@@ -135,22 +138,37 @@ def test_get_latest_feeds():
 
 
 def test_filter_to_new_entries():
+    sid = uuid4()
+    entries = [FeedEntry(title="entry1",
+                         summary="summary",
+                         published_at=datetime.now(timezone.utc),
+                         link="https://fake.com",
+                         author="pencil mcpen",
+                         source_id=sid),
+               FeedEntry(title="entry2",
+                         summary="summary2",
+                         published_at=datetime.now(timezone.utc) - timedelta(minutes=2),
+                         link="https://fake.com",
+                         author="pencil mcpen",
+                         source_id=sid)
+               ]
+
     result: SolidExecutionResult = execute_solid(
         filter_to_new_entries,
-        mode_def=test_mode,
+        mode_def=ModeDefinition(name="test_filter_to_new_entries"),
         input_values={
             "feeds": [
                 Feed(title="feed1",
-                     entries=[],
+                     entries=entries,
                      link="https://fake.com",
                      updated_at=datetime.now(timezone.utc),
-                     source_id=uuid4())
+                     source_id=sid)
             ]},
         run_config={
             "solids": {
                 "filter_to_new_entries": {
                     "config": {
-                        "time_threshold": str(datetime.now(timezone.utc))
+                        "time_threshold": str(datetime.now(timezone.utc) - timedelta(seconds=30))
                     }
                 }
             }
@@ -158,34 +176,43 @@ def test_filter_to_new_entries():
     )
 
     assert result.success
-
-    # TODO assert output is correct, pull Feed out from input_values and populate entries
+    # make sure the new entry is present and the old (before the filter threshold) is absent
+    assert result.output_value() == [entries[0]]
 
 
 def test_extract_articles():
     sid = uuid4()
+    entries = [
+        FeedEntry(title="entry1",
+                  summary="summary",
+                  published_at=datetime.now(timezone.utc),
+                  link="https://fake.com",
+                  author="pencil mcpen",
+                  source_id=sid)
+    ]
+    source_map = {
+        sid: Source(id=uuid4(),
+                    name="source1",
+                    rss_url="https://fakeone.com/",
+                    html_parser_config={"id": "merp"})}
+
+    parsed_text = "my fake test text"
+
+    def _test_html_parser(_init_context):
+        mock_parser = test_html_parser()
+        mock_parser.extract = Mock(return_value=parsed_text)
+        return mock_parser
+
     result: SolidExecutionResult = execute_solid(
         extract_articles,
         mode_def=test_mode,
-        input_values={
-            "entries": [
-                FeedEntry(title="entry1",
-                          summary="summary",
-                          published_at=datetime.now(timezone.utc),
-                          link="https://fake.com",
-                          author="pencil mcpen",
-                          source_id=sid)
-            ],
-            "source_map": {
-                sid: Source(id=uuid4(),
-                            name="source1",
-                            rss_url="https://fakeone.com/",
-                            html_parser_config={"id": "merp"})}}
+        input_values={"entries": entries, "source_map": source_map}
     )
 
     assert result.success
 
     # TODO assert output is correct, pull out input_values
+    # TODO needs http_client and html_parser mocks
 
 
 def test_load_articles():
@@ -217,5 +244,3 @@ def test_load_articles():
     assert result.success
     assert db_mock.add_all.called_once_with(db_articles)
     assert db_mock.commit.called_once()
-
-    # TODO assert db_client.add_all is called with correct args, otherwise no output to check
