@@ -9,11 +9,11 @@ import feedparser
 from etl.db.models import Article as DbArticle
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
-from etl.resources.database_client import test_database_client
-from etl.resources.html_parser import test_html_parser
-from etl.resources.http_client import test_http_client
-from etl.resources.thread_local import test_thread_local
-from etl.resources.rss_parser import test_rss_parser
+from etl.resources.database_client import mock_database_client
+from etl.resources.html_parser import mock_html_parser
+from etl.resources.http_client import mock_http_client
+from etl.resources.thread_local import mock_thread_local
+from etl.resources.rss_parser import mock_rss_parser
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
     extract_articles, load_articles
 
@@ -40,7 +40,7 @@ def test_get_all_sources():
     ]
 
     def _test_db_client(_init_context):
-        db = test_database_client()
+        db = mock_database_client()
         t_query = Mock()
         t_query.all = Mock(return_value=fake_sources)
         db.query = Mock(return_value=t_query)
@@ -96,7 +96,7 @@ def test_get_latest_feeds():
     })
 
     def _test_rss_parser(_init_context):
-        rss_mock = test_rss_parser()
+        rss_mock = mock_rss_parser()
         rss_mock.parse = Mock(return_value=parsed)
         return rss_mock
 
@@ -199,20 +199,80 @@ def test_extract_articles():
     parsed_text = "my fake test text"
 
     def _test_html_parser(_init_context):
-        mock_parser = test_html_parser()
+        mock_parser = mock_html_parser()
         mock_parser.extract = Mock(return_value=parsed_text)
         return mock_parser
 
     result: SolidExecutionResult = execute_solid(
         extract_articles,
-        mode_def=test_mode,
+        mode_def=ModeDefinition(name="test_extract_articles",
+                                resource_defs={"html_parser": ResourceDefinition(_test_html_parser),
+                                               "http_client": mock_http_client,
+                                               "thread_local": mock_thread_local}),
         input_values={"entries": entries, "source_map": source_map}
     )
 
     assert result.success
+    for idx, entry in enumerate(entries):
+        # need to go field by field because UUID of article will be generated
+        expected = Article(parsed_content=parsed_text, **entry.dict())
+        actual = result.output_value()[idx]
 
-    # TODO assert output is correct, pull out input_values
-    # TODO needs http_client and html_parser mocks
+        assert expected.title == actual.title
+        assert expected.summary == actual.summary
+        assert expected.source_id == actual.source_id
+        assert expected.url == actual.url
+        assert expected.published_at == actual.published_at
+        assert expected.authors == actual.authors
+        assert expected.parsed_content == actual.parsed_content
+
+
+def test_extract_articles_parse_fails():
+    sid = uuid4()
+    entries = [
+        FeedEntry(title="entry1",
+                  summary="summary",
+                  published_at=datetime.now(timezone.utc),
+                  link="https://fake.com",
+                  author="pencil mcpen",
+                  source_id=sid)
+    ]
+    source_map = {
+        sid: Source(id=uuid4(),
+                    name="source1",
+                    rss_url="https://fakeone.com/",
+                    html_parser_config={"id": "merp"})}
+
+    parsed_text = "my fake test text"
+
+    def _test_html_parser(_init_context):
+        mock_parser = mock_html_parser()
+        mock_parser.extract = Mock(side_effect=ValueError("ohno"))
+        return mock_parser
+
+    result: SolidExecutionResult = execute_solid(
+        extract_articles,
+        mode_def=ModeDefinition(name="test_extract_articles",
+                                resource_defs={"html_parser": ResourceDefinition(_test_html_parser),
+                                               "http_client": mock_http_client,
+                                               "thread_local": mock_thread_local}),
+        input_values={"entries": entries, "source_map": source_map}
+    )
+
+    assert result.success
+    for idx, entry in enumerate(entries):
+        # need to go field by field because UUID of article will be generated
+        expected = Article(parsed_content=parsed_text, **entry.dict())
+        actual = result.output_value()[idx]
+
+        assert expected.title == actual.title
+        assert expected.summary == actual.summary
+        assert expected.source_id == actual.source_id
+        assert expected.url == actual.url
+        assert expected.published_at == actual.published_at
+        assert expected.authors == actual.authors
+        # this is intentional, it should NOT be the parsed content here and should default to summary
+        assert expected.summary == actual.parsed_content
 
 
 def test_load_articles():
@@ -226,7 +286,7 @@ def test_load_articles():
 
     db_articles = [DbArticle(**article.dict()) for article in articles]
 
-    db_mock = test_database_client()
+    db_mock = mock_database_client()
 
     def _test_db_client(_init_context):
         db_mock.add_all = Mock(return_value=1)

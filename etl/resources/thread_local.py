@@ -10,5 +10,5 @@ def thread_local(_init_context):
 
 
 @resource
-def test_thread_local(_init_context):
+def mock_thread_local(_init_context):
     return Mock(spec=threading.local)

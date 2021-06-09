@@ -6,11 +6,11 @@ from datetime import datetime, timedelta
 
 from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
-from etl.resources.database_client import local_database_client, test_database_client
-from etl.resources.html_parser import html_parser, test_html_parser
-from etl.resources.http_client import http_client, test_http_client
-from etl.resources.rss_parser import rss_parser, test_rss_parser
-from etl.resources.thread_local import thread_local, test_thread_local
+from etl.resources.database_client import local_database_client, mock_database_client
+from etl.resources.html_parser import html_parser, mock_html_parser
+from etl.resources.http_client import http_client, mock_http_client
+from etl.resources.rss_parser import rss_parser, mock_rss_parser
+from etl.resources.thread_local import thread_local, mock_thread_local
 from etl.solids.extract_articles import get_all_sources, get_latest_feeds, create_source_map, \
     filter_to_new_entries, extract_articles, load_articles
 
@@ -26,11 +26,11 @@ local_resource_defs = common_resource_defs
 local_resource_defs["database_client"] = local_database_client
 
 test_resource_defs = {
-    "database_client": test_database_client,
-    "rss_parser": test_rss_parser,
-    "http_client": test_http_client,
-    "thread_local": test_thread_local,
-    "html_parser": test_html_parser
+    "database_client": mock_database_client,
+    "rss_parser": mock_rss_parser,
+    "http_client": mock_http_client,
+    "thread_local": mock_thread_local,
+    "html_parser": mock_html_parser
 }
 
 # modes

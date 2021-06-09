@@ -21,5 +21,5 @@ def local_database_client(_init_context):
 
 
 @resource
-def test_database_client(_init_context) -> Session:
+def mock_database_client(_init_context) -> Session:
     return MagicMock(Session)

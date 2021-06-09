@@ -17,5 +17,5 @@ def rss_parser(_init_context) -> RssParser:
 
 
 @resource
-def test_rss_parser(_init_context) -> RssParser:
+def mock_rss_parser(_init_context) -> RssParser:
     return Mock(spec=RssParser)
