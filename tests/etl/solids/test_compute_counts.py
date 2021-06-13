@@ -3,6 +3,7 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
+from scipy.sparse import csr_matrix
 
 from etl.db.models import Article as DbArticle, Count as DbCount
 from etl.models import Article, Count
@@ -23,6 +24,10 @@ fake_articles = [
                  "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
                  "parsed_content": "unreal raaid content"})
 ]
+
+expected_articles = [Article(**fa.__dict__) for fa in fake_articles]
+expected_content = " ".join([fa.parsed_content for fa in fake_articles])
+expected_features = sorted(list(set(expected_content.split())))
 
 
 def test_get_articles():
@@ -57,20 +62,19 @@ def test_get_articles():
     assert result.success
     assert len(result.output_value()) == len(fake_articles)
     for idx, article in enumerate(result.output_value()):
-        assert Article(**fake_articles[idx].__dict__) == article
+        assert expected_articles[idx] == article
 
 
 def test_compute_count_matrix():
     result: SolidExecutionResult = execute_solid(
         compute_count_matrix,
-        input_values={"articles": [Article(**fa.__dict__) for fa in fake_articles]}
+        input_values={"articles": expected_articles}
     )
 
     assert result.success
 
     features = result.output_value("features")
-    expected_content = " ".join([fa.parsed_content for fa in fake_articles])
-    expected_features = list(set(expected_content.split()))
+
     # this is a bit tricky because this solid tokenizes, so if we use stop words in the test
     # data, it won't show up here, and it'll also lemmatize certain words so that they aren't
     # the same. I think it is sane to test with no stop words and to just confirm that the
@@ -85,7 +89,25 @@ def test_compute_count_matrix():
 
 
 def test_compose_rows():
-    pass
+    result: SolidExecutionResult = execute_solid(
+        compose_rows,
+        input_values={
+            "articles": expected_articles,
+            "features": expected_features,
+            "count_matrix": csr_matrix(([1, 1, 1, 1, 1, 1], ([0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 2, 3])), shape=(2, 4))
+        }
+    )
+
+    assert result.success
+    assert len(result.output_value()) == 6
+    assert result.output_value() == [
+        Count(article_id=expected_articles[0].id, term='content', count=1),
+        Count(article_id=expected_articles[0].id, term='fake', count=1),
+        Count(article_id=expected_articles[0].id, term='raaid', count=1),
+        Count(article_id=expected_articles[1].id, term='content', count=1),
+        Count(article_id=expected_articles[1].id, term='raaid', count=1),
+        Count(article_id=expected_articles[1].id, term='unreal', count=1),
+    ]
 
 
 def test_load_counts():

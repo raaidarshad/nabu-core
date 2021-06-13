@@ -50,13 +50,14 @@ def compose_rows(_context: Context,
                  features: list[str],
                  count_matrix: csr_matrix) -> list[Count]:
     assert len(articles) == count_matrix.shape[0], "Number of articles != number of rows in count_matrix"
+    assert len(features) == count_matrix.shape[1], "Number of features != number of cols in count_matrix"
 
     counts = []
 
     for idx in range(count_matrix.shape[0]):
         current_indices = count_matrix.getrow(idx).indices
         current_data = count_matrix.getrow(idx).data
-        for jdx in range(current_indices):
+        for jdx in range(len(current_indices)):
             counts.append(
                 Count(article_id=articles[idx].id, term=features[current_indices[jdx]], count=current_data[jdx]))
 
