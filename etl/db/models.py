@@ -42,6 +42,6 @@ class Article(Base):
 
 class Count(Base):
     __tablename__ = "counts"
-    article_id = Column(UUID(as_uuid=True), ForeignKey("articles.id"), index=True, nullable=False)
+    article_id = Column(UUID(as_uuid=True), ForeignKey("articles.id"), primary_key=True, index=True, nullable=False)
     term = Column(String, index=True, nullable=False)
     count = Column(Integer, nullable=False)
