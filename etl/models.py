@@ -54,3 +54,12 @@ class Article(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Count(BaseModel):
+    article_id: UUID
+    term: str
+    count: int
+
+    class Config:
+        orm_mode = True

@@ -63,9 +63,12 @@ def extract_articles():
     load_articles(articles)
 
 
+freq = 15  # minutes
+
+
 # every 15 minutes
-@schedule(cron_schedule="*/15 * * * *", pipeline_name="extract_articles", mode="local")
+@schedule(cron_schedule=f"*/{freq} * * * *", pipeline_name="extract_articles", mode="local")
 def main_schedule(context: ScheduleExecutionContext):
-    threshold = context.scheduled_execution_time - timedelta(minutes=15)
+    threshold = context.scheduled_execution_time - timedelta(minutes=freq)
     return {"solids": {"get_latest_feeds": {"config": {"time_threshold": threshold}},
                        "filter_to_new_entries": {"config": {"time_threshold": threshold}}}}

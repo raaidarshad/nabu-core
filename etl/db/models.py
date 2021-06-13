@@ -1,12 +1,11 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, JSON
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, JSON, String, Table
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from etl.common import AfAccuracy, AfBias, AsBias, MbfcAccuracy, MbfcBias
-
 
 Base = declarative_base()
 
@@ -39,3 +38,10 @@ class Article(Base):
 
     # many to one
     source = relationship("Source", foreign_keys=[source_id])
+
+
+class Count(Base):
+    __tablename__ = "counts"
+    article_id = Column(UUID(as_uuid=True), ForeignKey("articles.id"), index=True, nullable=False)
+    term = Column(String, index=True, nullable=False)
+    count = Column(Integer, nullable=False)

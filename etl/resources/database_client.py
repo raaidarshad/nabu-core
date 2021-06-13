@@ -1,7 +1,4 @@
-from dataclasses import dataclass
-
-from uuid import UUID, uuid4
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 from dagster import configured, resource
 from sqlalchemy import create_engine
