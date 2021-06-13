@@ -47,7 +47,7 @@ def test_get_articles():
             "solids": {
                 "get_articles": {
                     "config": {
-                        "time_threshold": str(datetime.now(timezone.utc))
+                        "time_threshold": str(datetime.now(timezone.utc) - timedelta(hours=1))
                     }
                 }
             }
