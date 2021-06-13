@@ -3,10 +3,9 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
-from scipy.sparse import csr_matrix
 
-from etl.db.models import Article as DbArticle
-from etl.models import Article
+from etl.db.models import Article as DbArticle, Count as DbCount
+from etl.models import Article, Count
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_counts import get_articles, compute_count_matrix, compose_rows, load_counts
 
@@ -90,4 +89,29 @@ def test_compose_rows():
 
 
 def test_load_counts():
-    pass
+    counts = [
+        Count(article_id=uuid4(), term="president", count=4),
+        Count(article_id=uuid4(), term="congress", count=2),
+        Count(article_id=uuid4(), term="environment", count=20),
+        Count(article_id=uuid4(), term="markets", count=2)
+    ]
+
+    db_counts = [DbCount(**count.dict()) for count in counts]
+
+    db_mock = mock_database_client()
+
+    def _test_db_client(_init_context):
+        db_mock.add_all = Mock(return_value=1)
+        db_mock.commit = Mock(return_value=1)
+        return db_mock
+
+    result: SolidExecutionResult = execute_solid(
+        load_counts,
+        mode_def=ModeDefinition(name="test_load_counts",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
+        input_values={"counts": counts}
+    )
+
+    assert result.success
+    assert db_mock.add_all.called_once_with(db_counts)
+    assert db_mock.commit.called_once()
