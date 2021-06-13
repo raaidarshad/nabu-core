@@ -41,7 +41,7 @@ def compute_count_matrix(_context: Context, articles: list[Article]):
     count_matrix = count_vectorizer.fit_transform(corpus)
     features = count_vectorizer.get_feature_names()
     yield Output(count_matrix, "count_matrix")
-    yield Output(features, "feautures")
+    yield Output(features, "features")
 
 
 @solid
