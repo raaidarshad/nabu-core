@@ -1,6 +1,6 @@
 from dagster import ModeDefinition, pipeline
 
-from etl.resources.database_client import local_database_client, mock_database_client
+from etl.resources.database_client import local_database_client, compute_counts_test_database_client
 from etl.solids.compute_counts import get_articles, compose_rows, compute_count_matrix, load_counts
 
 
@@ -9,7 +9,7 @@ local_resource_defs = {
 }
 
 test_resource_defs = {
-    "database_client": mock_database_client
+    "database_client": compute_counts_test_database_client
 }
 
 # modes
