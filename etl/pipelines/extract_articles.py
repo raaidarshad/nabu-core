@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
-from etl.resources.database_client import local_database_client, mock_database_client
+from etl.resources.database_client import local_database_client, extract_articles_test_database_client
 from etl.resources.html_parser import html_parser, mock_html_parser
 from etl.resources.http_client import http_client, mock_http_client
 from etl.resources.rss_parser import rss_parser, mock_rss_parser
@@ -26,7 +26,7 @@ local_resource_defs = common_resource_defs
 local_resource_defs["database_client"] = local_database_client
 
 test_resource_defs = {
-    "database_client": mock_database_client,
+    "database_client": extract_articles_test_database_client,
     "rss_parser": mock_rss_parser,
     "http_client": mock_http_client,
     "thread_local": mock_thread_local,

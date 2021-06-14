@@ -6,7 +6,7 @@ from dagster import configured, resource
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from etl.db.models import Article as DbArticle
+from etl.db.models import Article as DbArticle, Source as DbSource
 
 
 @resource(config_schema={"connection_string": str})
@@ -24,6 +24,31 @@ def local_database_client(_init_context):
 @resource
 def mock_database_client(_init_context) -> Session:
     return MagicMock(Session)
+
+
+@resource
+def extract_articles_test_database_client(_init_context):
+    fake_sources = [
+        DbSource(**{"id": uuid4(),
+                    "name": "name",
+                    "rss_url": "https://fake.com",
+                    "html_parser_config": {"id": "merp"}
+                    }),
+        DbSource(**{"id": uuid4(),
+                    "name": "nametwo",
+                    "rss_url": "https://unreal.com",
+                    "html_parser_config": {"id": "flerp"}
+                    })
+    ]
+    db = mock_database_client()
+    t_query = Mock()
+    t_query.all = Mock(return_value=fake_sources)
+    db.query = Mock(return_value=t_query)
+
+    db.add_all = Mock(return_value=1)
+    db.commit = Mock(return_value=1)
+
+    return db
 
 
 @resource
