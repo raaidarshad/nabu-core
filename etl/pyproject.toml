@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "etl"
+version = "0.1.0"
+description = "ETL code for pop the bubble"
+authors = ["Raaid Arshad <raaid@protonmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = ""
+dagit = ""
+dagster = ""
+pandas = ""
+psycopg2 = ""
+pydantic = ""
+pyyaml = ""
+requests = ""
+scikit-learn = ""
+spacy = ""
+sqlalchemy = ""
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.4"
