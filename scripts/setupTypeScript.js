@@ -10,7 +10,7 @@
   */
 
 /**  To work on this script:
-  rm -rf test-template template && git clone sveltejs/template test-template && node scripts/setupTypeScript.js test-template
+  rm -rf tests-template template && git clone sveltejs/template tests-template && node scripts/setupTypeScript.js tests-template
 */
 
 const fs = require("fs")

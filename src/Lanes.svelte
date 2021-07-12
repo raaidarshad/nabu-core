@@ -18,11 +18,6 @@
             id: 3,
             text: `New York Post (Home)`,
             url: `https://nypost.com/feed/`,
-        },
-        {
-            id: 4,
-            text: `Daily Mail (Latest)`,
-            url: `https://www.dailymail.co.uk/articles.rss`
         }
     ];
 
@@ -99,11 +94,6 @@
         { id: 1, text: `Jacobin (Home)`, url: `https://jacobinmag.com/feed` },
         { id: 2, text: `The Intercept (All)`, url: `https://theintercept.com/feed/?lang=en`},
         { id: 3, text: `Vox (Home)`, url: `https://www.vox.com/rss/index.xml` },
-        {
-            id: 4,
-            text: `BuzzfeedNews (Home)`,
-            url: `https://www.buzzfeed.com/index.xml`,
-        },
     ];
 
     let current = "center";
