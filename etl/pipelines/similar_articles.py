@@ -10,7 +10,7 @@ import numpy as np
 import pandas
 import pandas as pd
 import requests_cache
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 from sklearn.metrics.pairwise import linear_kernel
 import spacy
 
@@ -25,8 +25,7 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
-logging.basicConfig(filename="statsSession.log",
-                    format='%(asctime)s %(levelname)s %(message)s',
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 thread_local = threading.local()
@@ -54,7 +53,7 @@ def feeds_to_articles(feeds: list[Feed]) -> list[Article]:
             with get_session().get(entry.link) as response:
                 text = feed.html_parser.extract(content=response.content)
         except:
-            logging.info(f"Article with URL {entry.link} was not parsed successfully")
+            print(f"Article with URL {entry.link} was not parsed successfully")
             text = entry.summary
         return Article(id=entry.link, feed_url=feed.url, feed_title=feed.title, entry=entry, content=text)
 
@@ -76,10 +75,12 @@ def spacy_tokenizer(document):
 
 
 def compute_similarity(articles: list[Article]):
-    tfidf_vectorizer = TfidfVectorizer(input="content", tokenizer=spacy_tokenizer)
+    count_vectorizer = CountVectorizer(input="content", tokenizer=spacy_tokenizer)
     corpus = [article.content for article in articles]
-    result = tfidf_vectorizer.fit_transform(corpus)
-    logging.info(f"TF-IDF vectorizer complete: {time.time() - start_time}")
+    count_matrix = count_vectorizer.fit_transform(corpus)
+    print(f"Count vectorizer complete: {time.time() - start_time}")
+    result = TfidfTransformer().fit_transform(count_matrix)
+    print(f"TF-IDF transformer complete: {time.time() - start_time}")
     cos_df = pd.DataFrame(columns=list(range(result.shape[0])))
     for i in range(result.shape[0]):
         curr_cos_sim = linear_kernel(result[i], result).flatten()
@@ -136,19 +137,20 @@ def tagify(cluster: Cluster) -> TaggedCluster:
 
 start_time = time.time()
 
+print("Starting")
 feeds = [get_feed(url, lean, limit=20) for url, lean in urls_and_leans]
-logging.info(f"Feeds obtained: {time.time() - start_time}")
+print(f"Feeds obtained: {time.time() - start_time}")
 articles = feeds_to_articles(feeds=feeds)
-logging.info(f"Articles obtained: {time.time() - start_time}")
+print(f"Articles obtained: {time.time() - start_time}")
 sim_df = compute_similarity(articles)
-logging.info(f"Similarity df computed: {time.time() - start_time}")
+print(f"Similarity df computed: {time.time() - start_time}")
 sat_df = saturate_data(sim_df, threshold=0.45)
-logging.info(f"Dataframe saturated: {time.time() - start_time}")
+print(f"Dataframe saturated: {time.time() - start_time}")
 clusters = clusterify(sat_df)
-logging.info(f"Clusters identified: {time.time() - start_time}")
+print(f"Clusters identified: {time.time() - start_time}")
 article_clusters = clusters_to_article_clusters(clusters, articles)
-logging.info(f"Article clusters obtained: {time.time() - start_time}")
-logging.info(f"There are {len(article_clusters)} clusters and {len(articles)} articles")
+print(f"Article clusters obtained: {time.time() - start_time}")
+print(f"There are {len(article_clusters)} clusters and {len(articles)} articles")
 clusters_bigger_than_1 = 0
 for merp in article_clusters:
     if len(merp) > 1:
@@ -157,7 +159,7 @@ for merp in article_clusters:
             print(f"{flerp.feed_title}: {flerp.entry.title}")
         print("- - - - - -")
 
-logging.info(f"There are {clusters_bigger_than_1} clusters with more than 1 article")
+print(f"There are {clusters_bigger_than_1} clusters with more than 1 article")
 # tagged_clusters = [tagify(cluster) for cluster in clusters]
 
 # okay so new pipeline approach works better, lets see how to clean this up
