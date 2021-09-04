@@ -5,24 +5,23 @@ from uuid import uuid4
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 from scipy.sparse import csr_matrix
 
-from etl.db.models import Article as DbArticle, Count as DbCount
 from etl.models import Article, Count
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_counts import get_articles, compute_count_matrix, compose_rows, load_counts
 
 fake_articles = [
-    DbArticle(**{"id": uuid4(),
-                 "url": "https://fake.com",
-                 "source_id": uuid4(),
-                 "title": "fake title",
-                 "published_at": datetime.now(tz=timezone.utc),
-                 "parsed_content": "fake raaid content"}),
-    DbArticle(**{"id": uuid4(),
-                 "url": "https://notreal.com",
-                 "source_id": uuid4(),
-                 "title": "unreal title",
-                 "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
-                 "parsed_content": "unreal raaid content"})
+    Article(**{"id": uuid4(),
+               "url": "https://fake.com",
+               "source_id": uuid4(),
+               "title": "fake title",
+               "published_at": datetime.now(tz=timezone.utc),
+               "parsed_content": "fake raaid content"}),
+    Article(**{"id": uuid4(),
+               "url": "https://notreal.com",
+               "source_id": uuid4(),
+               "title": "unreal title",
+               "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
+               "parsed_content": "unreal raaid content"})
 ]
 
 expected_articles = [Article(**fa.__dict__) for fa in fake_articles]
@@ -118,7 +117,7 @@ def test_load_counts():
         Count(article_id=uuid4(), term="markets", count=2)
     ]
 
-    db_counts = [DbCount(**count.dict()) for count in counts]
+    db_counts = [Count(**count.dict()) for count in counts]
 
     db_mock = mock_database_client()
 

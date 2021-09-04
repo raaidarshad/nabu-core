@@ -7,7 +7,6 @@ import spacy
 from sqlalchemy.orm import Session
 
 from etl.common import Context
-from etl.db.models import Article as DbArticle, Count as DbCount
 from etl.models import Article, Count
 
 nlp = spacy.load("en_core_web_lg")
@@ -22,10 +21,10 @@ def get_articles(context: Context) -> list[Article]:
     # filter to articles published after time threshold
     # left join, then
     # get articles with ids NOT in counts
-    articles = db_client.query(DbArticle).\
-        filter(DbArticle.published_at >= time_threshold).\
-        outerjoin(DbCount.article_id).\
-        filter(DbCount.article_id.is_(None)).all()
+    articles = db_client.query(Article). \
+        filter(Article.published_at >= time_threshold). \
+        outerjoin(Count.article_id). \
+        filter(Count.article_id.is_(None)).all()
 
     context.log.info(f"Got {len(articles)} articles")
     return [Article(**a.__dict__) for a in articles]
@@ -67,7 +66,7 @@ def compose_rows(_context: Context,
 @solid(required_resource_keys={"database_client"})
 def load_counts(context: Context, counts: list[Count]):
     db_client: Session = context.resources.database_client
-    db_client.add_all([DbCount(**count.dict()) for count in counts])
+    db_client.add_all([Count(**count.dict()) for count in counts])
     db_client.commit()
 
 

@@ -7,7 +7,6 @@ from dagster import String, solid
 from sqlalchemy.orm import Session
 
 from etl.common import Context
-from etl.db.models import Article as DbArticle, Source as DbSource
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.resources.html_parser import BaseParser
 
@@ -15,7 +14,7 @@ from etl.resources.html_parser import BaseParser
 @solid(required_resource_keys={"database_client"})
 def get_all_sources(context: Context) -> list[Source]:
     db_client: Session = context.resources.database_client
-    sources = db_client.query(DbSource).all()
+    sources = db_client.query(Source).all()
     context.log.info(f"Got {len(sources)} sources")
     return [Source(**s.__dict__) for s in sources]
 
@@ -118,6 +117,6 @@ def extract_articles(context: Context, entries: list[FeedEntry], source_map: dic
 def load_articles(context: Context, articles: list[Article]):
     # take the collected articles and put them in the db
     db_client: Session = context.resources.database_client
-    db_articles = [DbArticle(**article.dict()) for article in articles]
+    db_articles = [Article(**article.dict()) for article in articles]
     db_client.add_all(db_articles)
     db_client.commit()

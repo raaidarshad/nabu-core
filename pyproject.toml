@@ -20,6 +20,7 @@ requests = "^2.25.1"
 scikit-learn = "^0.24.2"
 spacy = "^3.1.0"
 sqlalchemy = "^1.4.20"
+sqlmodel = "^0.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"

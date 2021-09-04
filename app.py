@@ -18,12 +18,18 @@ def home(path):
 
 
 @app.route("/feed")
-def hello():
-    rssUrl = request.args.get('rssUrl')
-    limit = int(request.args.get('limit'))
+def defaultFeed():
+    rssUrl = request.args.get("rssUrl")
+    limit = int(request.args.get("limit"))
     feed = feedparser.parse(rssUrl)
     feed["entries"] = feed["entries"][:limit]
     return feed
+
+
+@app.route("/topics")
+def get_topic_articles():
+    datetime_threshold = request.args.get("threshold")
+    # run fn to get topic-grouped articles in desired format
 
 
 if __name__ == "__main__":

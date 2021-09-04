@@ -5,7 +5,6 @@ from unittest.mock import Mock
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 import feedparser
 
-from etl.db.models import Article as DbArticle, Source as DbSource
 from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
 from etl.resources.database_client import mock_database_client
@@ -24,11 +23,11 @@ sources = [
 
 def test_get_all_sources():
     fake_sources = [
-        DbSource(**{"id": uuid4(),
-                    "name": "name",
-                    "rss_url": "https://fake.com",
-                    "html_parser_config": {"id": "merp"}
-                    })
+        Source(**{"id": uuid4(),
+                  "name": "name",
+                  "rss_url": "https://fake.com",
+                  "html_parser_config": {"id": "merp"}
+                  })
     ]
 
     def _test_db_client(_init_context):
@@ -276,7 +275,7 @@ def test_load_articles():
                 published_at=datetime.now(timezone.utc))
     ]
 
-    db_articles = [DbArticle(**article.dict()) for article in articles]
+    db_articles = [Article(**article.dict()) for article in articles]
 
     db_mock = mock_database_client()
 
