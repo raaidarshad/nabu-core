@@ -3,9 +3,8 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 from dagster import configured, resource
-from sqlmodel import create_engine
+from sqlmodel import Session, create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import Session
 
 from etl.models import Article, Source
 
