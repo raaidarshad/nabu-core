@@ -4,7 +4,7 @@ from dagster import Output, OutputDefinition, String, solid
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
 import spacy
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from etl.common import Context
 from etl.models import Article, Count

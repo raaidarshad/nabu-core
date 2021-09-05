@@ -4,7 +4,7 @@ import requests
 from uuid import UUID
 
 from dagster import String, solid
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from etl.common import Context
 from etl.models import Article, Feed, FeedEntry, Source

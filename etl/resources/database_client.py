@@ -4,7 +4,8 @@ from uuid import uuid4
 
 from dagster import configured, resource
 from sqlmodel import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session
 
 from etl.models import Article, Source
 
