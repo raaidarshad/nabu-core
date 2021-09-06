@@ -78,15 +78,25 @@ def prep_clusters(clusters: set[frozenset[int]], index_to_article: dict, tfidf: 
 
 
 def main():
+    # CSR COUNTS
     threshold = datetime.now()
     counts, ids, terms = get_counts(threshold, "")
     id_to_article = get_article_map(threshold, "")
     index_article_ids, index_to_id = numerify(ids)
     index_terms, index_to_term = numerify(terms)
     sparse_counts = counts_to_matrix(counts=counts, rows=index_article_ids, cols=index_terms)
+    # ^ at this point, we have a csr_matrix of the counts where the rows are article ids (numbers, not UUIDs)
+    # and the columns are terms (numbers, not strings)
+
+    # TF IDF
     tfidfs = compute_tfidf(sparse_counts)
+    # now it is a csr_matrix with the same col/row indices but the values are tfidf, so same shape diff vals
     similarities = compute_similarities(tfidfs)
+    # was N x M, now N x N where value at (i, j) shows the similarity between article i and j
     filtered = filter_similarities(similarities, 0.45)
+    # removes values from the sparse matrix that are below the similarity value
+
+    # CLUSTERS
     clusters = clusterify(filtered)
     index_to_article = {indx: id_to_article[idx] for indx, idx in index_to_id.items()}
     prep_clusters(clusters, index_to_article, tfidfs)
