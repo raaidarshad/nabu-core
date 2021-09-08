@@ -68,7 +68,7 @@ def get_article_map(datetime_threshold: datetime, db_client: Session) -> Article
     db_articles: list[Article] = db_client.query(Article). \
         filter(Article.published_at >= datetime_threshold).all()
 
-    return {dba.id: Article(**dba.__dict__) for dba in db_articles}
+    return {dba.id: dba for dba in db_articles}
 
 
 def counts_to_matrix(counts: list[int], rows: list[int], cols: list[int]) -> csr_matrix:
