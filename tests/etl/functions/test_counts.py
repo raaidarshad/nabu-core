@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from sqlmodel import Session
 
-from etl.models import Article
+from etl.models import Article, Count
 from etl.functions.counts import get_count_data, numerify, get_counts_from_db, get_article_map, \
     counts_to_matrix
 
@@ -67,7 +67,25 @@ def test_counts_to_matrix():
 
 
 def test_get_counts_from_db():
-    ...
+    fake_counts = [
+        Count(article_id=uuid4(), term='content', count=1),
+        Count(article_id=uuid4(), term='fake', count=2)
+    ]
+    mock_db_client = MagicMock(Session)
+    a = Mock()
+    b = Mock()
+    c = Mock()
+    c.all = Mock(return_value=fake_counts)
+    b.filter = Mock(return_value=c)
+    a.join = Mock(return_value=b)
+    mock_db_client.query = Mock(return_value=a)
+
+    # zip is weird
+    x, y, z = zip(*[(dbc.count, dbc.article_id, dbc.term) for dbc in fake_counts])
+    expected = (x, y, z)
+    real = get_counts_from_db(datetime.now(tz=timezone.utc), mock_db_client)
+
+    assert real == expected
 
 
 def test_get_count_data():
