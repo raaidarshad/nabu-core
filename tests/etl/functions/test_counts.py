@@ -2,11 +2,34 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
+from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
 from etl.models import Article, Count
-from etl.functions.counts import get_count_data, numerify, get_counts_from_db, get_article_map, \
+from etl.functions.counts import CountData, get_count_data, numerify, get_counts_from_db, get_article_map, \
     counts_to_matrix
+
+id1 = uuid4()
+id2 = uuid4()
+fake_articles = [
+    Article(**{"id": id1,
+               "url": "https://fake.com",
+               "source_id": uuid4(),
+               "title": "fake title",
+               "published_at": datetime.now(tz=timezone.utc),
+               "parsed_content": "fake raaid content"}),
+    Article(**{"id": id2,
+               "url": "https://notreal.com",
+               "source_id": uuid4(),
+               "title": "unreal title",
+               "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
+               "parsed_content": "unreal raaid content"})
+]
+
+fake_counts = [
+    Count(article_id=uuid4(), term='content', count=1),
+    Count(article_id=uuid4(), term='fake', count=2)
+]
 
 
 def test_numerify():
@@ -17,22 +40,6 @@ def test_numerify():
 
 
 def test_get_article_map():
-    id1 = uuid4()
-    id2 = uuid4()
-    fake_articles = [
-        Article(**{"id": id1,
-                   "url": "https://fake.com",
-                   "source_id": uuid4(),
-                   "title": "fake title",
-                   "published_at": datetime.now(tz=timezone.utc),
-                   "parsed_content": "fake raaid content"}),
-        Article(**{"id": id2,
-                   "url": "https://notreal.com",
-                   "source_id": uuid4(),
-                   "title": "unreal title",
-                   "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
-                   "parsed_content": "unreal raaid content"})
-    ]
     mock_db_client = MagicMock(Session)
     a = Mock()
     b = Mock()
@@ -44,7 +51,6 @@ def test_get_article_map():
     real = get_article_map(datetime.now(tz=timezone.utc) - timedelta(minutes=30), mock_db_client)
 
     assert real == expected
-
 
 
 def test_counts_to_matrix():
@@ -67,10 +73,6 @@ def test_counts_to_matrix():
 
 
 def test_get_counts_from_db():
-    fake_counts = [
-        Count(article_id=uuid4(), term='content', count=1),
-        Count(article_id=uuid4(), term='fake', count=2)
-    ]
     mock_db_client = MagicMock(Session)
     a = Mock()
     b = Mock()
@@ -89,4 +91,33 @@ def test_get_counts_from_db():
 
 
 def test_get_count_data():
-    ...
+    mock_db_client = MagicMock(Session)
+    a = Mock()
+    b = Mock()
+    b.all = Mock(return_value=fake_articles)
+    a.filter = Mock(return_value=b)
+
+    c = Mock()
+    d = Mock()
+    d.all = Mock(return_value=fake_counts)
+    c.filter = Mock(return_value=d)
+    a.join = Mock(return_value=c)
+    mock_db_client.query = Mock(return_value=a)
+
+    real = get_count_data(datetime.now(tz=timezone.utc), mock_db_client)
+
+    counts, ids, terms = zip(*[(dbc.count, dbc.article_id, dbc.term) for dbc in fake_counts])
+    index_ids, index_to_id = numerify(ids)
+    index_terms, index_to_term = numerify(terms)
+
+    expected = CountData(
+        count_matrix=csr_matrix((counts, (index_ids, index_terms))),
+        article_map={id1: fake_articles[0], id2: fake_articles[1]},
+        index_to_article_id=index_to_id,
+        index_to_term=index_to_term
+    )
+
+    assert real.count_matrix.todense().tolist() == expected.count_matrix.todense().tolist()
+    assert real.article_map == expected.article_map
+    assert real.index_to_article_id == expected.index_to_article_id
+    assert real.index_to_term == expected.index_to_term
