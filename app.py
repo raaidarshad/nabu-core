@@ -1,6 +1,4 @@
 from flask import Flask, send_from_directory, request
-import random
-import requests
 
 import feedparser
 
@@ -20,9 +18,9 @@ def home(path):
 
 
 @app.route("/feed")
-def hello():
-    rssUrl = request.args.get('rssUrl')
-    limit = int(request.args.get('limit'))
+def defaultFeed():
+    rssUrl = request.args.get("rssUrl")
+    limit = int(request.args.get("limit"))
     feed = feedparser.parse(rssUrl)
     feed["entries"] = feed["entries"][:limit]
     return feed

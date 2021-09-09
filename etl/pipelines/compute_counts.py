@@ -5,7 +5,6 @@ from dagster import ModeDefinition, PresetDefinition, pipeline
 from etl.resources.database_client import local_database_client, compute_counts_test_database_client
 from etl.solids.compute_counts import get_articles, compose_rows, compute_count_matrix, load_counts
 
-
 local_resource_defs = {
     "database_client": local_database_client
 }
@@ -22,6 +21,7 @@ my_threshold = datetime.utcnow() - timedelta(minutes=15)
 my_threshold = str(my_threshold)
 
 main_preset = PresetDefinition(
+    mode="test",
     name="main_preset",
     run_config={"solids": {"get_articles": {"config": {"time_threshold": my_threshold}}}}
 )
