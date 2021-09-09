@@ -26,23 +26,6 @@ class Source(SQLModel, table=True):
         arbitrary_types_allowed = True
 
 
-# class Source(BaseModel):
-#     id: UUID = Field(default_factory=uuid4)
-#     name: str
-#     short_name: Optional[str]
-#     long_name: Optional[str]
-#     rss_url: HttpUrl
-#     html_parser_config: dict
-#     allsides_bias: Optional[AsBias]
-#     mbfc_bias: Optional[MbfcBias]
-#     mbfc_accuracy: Optional[MbfcAccuracy]
-#     af_bias: Optional[AfBias]
-#     af_accuracy: Optional[AfAccuracy]
-#
-#     class Config:
-#         orm_mode = True
-
-
 class FeedEntry(BaseModel):
     title: str
     summary: str

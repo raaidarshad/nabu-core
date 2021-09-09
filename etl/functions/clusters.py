@@ -1,9 +1,12 @@
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 
+from etl.functions.counts import IndexToArticle, IndexToTerm
+from etl.functions.tfidf import SimilarityData
 from etl.models import Article
 
 RawCluster = frozenset[int]
+Cluster = tuple[list[str], list[Article]]
 
 def clusterify(similarities: csr_matrix) -> set[RawCluster]:
     # okay SO for each row, the BFO operation looks through the matrix to find all "connected" rows, where connected
@@ -18,30 +21,16 @@ def clusterify(similarities: csr_matrix) -> set[RawCluster]:
             range(similarities.shape[0])}
 
 
-def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: dict[int, str]) -> set[str]:
-    ...
+def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: IndexToTerm) -> list[str]:
+    return ["fake", "key", "words"]
 
 
-def prep_clusters(clusters: set[RawCluster], index_to_article: dict[int, Article], tfidf: csr_matrix) -> dict[int, list[Article]]:
-    # each cluster is a list of articles by index
-    # convert to list of a article ids
-    # grab the article content for those ids
-    prepped = {}
-    for idx, article_num_ids in enumerate(clusters):
-        articles = [index_to_article[article_num_id] for article_num_id in article_num_ids]
-        # get the rows of this clusters articles from the tfidf matrix and get the mean tfidf value for each term
-        # target_rows = tfidf[article_num_ids, :].mean(axis=0).tolist()[0]
-        # sort the resulting list from highest to lowest, take the first N elements as keyword indices
-        # target_rows.sort(reverse=True)[:5]
-
-        prepped[idx] = articles
+def prep_clusters(clusters: set[RawCluster], similarity_data: SimilarityData) -> list[Cluster]:
+    prepped = []
+    for cluster in clusters:
+        print(cluster)
+        keywords = extract_keywords(cluster, similarity_data.tfidf_matrix, similarity_data.index_to_term)
+        articles = [similarity_data.index_to_article[idx] for idx in cluster]
+        prepped.append((keywords, articles))
 
     return prepped
-
-
-def main():
-    # might need stuff from counts.py
-    # CLUSTERS
-    clusters = clusterify(filtered)
-    index_to_article = {indx: id_to_article[idx] for indx, idx in index_to_id.items()}
-    prep_clusters(clusters, index_to_article, tfidfs)
