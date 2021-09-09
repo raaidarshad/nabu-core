@@ -7,15 +7,14 @@ from sqlmodel import Session
 
 from etl.models import Article, Count
 
-ArticleMap = dict[UUID, Article]
-IndexToId = dict[int, UUID]
+IdToArticle = dict[UUID, Article]
+IndexToArticle = dict[int, Article]
 IndexToTerm = dict[int, str]
 
 
 class CountData(BaseModel):
     count_matrix: csr_matrix
-    article_map: ArticleMap
-    index_to_article_id: IndexToId
+    index_to_article: IndexToArticle
     index_to_term: IndexToTerm
 
     class Config:
@@ -25,13 +24,13 @@ class CountData(BaseModel):
 def get_count_data(datetime_threshold: datetime, db_client: Session) -> CountData:
     # get csr_matrix, add article_map (id to article dict), add index to id/term dicts
     counts, ids, terms = get_counts_from_db(datetime_threshold, db_client)
-    id_to_article = get_article_map(datetime_threshold, db_client)
+    id_to_article = get_id_to_article(datetime_threshold, db_client)
     index_article_ids, index_to_id = numerify(ids)
     index_terms, index_to_term = numerify(terms)
+    index_to_article = {index: id_to_article[idx] for index, idx in index_to_id.items()}
     sparse_counts = counts_to_matrix(counts=counts, rows=index_article_ids, cols=index_terms)
     return CountData(count_matrix=sparse_counts,
-                     article_map=id_to_article,
-                     index_to_article_id=index_to_id,
+                     index_to_article=index_to_article,
                      index_to_term=index_to_term)
 
 
@@ -57,7 +56,7 @@ def get_counts_from_db(datetime_threshold: datetime, db_client: Session) -> tupl
     return counts, ids, terms
 
 
-def get_article_map(datetime_threshold: datetime, db_client: Session) -> ArticleMap:
+def get_id_to_article(datetime_threshold: datetime, db_client: Session) -> IdToArticle:
     db_articles: list[Article] = db_client.query(Article). \
         filter(Article.published_at >= datetime_threshold).all()
 

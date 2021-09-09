@@ -27,8 +27,7 @@ def test_compute_similarity_data():
 
     count_data = CountData(
         count_matrix=count_matrix,
-        article_map={uuid4(): article1},
-        index_to_article_id={0: uuid4()},
+        index_to_article={0: article1},
         index_to_term={0: "term"}
     )
 

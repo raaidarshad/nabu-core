@@ -3,8 +3,9 @@ from scipy.sparse.csgraph import breadth_first_order
 
 from etl.models import Article
 
+RawCluster = frozenset[int]
 
-def clusterify(similarities: csr_matrix) -> set[frozenset[int]]:
+def clusterify(similarities: csr_matrix) -> set[RawCluster]:
     # okay SO for each row, the BFO operation looks through the matrix to find all "connected" rows, where connected
     # means there is a non-zero value to another row. So if row 0 has a value in column 4, those two should be connected
     # We then wrap that in a frozenset so that we can eliminate repeated rows if necessary, and so that we can compare
@@ -17,7 +18,11 @@ def clusterify(similarities: csr_matrix) -> set[frozenset[int]]:
             range(similarities.shape[0])}
 
 
-def prep_clusters(clusters: set[frozenset[int]], index_to_article: dict, tfidf: csr_matrix) -> dict[int, list[Article]]:
+def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: dict[int, str]) -> set[str]:
+    ...
+
+
+def prep_clusters(clusters: set[RawCluster], index_to_article: dict[int, Article], tfidf: csr_matrix) -> dict[int, list[Article]]:
     # each cluster is a list of articles by index
     # convert to list of a article ids
     # grab the article content for those ids
