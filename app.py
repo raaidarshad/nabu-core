@@ -26,11 +26,5 @@ def defaultFeed():
     return feed
 
 
-@app.route("/topics")
-def get_topic_articles():
-    datetime_threshold = request.args.get("threshold")
-    # run fn to get topic-grouped articles in desired format
-
-
 if __name__ == "__main__":
     app.run()
