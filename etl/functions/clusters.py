@@ -5,6 +5,14 @@ from etl.models import Article
 
 
 def clusterify(similarities: csr_matrix) -> set[frozenset[int]]:
+    # okay SO for each row, the BFO operation looks through the matrix to find all "connected" rows, where connected
+    # means there is a non-zero value to another row. So if row 0 has a value in column 4, those two should be connected
+    # We then wrap that in a frozenset so that we can eliminate repeated rows if necessary, and so that we can compare
+    # between sets (can't do that with normal sets). Since we iterate over all the rows, we WILL get duplicate
+    # frozensets so we have the whole thing in a set comprehension, not a list comprehension, to automatically get the
+    # unique frozensets (we also use frozensets because they are hashable and therefore allowed in a set).
+
+    # All to say, this should provide us every group of connected rows with no duplicates. Huzzah!
     return {frozenset(breadth_first_order(similarities, idx, directed=False, return_predecessors=False)) for idx in
             range(similarities.shape[0])}
 
