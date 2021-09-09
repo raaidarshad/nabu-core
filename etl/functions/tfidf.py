@@ -1,3 +1,5 @@
+from typing import Optional
+
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfTransformer
 
@@ -9,11 +11,13 @@ class SimilarityData(CountData):
     similarity_matrix: csr_matrix
 
 
-def compute_similarity_data(count_data: CountData) -> SimilarityData:
+def compute_similarity_data(count_data: CountData, filter_threshold: Optional[float] = None) -> SimilarityData:
     # a csr_matrix with the same col/row indices but the values are tfidf, so same shape diff vals
     tfidfs = compute_tfidf(count_data.count_matrix)
     # was N x M, now N x N where value at (i, j) shows the similarity between article i and j
     similarities = compute_similarities(tfidfs)
+    if filter_threshold:
+        similarities = filter_similarities(similarities, filter_threshold)
 
     return SimilarityData(
         tfidf_matrix=tfidfs,
