@@ -12,13 +12,6 @@ IndexToId = dict[int, UUID]
 IndexToTerm = dict[int, str]
 
 
-# TODO do this for tfidf
-# do this for clusters
-# write tests for counts
-# write tests for tfidf
-# write tests for clusters
-# update deployment to use Docker for DO app platform
-
 class CountData(BaseModel):
     count_matrix: csr_matrix
     article_map: ArticleMap
