@@ -17,17 +17,17 @@ def database_client(init_context) -> Session:
 
 
 @configured(configurable=database_client)
-def local_database_client(_init_context):
+def local_database_client():
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
 
 
 @resource
-def mock_database_client(_init_context) -> Session:
+def mock_database_client() -> Session:
     return MagicMock(Session)
 
 
 @resource
-def extract_articles_test_database_client(_init_context):
+def extract_articles_test_database_client():
     fake_sources = [
         Source(**{"id": uuid4(),
                   "name": "name",
@@ -52,7 +52,7 @@ def extract_articles_test_database_client(_init_context):
 
 
 @resource
-def compute_counts_test_database_client(_init_context):
+def compute_counts_test_database_client():
     fake_articles = [
         Article(**{"id": uuid4(),
                    "url": "https://fake.com",

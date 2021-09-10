@@ -5,10 +5,10 @@ from dagster import resource
 
 
 @resource
-def thread_local(_init_context):
+def thread_local():
     return threading.local()
 
 
 @resource
-def mock_thread_local(_init_context):
+def mock_thread_local():
     return Mock(spec=threading.local)

@@ -29,5 +29,5 @@ def http_client(init_context: InitResourceContext) -> requests.Session:
 
 
 @resource(required_resource_keys={"thread_local"})
-def mock_http_client(_init_context) -> requests.Session:
+def mock_http_client() -> requests.Session:
     return Mock(spec=requests.Session)

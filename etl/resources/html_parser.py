@@ -14,12 +14,12 @@ class BaseParser:
 
 
 @resource
-def html_parser(_init_context) -> BaseParser:
+def html_parser() -> BaseParser:
     return BaseParser()
 
 
 @resource
-def mock_html_parser(_init_context) -> BaseParser:
+def mock_html_parser() -> BaseParser:
     bp = Mock(spec=BaseParser)
     bp.extract = Mock(return_value="fake joined text")
     return bp
