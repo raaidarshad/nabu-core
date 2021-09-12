@@ -13,7 +13,7 @@ from etl.resources.http_client import mock_http_client
 from etl.resources.thread_local import mock_thread_local
 from etl.resources.rss_parser import mock_rss_parser
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
-    extract_articles, load_articles
+    extract_articles_solid, load_articles
 
 sources = [
     Source(id=uuid4(), name="source1", rss_url="https://fakeone.com/", html_parser_config={"id": "merp"}),
@@ -195,7 +195,7 @@ def test_extract_articles():
         return mock_parser
 
     result: SolidExecutionResult = execute_solid(
-        extract_articles,
+        extract_articles_solid,
         mode_def=ModeDefinition(name="test_extract_articles",
                                 resource_defs={"html_parser": ResourceDefinition(_test_html_parser),
                                                "http_client": mock_http_client,
@@ -242,7 +242,7 @@ def test_extract_articles_parse_fails():
         return mock_parser
 
     result: SolidExecutionResult = execute_solid(
-        extract_articles,
+        extract_articles_solid,
         mode_def=ModeDefinition(name="test_extract_articles",
                                 resource_defs={"html_parser": ResourceDefinition(_test_html_parser),
                                                "http_client": mock_http_client,

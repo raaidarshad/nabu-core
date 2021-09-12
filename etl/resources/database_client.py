@@ -4,7 +4,6 @@ from uuid import uuid4
 
 from dagster import configured, resource
 from sqlmodel import Session, create_engine
-from sqlalchemy.orm import sessionmaker
 
 from etl.models import Article, Source
 
@@ -12,12 +11,12 @@ from etl.models import Article, Source
 @resource(config_schema={"connection_string": str})
 def database_client(init_context) -> Session:
     engine = create_engine(init_context.resource_config["connection_string"])
-    db_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    return db_session()
+    db_session = Session(autocommit=False, autoflush=False, bind=engine)
+    return db_session
 
 
-@configured(configurable=database_client)
-def local_database_client():
+@configured(database_client)
+def local_database_client(init_context):
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
 
 

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article, Count
+from etl.models import Article, TermCount
 
 IdToArticle = dict[UUID, Article]
 IndexToArticle = dict[int, Article]
@@ -48,7 +48,7 @@ def numerify(target: list) -> tuple[list, dict]:
 
 # TODO will want more than just datetime filter at some point
 def get_counts_from_db(datetime_threshold: datetime, db_client: Session) -> tuple[list, list, list]:
-    db_counts: list[Count] = db_client.query(Count). \
+    db_counts: list[TermCount] = db_client.query(TermCount). \
         join(Article.id). \
         filter(Article.published_at >= datetime_threshold).all()
 

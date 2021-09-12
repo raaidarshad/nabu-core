@@ -2,13 +2,9 @@ import os
 import json
 from urllib import parse
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm.session import Session
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
-from sqlmodel import SQLModel
+from sqlmodel import Session, SQLModel, create_engine
 
-from etl.db.models import Base
 from etl.models import Source
 
 
@@ -21,12 +17,15 @@ SQLALCHEMY_DATABASE_URL = URL.create(
     database=os.getenv("DB_NAME"))
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-DbSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def get_session():
+    return Session(engine, autocommit=False, autoflush=False)
 
 
 def load_sources_from_file():
     # get db session
-    db: Session = DbSession()
+    db: Session = get_session()
     # load json file
     raw_sources = _load_json(filepath="sources.json")
     # write to db
@@ -58,7 +57,7 @@ def update_sources():
 
 if __name__ == "__main__":
     # create tables
-    SQLModel.metadata.create_all(bind=engine)
+    SQLModel.metadata.create_all(engine)
     # initialize sources
     load_sources_from_file()
     # # run pipeline to set source accuracies and biases

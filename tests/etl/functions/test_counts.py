@@ -5,7 +5,7 @@ from uuid import uuid4
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article, Count
+from etl.models import Article, TermCount
 from etl.functions.counts import CountData, get_count_data, numerify, get_counts_from_db, get_id_to_article, \
     counts_to_matrix
 
@@ -27,8 +27,8 @@ fake_articles = [
 ]
 
 fake_counts = [
-    Count(article_id=id1, term='content', count=1),
-    Count(article_id=id2, term='fake', count=2)
+    TermCount(article_id=id1, term='content', count=1),
+    TermCount(article_id=id2, term='fake', count=2)
 ]
 
 
