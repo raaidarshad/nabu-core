@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from flask import Flask, send_from_directory, request
 import feedparser
 
 # from etl.functions import clusterify, compute_similarity_data, get_count_data, prep_clusters
@@ -11,28 +10,15 @@ import feedparser
 app = FastAPI()
 
 
-# Path for our main Svelte page
-# @app.get("/")
-# def base():
-#     return send_from_directory('./public', 'index.html')
+@app.get("/feed")
+def defaultFeed(rssUrl: str, limit: int):
+    feed = feedparser.parse(rssUrl)
+    feed["entries"] = feed["entries"][:limit]
+    return feed
 
 
-# Path for all the static files (compiled JS/CSS, etc.)
-# @app.get("/{path}")
-# def home(path):
-#     return send_from_directory('./public', path)
-
-app.mount("/public", StaticFiles(directory="public"), name="public")
-
-
-# @app.get("/feed")
-# def defaultFeed():
-#     rssUrl = request.args.get("rssUrl")
-#     limit = int(request.args.get("limit"))
-#     feed = feedparser.parse(rssUrl)
-#     feed["entries"] = feed["entries"][:limit]
-#     return feed
-
+# Path for all the static files (compiled JS/CSS, index.html, etc.)
+app.mount("/", StaticFiles(directory="public", html=True), name="public")
 
 # @app.get("/clusters")
 # def clusters():
