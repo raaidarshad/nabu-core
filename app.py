@@ -4,7 +4,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import feedparser
 
-# from etl.functions import clusterify, compute_similarity_data, get_count_data, prep_clusters
+# from etl.functions.clusters import clusterify, prep_clusters
+# from etl.functions.counts import get_count_data
+# from etl.functions.tfidf import compute_similarity_data
 
 
 app = FastAPI()
@@ -19,6 +21,7 @@ def defaultFeed(rssUrl: str, limit: int):
 
 # Path for all the static files (compiled JS/CSS, index.html, etc.)
 app.mount("/", StaticFiles(directory="public", html=True), name="public")
+
 
 # @app.get("/clusters")
 # def clusters():

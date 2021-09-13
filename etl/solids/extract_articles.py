@@ -47,19 +47,6 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
             context.log.info(f"No timezone detected for {raw_time}, setting to UTC")
             parsed = parsed.astimezone(tz=tzutc())
         return parsed
-        # for fmt in ("%a, %d %b %Y %H:%M:%S %z",
-        #             "%a, %d %b %Y %H:%M:%S %Z",
-        #             "%Y-%m-%dT%H:%M:%SZ",
-        #             "%Y-%m-%dT%H:%M:%S%z",
-        #             "%Y-%m-%d %H:%M:%S.%f%z"):
-        #     try:
-        #         dt = datetime.datetime.strptime(raw_time, fmt)
-        #         if not dt.tzinfo:
-        #             dt = dt.astimezone(datetime.timezone.utc)
-        #         return dt
-        #     except ValueError:
-        #         pass
-        # raise ValueError(f"no valid date format found for {raw_time}")
 
     def _get_latest_feed(source: Source) -> Feed:
         # TODO wrap in try/except to handle when retrieval/parsing unsuccessful

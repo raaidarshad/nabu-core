@@ -3,9 +3,14 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import Column, Enum, Field, JSON, Relationship, String, SQLModel
+from sqlmodel import ARRAY, Column, Enum, Field, JSON, Relationship, String, SQLModel
 
 from etl.common import AfAccuracy, AfBias, AsBias, MbfcAccuracy, MbfcBias
+
+
+class ClusterToLink(SQLModel, table=True):
+    cluster_id: Optional[UUID] = Field(default=None, foreign_key="cluster.id", primary_key=True)
+    article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
 
 
 class Source(SQLModel, table=True):
@@ -22,7 +27,6 @@ class Source(SQLModel, table=True):
     af_accuracy: Optional[AfAccuracy] = Field(sa_column=Column(Enum(AfAccuracy)))
 
     class Config:
-        orm_mode = True
         arbitrary_types_allowed = True
 
 
@@ -56,9 +60,10 @@ class Article(SQLModel, table=True):
 
     source: Source = Relationship()
     term_counts: List["TermCount"] = Relationship(back_populates="article")
+    clusters: List["Cluster"] = Relationship(back_populates="articles", link_model=ClusterToLink)
 
     class Config:
-        orm_mode = True
+        arbitrary_types_allowed = True
 
 
 class TermCount(SQLModel, table=True):
@@ -68,5 +73,12 @@ class TermCount(SQLModel, table=True):
 
     article: Article = Relationship(back_populates="term_counts")
 
-    class Config:
-        orm_mode = True
+
+class Cluster(SQLModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    keywords: list[str] = Field(sa_column=Column(ARRAY(String)))
+    computed_at: datetime = Field(index=True)
+    # dayspan is the span of minutes that this cluster covers, so 60 is 1 hour, 1440 is a day, etc.
+    minute_span: int = Field(index=True)
+
+    articles: List[Article] = Relationship(back_populates="clusters", link_model=ClusterToLink)
