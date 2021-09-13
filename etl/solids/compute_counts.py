@@ -7,7 +7,6 @@ import spacy
 from sqlmodel import Session
 
 from etl.common import Context
-# from etl.db.models import Article as DbArticle, Count as DbCount
 from etl.models import Article, TermCount
 
 nlp = spacy.load("en_core_web_lg")
