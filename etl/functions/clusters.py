@@ -11,6 +11,12 @@ from etl.models import Article, Cluster
 RawCluster = frozenset[int]
 
 
+# TODO needs a test
+def compute_cluster_data(similarity_data: SimilarityData, computed_at: datetime, minute_span: int) -> list[Cluster]:
+    raw_clusters = clusterify(similarity_data.similarity_matrix)
+    return prep_clusters(raw_clusters, similarity_data, computed_at, minute_span)
+
+
 def clusterify(similarities: csr_matrix) -> set[RawCluster]:
     # okay SO for each row, the BFO operation looks through the matrix to find all "connected" rows, where connected
     # means there is a non-zero value to another row. So if row 0 has a value in column 4, those two should be connected
