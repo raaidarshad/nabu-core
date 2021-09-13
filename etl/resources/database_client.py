@@ -81,3 +81,37 @@ def compute_counts_test_database_client():
     db.commit = Mock(return_value=1)
 
     return db
+
+
+@resource
+def compute_clusters_test_database_client():
+    # TODO real body of this
+    fake_articles = [
+        Article(**{"id": uuid4(),
+                   "url": "https://fake.com",
+                   "source_id": uuid4(),
+                   "title": "fake title",
+                   "published_at": datetime.now(tz=timezone.utc),
+                   "parsed_content": "fake raaid content"}),
+        Article(**{"id": uuid4(),
+                   "url": "https://notreal.com",
+                   "source_id": uuid4(),
+                   "title": "unreal title",
+                   "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
+                   "parsed_content": "unreal raaid content"})
+    ]
+    db = mock_database_client()
+    a = Mock()
+    b = Mock()
+    c = Mock()
+    d = Mock()
+    d.all = Mock(return_value=fake_articles)
+    c.filter = Mock(return_value=d)
+    b.outerjoin = Mock(return_value=c)
+    a.filter = Mock(return_value=b)
+    db.query = Mock(return_value=a)
+
+    db.add_all = Mock(return_value=1)
+    db.commit = Mock(return_value=1)
+
+    return db
