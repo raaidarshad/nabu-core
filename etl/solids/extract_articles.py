@@ -5,7 +5,7 @@ from uuid import UUID
 
 from dateutil import parser
 from dateutil.tz import tzutc
-from dagster import String, solid
+from dagster import AssetMaterialization, String, solid
 from sqlmodel import Session
 
 from etl.common import Context
@@ -114,3 +114,4 @@ def load_articles(context: Context, articles: list[Article]):
     db_articles = [Article(**article.dict()) for article in articles]
     db_client.add_all(db_articles)
     db_client.commit()
+    yield AssetMaterialization(asset_key="article_table", description="New rows added to article table")

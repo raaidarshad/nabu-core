@@ -1,6 +1,6 @@
 import datetime
 
-from dagster import Output, OutputDefinition, String, solid
+from dagster import AssetMaterialization, Output, OutputDefinition, String, solid
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
 import spacy
@@ -68,6 +68,7 @@ def load_counts(context: Context, counts: list[TermCount]):
     db_client: Session = context.resources.database_client
     db_client.add_all([TermCount(**count.dict()) for count in counts])
     db_client.commit()
+    yield AssetMaterialization(asset_key="count_table", description="New rows added to count table")
 
 
 def _spacy_tokenizer(document):
