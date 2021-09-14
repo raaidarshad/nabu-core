@@ -1,10 +1,10 @@
 from datetime import datetime
+from uuid import UUID
 
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 from sqlmodel import Session
 
-from etl.functions.counts import IndexToTerm
 from etl.functions.tfidf import SimilarityData
 from etl.models import Article, Cluster
 
@@ -12,9 +12,13 @@ RawCluster = frozenset[int]
 
 
 # TODO needs a test
-def compute_cluster_data(similarity_data: SimilarityData, computed_at: datetime, minute_span: int) -> list[Cluster]:
+def compute_cluster_data(similarity_data: SimilarityData,
+                         computed_at: datetime,
+                         minute_span: int,
+                         db_client: Session):
     raw_clusters = clusterify(similarity_data.similarity_matrix)
-    return prep_clusters(raw_clusters, similarity_data, computed_at, minute_span)
+    raw_clusters = [rc for rc in raw_clusters if len(rc) > 1]
+    load_clusters(raw_clusters, similarity_data, computed_at, minute_span, db_client)
 
 
 def clusterify(similarities: csr_matrix) -> set[RawCluster]:
@@ -30,19 +34,21 @@ def clusterify(similarities: csr_matrix) -> set[RawCluster]:
             range(similarities.shape[0])}
 
 
-def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: IndexToTerm) -> list[str]:
+def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: list[str]) -> list[str]:
     return ["fake", "key", "words"]
 
 
-def prep_clusters(clusters: set[RawCluster],
+def load_clusters(clusters: list[RawCluster],
                   similarity_data: SimilarityData,
                   computed_at: datetime,
-                  minute_span: int) -> list[Cluster]:
+                  minute_span: int,
+                  db_client: Session):
     prepped = []
     for cluster in clusters:
         keywords = extract_keywords(cluster, similarity_data.tfidf_matrix, similarity_data.index_to_term)
         # if we don't re-cast it as Article, it loses an attribute "_sa_instance_state" that is needed *shrug*
-        articles = [Article(**similarity_data.index_to_article[idx].__dict__) for idx in cluster]
+        article_ids = [similarity_data.index_to_article_id[idx] for idx in cluster]
+        articles = get_articles_by_id(article_ids, db_client)
 
         c = Cluster(keywords=keywords,
                     articles=articles,
@@ -50,9 +56,14 @@ def prep_clusters(clusters: set[RawCluster],
                     minute_span=minute_span)
         prepped.append(c)
 
-    return prepped
-
-
-def load_clusters(clusters: list[Cluster], db_client: Session):
-    db_client.add_all(clusters)
+    old_clusters_to_delete = db_client.query(Cluster).filter(Cluster.minute_span == minute_span).all()
+    for old_cluster in old_clusters_to_delete:
+        db_client.delete(old_cluster)
+    db_client.add_all(prepped)
     db_client.commit()
+
+
+# TODO needs test
+def get_articles_by_id(ids: list[UUID], db_client: Session) -> list[Article]:
+    return db_client.query(Article). \
+        filter(Article.id.in_(ids)).all()

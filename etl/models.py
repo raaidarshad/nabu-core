@@ -78,7 +78,7 @@ class Cluster(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
     keywords: list[str] = Field(sa_column=Column(ARRAY(String)))
     computed_at: datetime = Field(index=True)
-    # dayspan is the span of minutes that this cluster covers, so 60 is 1 hour, 1440 is a day, etc.
+    # minute_span is the span of minutes that this cluster covers, so 60 is 1 hour, 1440 is a day, etc.
     minute_span: int = Field(index=True)
 
     articles: List[Article] = Relationship(back_populates="clusters", link_model=ClusterToLink)

@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
 from etl.models import Article, TermCount
-from etl.functions.counts import CountData, get_count_data, numerify, get_counts_from_db, get_id_to_article, \
+from etl.functions.counts import CountData, get_count_data, numerify, get_counts_from_db, \
     counts_to_matrix
 
 id1 = uuid4()
@@ -37,20 +37,6 @@ def test_numerify():
     indices, index_to_target = numerify(target)
     recreated = [index_to_target[idx] for idx in indices]
     assert target == recreated
-
-
-def test_get_article_map():
-    mock_db_client = MagicMock(Session)
-    a = Mock()
-    b = Mock()
-    b.all = Mock(return_value=fake_articles)
-    a.filter = Mock(return_value=b)
-    mock_db_client.query = Mock(return_value=a)
-
-    expected = {id1: fake_articles[0], id2: fake_articles[1]}
-    real = get_id_to_article(datetime.now(tz=timezone.utc) - timedelta(minutes=30), mock_db_client)
-
-    assert real == expected
 
 
 def test_counts_to_matrix():
@@ -109,15 +95,13 @@ def test_get_count_data():
     counts, ids, terms = zip(*[(dbc.count, dbc.article_id, dbc.term) for dbc in fake_counts])
     index_ids, index_to_id = numerify(ids)
     index_terms, index_to_term = numerify(terms)
-    article_map = {id1: fake_articles[0], id2: fake_articles[1]}
-    index_to_article = {index: article_map[idx] for index, idx in index_to_id.items()}
 
     expected = CountData(
         count_matrix=csr_matrix((counts, (index_ids, index_terms))),
-        index_to_article=index_to_article,
+        index_to_article_id=index_to_id,
         index_to_term=index_to_term
     )
 
     assert real.count_matrix.todense().tolist() == expected.count_matrix.todense().tolist()
-    assert real.index_to_article == expected.index_to_article
+    assert real.index_to_article_id == expected.index_to_article_id
     assert real.index_to_term == expected.index_to_term

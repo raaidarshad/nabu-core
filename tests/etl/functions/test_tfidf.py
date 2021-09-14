@@ -27,8 +27,8 @@ def test_compute_similarity_data():
 
     count_data = CountData(
         count_matrix=count_matrix,
-        index_to_article={0: article1},
-        index_to_term={0: "term"}
+        index_to_article_id=[article1.id],
+        index_to_term=["term"]
     )
 
     tfidf_matrix = compute_tfidf(count_data.count_matrix)

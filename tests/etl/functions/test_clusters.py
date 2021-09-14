@@ -5,8 +5,8 @@ from uuid import uuid4
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article, Cluster
-from etl.functions.clusters import clusterify, load_clusters, prep_clusters
+from etl.models import Article
+from etl.functions.clusters import clusterify, load_clusters
 from etl.functions.tfidf import SimilarityData
 
 
@@ -35,11 +35,17 @@ def test_extract_keywords():
     ...
 
 
-def test_prep_clusters():
-    clusters = {
+def test_get_articles_by_id():
+    ...
+
+
+def test_load_clusters():
+    mock_db_client = MagicMock(Session)
+
+    clusters = [
         frozenset([0]),
         frozenset([1, 2])
-    }
+    ]
 
     m = csr_matrix(([1, 1, 1], ([0, 1, 2], [0, 1, 2])))
 
@@ -64,33 +70,15 @@ def test_prep_clusters():
 
     similarity_data = SimilarityData(
         count_matrix=m,
-        index_to_article={0: a1, 1: a2, 2: a3},
-        index_to_term={},
+        index_to_article_id=[a1.id, a2.id, a3.id],
+        index_to_term=[],
         tfidf_matrix=m,
         similarity_matrix=m
     )
 
     compute_time = datetime.now(tz=timezone.utc)
-    keywords = ["fake", "key", "words"]
 
-    expected = [
-        Cluster(keywords=keywords, articles=[a1], computed_at=compute_time, minute_span=1),
-        Cluster(keywords=keywords, articles=[a2, a3], computed_at=compute_time, minute_span=1),
+    load_clusters(clusters, similarity_data, compute_time, 1, mock_db_client)
 
-    ]
-    real = prep_clusters(clusters, similarity_data, compute_time, 1)
-
-    for result in real:
-        assert result.minute_span in [e.minute_span for e in expected]
-        assert result.computed_at in [e.computed_at for e in expected]
-        assert result.keywords in [e.keywords for e in expected]
-        assert result.articles in [e.articles for e in expected]
-
-
-def test_load_clusters():
-    mock_db_client = MagicMock(Session)
-
-    clusters = []
-    load_clusters(clusters, mock_db_client)
-    mock_db_client.add_all.assert_called_with(clusters)
+    mock_db_client.add_all.assert_called()
     mock_db_client.commit.assert_called()
