@@ -66,9 +66,12 @@ def compose_rows(_context: Context,
 @solid(required_resource_keys={"database_client"})
 def load_counts(context: Context, counts: list[TermCount]):
     db_client: Session = context.resources.database_client
-    db_client.add_all([TermCount(**count.dict()) for count in counts])
+    counts = [TermCount(**count.dict()) for count in counts]
+    db_client.add_all(counts)
     db_client.commit()
-    yield AssetMaterialization(asset_key="count_table", description="New rows added to count table")
+    yield AssetMaterialization(asset_key="count_table",
+                               description="New rows added to count table")
+    yield Output(counts)
 
 
 def _spacy_tokenizer(document):

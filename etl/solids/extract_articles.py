@@ -5,7 +5,7 @@ from uuid import UUID
 
 from dateutil import parser
 from dateutil.tz import tzutc
-from dagster import AssetMaterialization, String, solid
+from dagster import AssetMaterialization, Output, String, solid
 from sqlmodel import Session
 
 from etl.common import Context
@@ -107,11 +107,16 @@ def extract_articles_solid(context: Context, entries: list[FeedEntry], source_ma
         return list(articles)
 
 
-@solid(required_resource_keys={"database_client"})
+@solid(required_resource_keys={"database_client"}, config_schema={"time_threshold": String})
 def load_articles(context: Context, articles: list[Article]):
     # take the collected articles and put them in the db
     db_client: Session = context.resources.database_client
     db_articles = [Article(**article.dict()) for article in articles]
     db_client.add_all(db_articles)
     db_client.commit()
-    yield AssetMaterialization(asset_key="article_table", description="New rows added to article table")
+    yield AssetMaterialization(asset_key="article_table",
+                               description="New rows added to article table",
+                               tags={
+                                   "time_threshold": context.solid_config["time_threshold"]
+                               })
+    yield Output(db_articles)

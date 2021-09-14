@@ -1,4 +1,4 @@
-from dagster import AssetMaterialization, Float, Int, solid
+from dagster import AssetMaterialization, Float, Int, Output, solid
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session
 
@@ -31,3 +31,5 @@ def compute_and_load_clusters(context: Context, similarity_data: SimilarityData)
     db_client: Session = context.resources.database_client
     compute_cluster_data(similarity_data, datetime.now(tz=timezone.utc), minute_span, db_client)
     yield AssetMaterialization(asset_key="cluster_table", description="New rows added to cluster table")
+    # yield a dummy output, don't have access to the rows to add right here
+    yield Output(1)

@@ -35,7 +35,6 @@ test_resource_defs = {
 local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
-
 # dev_mode = ModeDefinition(name="dev")
 # prod_mode = ModeDefinition(name="prod")
 
@@ -44,8 +43,14 @@ my_threshold = my_threshold.strftime("%Y-%m-%d %H:%M:%S.%f%z")
 
 main_preset = PresetDefinition(
     name="main_preset",
-    run_config={"solids": {"get_latest_feeds": {"config": {"time_threshold": my_threshold}},
-                           "filter_to_new_entries": {"config": {"time_threshold": my_threshold}}}},
+    run_config={
+        "solids":
+            {
+                "get_latest_feeds": {"config": {"time_threshold": my_threshold}},
+                "filter_to_new_entries": {"config": {"time_threshold": my_threshold}},
+                "load_articles": {"config": {"time_threshold": my_threshold}}
+            }
+    },
     mode="local"
 )
 
