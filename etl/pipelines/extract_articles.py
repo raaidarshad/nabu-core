@@ -55,7 +55,7 @@ main_preset = PresetDefinition(
 )
 
 
-@pipeline(mode_defs=[local_mode, test_mode], preset_defs=[main_preset])
+@pipeline(mode_defs=[local_mode, test_mode], preset_defs=[main_preset], tags={"table": "article"})
 def extract_articles():
     sources = get_all_sources()
     source_map = create_source_map(sources)

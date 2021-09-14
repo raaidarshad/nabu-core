@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from dagster import AssetKey, AssetMaterialization, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, \
+from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, \
     SensorEvaluationContext, asset_sensor, pipeline
 
 from etl.resources.database_client import local_database_client, compute_counts_test_database_client
@@ -38,7 +38,8 @@ def article_table_sensor(context: SensorEvaluationContext, asset_event: EventLog
             "solids": {
                 "get_articles": {
                     "config": {
-                        "time_threshold": asset_event.dagster_event.event_specific_data.materialization.tags["time_threshold"],
+                        "time_threshold": asset_event.dagster_event.event_specific_data.materialization.tags[
+                            "time_threshold"],
                     }
                 }
             }
@@ -46,7 +47,7 @@ def article_table_sensor(context: SensorEvaluationContext, asset_event: EventLog
     )
 
 
-@pipeline(mode_defs=[local_mode, test_mode], preset_defs=[main_preset])
+@pipeline(mode_defs=[local_mode, test_mode], preset_defs=[main_preset], tags={"table": "count"})
 def compute_counts():
     articles = get_articles()
     count_matrix, features = compute_count_matrix(articles=articles)
