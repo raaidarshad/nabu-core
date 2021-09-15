@@ -5,7 +5,7 @@ from uuid import uuid4
 from dagster import configured, resource
 from sqlmodel import Session, create_engine
 
-from etl.models import Article, Source
+from etl.models import Article, Source, TermCount
 
 
 @resource(config_schema={"connection_string": str})
@@ -85,7 +85,7 @@ def compute_counts_test_database_client():
 
 @resource
 def compute_clusters_test_database_client():
-    # TODO real body of this
+    # and need to load clusters
     fake_articles = [
         Article(**{"id": uuid4(),
                    "url": "https://fake.com",
@@ -100,16 +100,26 @@ def compute_clusters_test_database_client():
                    "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
                    "parsed_content": "unreal raaid content"})
     ]
+
+    fake_counts = [
+        TermCount(article_id=uuid4(), term="fake", count=2),
+        TermCount(article_id=uuid4(), term="news", count=3),
+    ]
+
     db = mock_database_client()
     a = Mock()
     b = Mock()
-    c = Mock()
-    d = Mock()
-    d.all = Mock(return_value=fake_articles)
-    c.filter = Mock(return_value=d)
-    b.outerjoin = Mock(return_value=c)
+
+    b.all = Mock(return_value=fake_articles)
     a.filter = Mock(return_value=b)
     db.query = Mock(return_value=a)
+
+    c = Mock()
+    d = Mock()
+
+    d.all = Mock(return_value=fake_counts)
+    c.filter = Mock(return_value=d)
+    a.join = Mock(return_value=c)
 
     db.add_all = Mock(return_value=1)
     db.commit = Mock(return_value=1)
