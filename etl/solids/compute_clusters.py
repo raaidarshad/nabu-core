@@ -5,11 +5,9 @@ from sqlmodel import Session
 from etl.common import Context
 from etl.functions.counts import CountData, get_count_data
 from etl.functions.tfidf import SimilarityData, compute_similarity_data
-from etl.functions.clusters import compute_cluster_data, load_clusters
-from etl.models import Cluster
+from etl.functions.clusters import compute_cluster_data
 
 
-# TODO these all need tests
 @solid(required_resource_keys={"database_client"}, config_schema={"minute_span": Int})
 def get_counts(context: Context) -> CountData:
     db_client: Session = context.resources.database_client
