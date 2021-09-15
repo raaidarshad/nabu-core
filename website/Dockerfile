@@ -15,8 +15,6 @@ RUN pip install poetry
 
 RUN apt-get update -yqq
 
-COPY pyproject.toml /
-
 RUN poetry config virtualenvs.create false \
      && poetry install --no-interaction --no-ansi --no-dev
 
@@ -25,7 +23,5 @@ RUN  rm -rf /var \
     &&  rm -rf /root/.cache  \
     &&  rm -rf /usr/lib/python2.7 \
     &&  rm -rf /usr/lib/x86_64-linux-gnu/guile
-
-RUN uvicorn app:app --reload
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]
