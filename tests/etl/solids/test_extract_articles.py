@@ -286,6 +286,15 @@ def test_load_articles():
 
     result: SolidExecutionResult = execute_solid(
         load_articles,
+        run_config={
+            "solids": {
+                "load_articles": {
+                    "config": {
+                        "time_threshold": str(datetime.now(timezone.utc) - timedelta(seconds=30))
+                    }
+                }
+            }
+        },
         # needs a database_client that has add_all and commit methods
         mode_def=ModeDefinition(name="test_load_articles",
                                 resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
