@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
-from unittest.mock import MagicMock
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
 from etl.models import Article
-from etl.functions.clusters import clusterify, load_clusters
+from etl.functions.clusters import clusterify, get_articles_by_id, load_clusters
 from etl.functions.tfidf import SimilarityData
 
 
@@ -31,12 +31,38 @@ def test_clusterify():
     assert real == expected
 
 
+# TODO
 def test_extract_keywords():
     ...
 
 
 def test_get_articles_by_id():
-    ...
+    id1 = uuid4()
+    id2 = uuid4()
+    fake_articles = [
+        Article(**{"id": id1,
+                   "url": "https://fake.com",
+                   "source_id": uuid4(),
+                   "title": "fake title",
+                   "published_at": datetime.now(tz=timezone.utc),
+                   "parsed_content": "fake raaid content"}),
+        Article(**{"id": id2,
+                   "url": "https://notreal.com",
+                   "source_id": uuid4(),
+                   "title": "unreal title",
+                   "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
+                   "parsed_content": "unreal raaid content"})
+    ]
+
+    db = MagicMock(Session)
+    a = Mock()
+    b = Mock()
+    b.all = Mock(return_value=fake_articles)
+    a.filter = Mock(return_value=b)
+    db.query = Mock(return_value=a)
+
+    real_articles = get_articles_by_id([id1, id2], db)
+    assert real_articles == fake_articles
 
 
 def test_load_clusters():
