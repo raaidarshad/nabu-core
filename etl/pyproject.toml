@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "ptb_etl"
+version = "0.1.0"
+description = "Application code for pop the bubble etl"
+authors = ["Raaid Arshad <raaid@protonmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = "^4.9.3"
+dagit = "^0.12.1"
+dagster = "^0.12.1"
+python-dateutil = "^2.8.2"
+feedparser = "^6.0.8"
+psycopg2 = "^2.9.1"
+pydantic = "^1.8.2"
+requests = "^2.25.1"
+scikit-learn = "^0.24.2"
+spacy = "^3.1.0"
+sqlalchemy = "^1.4.20"
+sqlmodel = "^0.0.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
