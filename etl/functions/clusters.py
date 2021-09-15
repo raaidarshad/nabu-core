@@ -11,7 +11,6 @@ from etl.models import Article, Cluster
 RawCluster = frozenset[int]
 
 
-# TODO needs a test
 def compute_cluster_data(similarity_data: SimilarityData,
                          computed_at: datetime,
                          minute_span: int,
@@ -63,7 +62,6 @@ def load_clusters(clusters: list[RawCluster],
     db_client.commit()
 
 
-# TODO needs test
 def get_articles_by_id(ids: list[UUID], db_client: Session) -> list[Article]:
     return db_client.query(Article). \
         filter(Article.id.in_(ids)).all()
