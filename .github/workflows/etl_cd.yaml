@@ -6,7 +6,6 @@ on:
     paths:
       - 'etl/**'
 jobs:
-
   build-push-image:
     name: Build, push, and deploy
     runs-on: ubuntu-latest
