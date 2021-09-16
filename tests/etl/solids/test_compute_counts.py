@@ -5,7 +5,7 @@ from uuid import uuid4
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 from scipy.sparse import csr_matrix
 
-from etl.models import Article, Count
+from etl.models import Article, TermCount
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_counts import get_articles, compute_count_matrix, compose_rows, load_counts
 
@@ -100,24 +100,24 @@ def test_compose_rows():
     assert result.success
     assert len(result.output_value()) == 6
     assert result.output_value() == [
-        Count(article_id=expected_articles[0].id, term='content', count=1),
-        Count(article_id=expected_articles[0].id, term='fake', count=1),
-        Count(article_id=expected_articles[0].id, term='raaid', count=1),
-        Count(article_id=expected_articles[1].id, term='content', count=1),
-        Count(article_id=expected_articles[1].id, term='raaid', count=1),
-        Count(article_id=expected_articles[1].id, term='unreal', count=1),
+        TermCount(article_id=expected_articles[0].id, term='content', count=1),
+        TermCount(article_id=expected_articles[0].id, term='fake', count=1),
+        TermCount(article_id=expected_articles[0].id, term='raaid', count=1),
+        TermCount(article_id=expected_articles[1].id, term='content', count=1),
+        TermCount(article_id=expected_articles[1].id, term='raaid', count=1),
+        TermCount(article_id=expected_articles[1].id, term='unreal', count=1),
     ]
 
 
 def test_load_counts():
     counts = [
-        Count(article_id=uuid4(), term="president", count=4),
-        Count(article_id=uuid4(), term="congress", count=2),
-        Count(article_id=uuid4(), term="environment", count=20),
-        Count(article_id=uuid4(), term="markets", count=2)
+        TermCount(article_id=uuid4(), term="president", count=4),
+        TermCount(article_id=uuid4(), term="congress", count=2),
+        TermCount(article_id=uuid4(), term="environment", count=20),
+        TermCount(article_id=uuid4(), term="markets", count=2)
     ]
 
-    db_counts = [Count(**count.dict()) for count in counts]
+    db_counts = [TermCount(**count.dict()) for count in counts]
 
     db_mock = mock_database_client()
 

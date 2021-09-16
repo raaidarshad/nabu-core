@@ -20,6 +20,11 @@ def test_extract_articles():
                     "config": {
                         "time_threshold": str(datetime.now(timezone.utc))
                     }
+                },
+                "load_articles": {
+                    "config": {
+                        "time_threshold": str(datetime.now(timezone.utc))
+                    }
                 }
             }
         }

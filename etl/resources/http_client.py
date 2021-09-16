@@ -1,6 +1,8 @@
 from collections import OrderedDict
 import requests
+from requests.adapters import HTTPAdapter
 from unittest.mock import Mock
+from urllib3.util.retry import Retry
 
 from dagster import resource, InitResourceContext
 
@@ -16,6 +18,8 @@ headers = OrderedDict([
     ("Upgrade-Insecure-Requests", "1")
 ])
 
+adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1, allowed_methods={"GET"}))
+
 
 @resource(required_resource_keys={"thread_local"})
 def http_client(init_context: InitResourceContext) -> requests.Session:
@@ -24,10 +28,12 @@ def http_client(init_context: InitResourceContext) -> requests.Session:
     if not hasattr(thread_local, "session"):
         session = requests.Session()
         session.headers = headers
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
         thread_local.session = session
     return thread_local.session
 
 
 @resource(required_resource_keys={"thread_local"})
-def mock_http_client(_init_context) -> requests.Session:
+def mock_http_client() -> requests.Session:
     return Mock(spec=requests.Session)

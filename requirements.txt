@@ -1,4 +1,0 @@
-feedparser
-flask
-gunicorn
-requests

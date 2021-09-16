@@ -3,7 +3,9 @@ import datetime
 import requests
 from uuid import UUID
 
-from dagster import String, solid
+from dateutil import parser
+from dateutil.tz import tzutc
+from dagster import AssetMaterialization, Output, String, solid
 from sqlmodel import Session
 
 from etl.common import Context
@@ -40,19 +42,11 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
         return Feed(entries=entries, source_id=source_id, updated_at=_format_time(updated), **raw_feed)
 
     def _format_time(raw_time: str) -> datetime.datetime:
-        for fmt in ("%a, %d %b %Y %H:%M:%S %z",
-                    "%a, %d %b %Y %H:%M:%S %Z",
-                    "%Y-%m-%dT%H:%M:%SZ",
-                    "%Y-%m-%dT%H:%M:%S%z",
-                    "%Y-%m-%d %H:%M:%S.%f%z"):
-            try:
-                dt = datetime.datetime.strptime(raw_time, fmt)
-                if not dt.tzinfo:
-                    dt = dt.astimezone(datetime.timezone.utc)
-                return dt
-            except ValueError:
-                pass
-        raise ValueError(f"no valid date format found for {raw_time}")
+        parsed = parser.parse(raw_time, tzinfos={"EDT": -14400, "EST": -18000})
+        if not parsed.tzinfo:
+            context.log.info(f"No timezone detected for {raw_time}, setting to UTC")
+            parsed = parsed.astimezone(tz=tzutc())
+        return parsed
 
     def _get_latest_feed(source: Source) -> Feed:
         # TODO wrap in try/except to handle when retrieval/parsing unsuccessful
@@ -84,7 +78,7 @@ def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry
 
 
 @solid(required_resource_keys={"http_client", "html_parser"})
-def extract_articles(context: Context, entries: list[FeedEntry], source_map: dict[UUID, Source]) -> list[Article]:
+def extract_articles_solid(context: Context, entries: list[FeedEntry], source_map: dict[UUID, Source]) -> list[Article]:
 
     def _get_response_for_entry(feed_entry: FeedEntry) -> requests.Response:
         # TODO wrap in try/except, handle error cases
@@ -113,10 +107,16 @@ def extract_articles(context: Context, entries: list[FeedEntry], source_map: dic
         return list(articles)
 
 
-@solid(required_resource_keys={"database_client"})
+@solid(required_resource_keys={"database_client"}, config_schema={"time_threshold": String})
 def load_articles(context: Context, articles: list[Article]):
     # take the collected articles and put them in the db
     db_client: Session = context.resources.database_client
     db_articles = [Article(**article.dict()) for article in articles]
     db_client.add_all(db_articles)
     db_client.commit()
+    yield AssetMaterialization(asset_key="article_table",
+                               description="New rows added to article table",
+                               tags={
+                                   "time_threshold": context.solid_config["time_threshold"]
+                               })
+    yield Output(db_articles)

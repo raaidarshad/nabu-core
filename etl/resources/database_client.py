@@ -4,30 +4,29 @@ from uuid import uuid4
 
 from dagster import configured, resource
 from sqlmodel import Session, create_engine
-from sqlalchemy.orm import sessionmaker
 
-from etl.models import Article, Source
+from etl.models import Article, Source, TermCount
 
 
 @resource(config_schema={"connection_string": str})
 def database_client(init_context) -> Session:
     engine = create_engine(init_context.resource_config["connection_string"])
-    db_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    return db_session()
+    db_session = Session(autocommit=False, autoflush=False, bind=engine)
+    return db_session
 
 
-@configured(configurable=database_client)
-def local_database_client(_init_context):
+@configured(database_client)
+def local_database_client(init_context):
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
 
 
 @resource
-def mock_database_client(_init_context) -> Session:
+def mock_database_client() -> Session:
     return MagicMock(Session)
 
 
 @resource
-def extract_articles_test_database_client(_init_context):
+def extract_articles_test_database_client():
     fake_sources = [
         Source(**{"id": uuid4(),
                   "name": "name",
@@ -52,7 +51,7 @@ def extract_articles_test_database_client(_init_context):
 
 
 @resource
-def compute_counts_test_database_client(_init_context):
+def compute_counts_test_database_client():
     fake_articles = [
         Article(**{"id": uuid4(),
                    "url": "https://fake.com",
@@ -77,6 +76,50 @@ def compute_counts_test_database_client(_init_context):
     b.outerjoin = Mock(return_value=c)
     a.filter = Mock(return_value=b)
     db.query = Mock(return_value=a)
+
+    db.add_all = Mock(return_value=1)
+    db.commit = Mock(return_value=1)
+
+    return db
+
+
+@resource
+def compute_clusters_test_database_client():
+    # and need to load clusters
+    fake_articles = [
+        Article(**{"id": uuid4(),
+                   "url": "https://fake.com",
+                   "source_id": uuid4(),
+                   "title": "fake title",
+                   "published_at": datetime.now(tz=timezone.utc),
+                   "parsed_content": "fake raaid content"}),
+        Article(**{"id": uuid4(),
+                   "url": "https://notreal.com",
+                   "source_id": uuid4(),
+                   "title": "unreal title",
+                   "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
+                   "parsed_content": "unreal raaid content"})
+    ]
+
+    fake_counts = [
+        TermCount(article_id=uuid4(), term="fake", count=2),
+        TermCount(article_id=uuid4(), term="news", count=3),
+    ]
+
+    db = mock_database_client()
+    a = Mock()
+    b = Mock()
+
+    b.all = Mock(return_value=fake_articles)
+    a.filter = Mock(return_value=b)
+    db.query = Mock(return_value=a)
+
+    c = Mock()
+    d = Mock()
+
+    d.all = Mock(return_value=fake_counts)
+    c.filter = Mock(return_value=d)
+    a.join = Mock(return_value=c)
 
     db.add_all = Mock(return_value=1)
     db.commit = Mock(return_value=1)
