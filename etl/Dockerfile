@@ -1,19 +1,13 @@
-FROM python:3.9.1-slim
+FROM python:3.9.5-slim
 
 RUN pip install poetry
 
-RUN apt-get update -yqq
+RUN apt-get update
+RUN apt-get -y install libpq-dev gcc
 
-COPY pyproject.toml /
+COPY . /app/
 
-RUN poetry config virtualenvs.create false \
-     && poetry install --no-interaction --no-ansi --no-dev
+WORKDIR /app
 
-# Cleanup
-RUN  rm -rf /var \
-    &&  rm -rf /root/.cache  \
-    &&  rm -rf /usr/lib/python2.7 \
-    &&  rm -rf /usr/lib/x86_64-linux-gnu/guile
-
-# ==> Add user code layer
-COPY ./ /
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-dev

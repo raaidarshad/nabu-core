@@ -1,6 +1,14 @@
-/node_modules/
-
 .DS_Store
 .idea
+
+# svelte/js
+/website/node_modules/
+/website/package-lock.json
+/website/public/
+
+
+# python
+poetry.lock
 .pyc
 .pytest_cache
+venv

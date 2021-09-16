@@ -1,27 +1,15 @@
 # build client-side code
-FROM node:14.15.4 as client
+FROM nikolaik/python-nodejs:python3.9-nodejs16
+
+COPY . /app/
+
+WORKDIR /app
 
 RUN npm install
 
-RUN npm build
+RUN npm run build
 
-# ==> Add user code layer, including newly generated static assets
-COPY ./ /
-
-# python server
-FROM python:3.9.1-slim as server
-
-RUN pip install poetry
-
-RUN apt-get update -yqq
-
-RUN poetry config virtualenvs.create false \
-     && poetry install --no-interaction --no-ansi --no-dev
-
-# Cleanup
-RUN  rm -rf /var \
-    &&  rm -rf /root/.cache  \
-    &&  rm -rf /usr/lib/python2.7 \
-    &&  rm -rf /usr/lib/x86_64-linux-gnu/guile
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-dev
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]
