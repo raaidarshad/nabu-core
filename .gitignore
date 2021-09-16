@@ -4,7 +4,7 @@
 # svelte/js
 /website/node_modules/
 /website/package-lock.json
-/website/public/
+/website/public/build
 
 
 # python
