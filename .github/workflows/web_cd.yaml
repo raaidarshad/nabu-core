@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - 'website/**'
+      - '.github/workflows/web_cd.yaml'
 jobs:
   build-push-image:
     name: Build, push, and deploy
