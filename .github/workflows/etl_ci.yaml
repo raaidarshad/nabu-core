@@ -39,7 +39,7 @@ jobs:
         poetry-version: 1.1.8
     - name: Install dependencies
       run: |
-        cd etl && poetry install
+        cd etl && poetry config virtualenvs.create false && poetry install --no-interaction
     - name: run tests
       run: |
         pytest tests
