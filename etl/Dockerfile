@@ -5,9 +5,9 @@ RUN pip install poetry
 RUN apt-get update
 RUN apt-get -y install libpq-dev gcc
 
-COPY . /app/
+COPY . /etl/
 
-WORKDIR /app
+WORKDIR /etl
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-dev
