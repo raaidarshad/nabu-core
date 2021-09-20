@@ -8,17 +8,9 @@ from etl.resources.database_client import cloud_database_client, local_database_
 from etl.solids.compute_counts import get_articles, compose_rows, compute_count_matrix, load_counts
 
 
-cloud_resource_defs = {
-    "database_client": cloud_database_client
-}
-
-local_resource_defs = {
-    "database_client": local_database_client
-}
-
-test_resource_defs = {
-    "database_client": compute_counts_test_database_client
-}
+cloud_resource_defs = {"database_client": cloud_database_client}
+local_resource_defs = {"database_client": local_database_client}
+test_resource_defs = {"database_client": compute_counts_test_database_client}
 
 # modes
 cloud_mode = ModeDefinition(name="cloud", resource_defs=cloud_resource_defs)
