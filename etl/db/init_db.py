@@ -1,22 +1,12 @@
 import os
 import json
-from urllib import parse
 
-from sqlalchemy.engine.url import URL
 from sqlmodel import Session, SQLModel, create_engine
 
 from etl.models import Source
 
 
-SQLALCHEMY_DATABASE_URL = URL.create(
-    drivername=os.getenv("DB_DRIVER"),
-    username=os.getenv("DB_USERNAME"),
-    password=parse.quote_plus(os.getenv("DB_PASSWORD")),
-    host=os.getenv("DB_HOST"),
-    port=int(os.getenv("DB_PORT")),
-    database=os.getenv("DB_NAME"))
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(os.getenv("DB_CONNECTION_STRING"))
 
 
 def get_session():

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import os
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
@@ -21,8 +22,8 @@ def local_database_client(init_context):
 
 
 @configured(database_client)
-def dev_database_client(init_context):
-    return {"connection_string": ""}
+def cloud_database_client(init_context):
+    return {"connection_string": os.getenv("DB_CONNECTION_STRING")}
 
 
 @resource
