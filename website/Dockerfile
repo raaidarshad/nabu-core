@@ -1,15 +1,11 @@
-# build client-side code
-FROM nikolaik/python-nodejs:python3.9-nodejs16
+FROM nikolaik/python-nodejs:python3.9-nodejs16-slim
 
 COPY . /app/
 
 WORKDIR /app
 
-RUN npm install
+RUN npm install && npm run build
 
-RUN npm run build
-
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-dev
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-dev --no-root
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]

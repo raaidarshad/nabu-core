@@ -20,6 +20,11 @@ def local_database_client(init_context):
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
 
 
+@configured(database_client)
+def dev_database_client(init_context):
+    return {"connection_string": ""}
+
+
 @resource
 def mock_database_client() -> Session:
     return MagicMock(Session)
