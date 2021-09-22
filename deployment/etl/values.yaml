@@ -199,7 +199,7 @@ dagster-user-deployments:
       image:
         # When a tag is not supplied, it will default as the Helm chart version.
         repository: "registry.digitalocean.com/ptb/etl"
-        tag: "eb64a7e"
+        tag: "1a2f6c1"
 
         # Change with caution! If you're using a fixed tag for pipeline run images, changing the
         # image pull policy to anything other than "Always" will use a cached/stale image, which is
@@ -215,10 +215,8 @@ dagster-user-deployments:
       #   - "-a"
       #   - "define_demo_execution_repo"
       dagsterApiGrpcArgs:
-        - "-d"
-        - "/etl/"
         - "-f"
-        - "repositories.py"
+        - "etl/repositories.py"
       port: 3030
 
       # Additional environment variables to set.
