@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 
 from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
-from etl.resources.database_client import local_database_client, extract_articles_test_database_client
+from etl.resources.database_client import cloud_database_client, local_database_client, \
+    extract_articles_test_database_client
 from etl.resources.html_parser import html_parser, mock_html_parser
 from etl.resources.http_client import http_client, mock_http_client
 from etl.resources.rss_parser import rss_parser, mock_rss_parser
@@ -15,6 +16,14 @@ from etl.solids.extract_articles import get_all_sources, get_latest_feeds, creat
     filter_to_new_entries, extract_articles_solid, load_articles
 
 # resources
+cloud_resource_defs = {
+    "rss_parser": rss_parser,
+    "http_client": http_client,
+    "thread_local": thread_local,
+    "html_parser": html_parser,
+    "database_client": cloud_database_client
+}
+
 local_resource_defs = {
     "rss_parser": rss_parser,
     "http_client": http_client,
@@ -24,19 +33,17 @@ local_resource_defs = {
 }
 
 test_resource_defs = {
-    "database_client": extract_articles_test_database_client,
     "rss_parser": mock_rss_parser,
     "http_client": mock_http_client,
     "thread_local": mock_thread_local,
-    "html_parser": mock_html_parser
+    "html_parser": mock_html_parser,
+    "database_client": extract_articles_test_database_client
 }
 
 # modes
+cloud_mode = ModeDefinition(name="cloud", resource_defs=cloud_resource_defs)
 local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
-
-# dev_mode = ModeDefinition(name="dev")
-# prod_mode = ModeDefinition(name="prod")
 
 my_threshold = datetime.utcnow() - timedelta(days=1)
 my_threshold = my_threshold.strftime("%Y-%m-%d %H:%M:%S.%f%z")
@@ -55,7 +62,7 @@ main_preset = PresetDefinition(
 )
 
 
-@pipeline(mode_defs=[local_mode, test_mode], preset_defs=[main_preset], tags={"table": "article"})
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[main_preset], tags={"table": "article"})
 def extract_articles():
     sources = get_all_sources()
     source_map = create_source_map(sources)
@@ -70,7 +77,7 @@ freq = 15  # minutes
 
 
 # every 15 minutes
-@schedule(cron_schedule=f"*/{freq} * * * *", pipeline_name="extract_articles", mode="local")
+@schedule(cron_schedule=f"*/{freq} * * * *", pipeline_name="extract_articles", mode="cloud")
 def main_schedule(context: ScheduleExecutionContext):
     threshold = context.scheduled_execution_time - timedelta(minutes=freq)
     return {"solids": {"get_latest_feeds": {"config": {"time_threshold": threshold}},

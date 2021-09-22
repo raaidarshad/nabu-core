@@ -1,14 +1,17 @@
-FROM python:3.9.5-slim
+FROM python:3.9.5-slim as req
+COPY pyproject.toml .
+COPY poetry.lock .
+RUN pip install poetry && poetry export -o requirements.txt
 
-RUN pip install poetry
+FROM python:3.9.5-slim as builder
+RUN apt-get update && apt-get install -y libpq-dev gcc
+COPY --from=req requirements.txt .
+RUN pip install --user -r requirements.txt
 
-RUN apt-get update
-RUN apt-get -y install libpq-dev gcc
-
+FROM python:3.9.5-slim as runner
+RUN apt-get update && apt-get install --no-install-recommends -y libpq-dev
+COPY --from=builder /root/.local /root/.local
 COPY . /etl/
-
 WORKDIR /etl
-
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-dev
-RUN python -m spacy download en_core_web_lg
+ENV PATH=/root/.local/bin:$PATH
+RUN python -m spacy download en_core_web_sm

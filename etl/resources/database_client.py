@@ -1,11 +1,33 @@
 from datetime import datetime, timedelta, timezone
+import os
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 from dagster import configured, resource
+from sqlalchemy.future.engine import Engine
 from sqlmodel import Session, create_engine
 
 from etl.models import Article, Source, TermCount
+
+
+@resource(config_schema={"connection_string": str})
+def database_engine(init_context) -> Engine:
+    return create_engine(init_context.resource_config["connection_string"])
+
+
+@configured(database_engine)
+def local_database_engine(init_context):
+    return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
+
+
+@configured(database_engine)
+def cloud_database_engine(init_context):
+    return {"connection_string": os.getenv("DB_CONNECTION_STRING")}
+
+
+@resource
+def mock_database_engine() -> Engine:
+    return MagicMock(Engine)
 
 
 @resource(config_schema={"connection_string": str})
@@ -18,6 +40,11 @@ def database_client(init_context) -> Session:
 @configured(database_client)
 def local_database_client(init_context):
     return {"connection_string": "postgresql://postgres:postgres@localhost:5432/postgres"}
+
+
+@configured(database_client)
+def cloud_database_client(init_context):
+    return {"connection_string": os.getenv("DB_CONNECTION_STRING")}
 
 
 @resource

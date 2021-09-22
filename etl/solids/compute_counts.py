@@ -9,7 +9,12 @@ from sqlmodel import Session
 from etl.common import Context
 from etl.models import Article, TermCount
 
-nlp = spacy.load("en_core_web_lg")
+# TODO probably make the nlp model a resource
+try:
+    nlp = spacy.load("en_core_web_sm")
+except IOError:
+    spacy.cli.download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 
 @solid(required_resource_keys={"database_client"}, config_schema={"time_threshold": String})
