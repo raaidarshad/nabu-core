@@ -12,6 +12,5 @@ FROM python:3.9.5-slim as runner
 RUN apt-get update && apt-get install --no-install-recommends -y libpq-dev
 COPY --from=builder /root/.local /root/.local
 COPY . /etl/
-WORKDIR /etl
 ENV PATH=/root/.local/bin:$PATH
 RUN python -m spacy download en_core_web_sm
