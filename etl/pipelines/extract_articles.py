@@ -2,7 +2,7 @@
 Pipeline that gets all Sources from DB and writes newly published Articles to DB.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
@@ -80,6 +80,8 @@ freq = 15  # minutes
 @schedule(cron_schedule=f"*/{freq} * * * *", pipeline_name="extract_articles", mode="cloud")
 def main_schedule(context: ScheduleExecutionContext):
     raw_threshold = context.scheduled_execution_time - timedelta(minutes=freq)
+    if not raw_threshold.tzinfo:
+        raw_threshold = raw_threshold.astimezone(tz=timezone.utc)
     threshold = raw_threshold.strftime("%Y-%m-%d %H:%M:%S.%f%z")
     return {"solids": {"get_latest_feeds": {"config": {"time_threshold": threshold}},
                        "filter_to_new_entries": {"config": {"time_threshold": threshold}},
