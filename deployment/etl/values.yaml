@@ -199,7 +199,7 @@ dagster-user-deployments:
       image:
         # When a tag is not supplied, it will default as the Helm chart version.
         repository: "registry.digitalocean.com/ptb/etl"
-        tag: "1a2f6c1"
+        tag: "c7d7cc2"
 
         # Change with caution! If you're using a fixed tag for pipeline run images, changing the
         # image pull policy to anything other than "Always" will use a cached/stale image, which is
@@ -385,7 +385,8 @@ runLauncher:
       #
       # envSecrets:
       #   - name: secret
-      envSecrets: []
+      envSecrets:
+        - name: pgcreds
 
       # Additional variables from the existing environment can be passed into the Job.
       #
