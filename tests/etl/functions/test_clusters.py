@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
 from etl.models import Article
-from etl.functions.clusters import clusterify, get_articles_by_id, load_clusters
+from etl.functions.clusters import clusterify, extract_keywords, get_articles_by_id, load_clusters
 from etl.functions.tfidf import SimilarityData
 
 
@@ -31,9 +31,13 @@ def test_clusterify():
     assert real == expected
 
 
-# TODO
 def test_extract_keywords():
-    ...
+    cluster = frozenset([2])
+    tfidf = csr_matrix(([1, 1, 1, 1, 2], ([0, 1, 2, 3, 2], [0, 1, 2, 3, 3])))
+    index_to_term = ["a", "b", "c", "d"]
+
+    kws = extract_keywords(cluster, tfidf, index_to_term, 2)
+    assert kws == ["c", "d"]
 
 
 def test_get_articles_by_id():
@@ -97,7 +101,7 @@ def test_load_clusters():
     similarity_data = SimilarityData(
         count_matrix=m,
         index_to_article_id=[a1.id, a2.id, a3.id],
-        index_to_term=[],
+        index_to_term=["a", "b", "c", "d", "e", "f"],
         tfidf_matrix=m,
         similarity_matrix=m
     )
