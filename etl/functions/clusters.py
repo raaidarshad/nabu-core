@@ -34,7 +34,20 @@ def clusterify(similarities: csr_matrix) -> set[RawCluster]:
 
 
 def extract_keywords(cluster: RawCluster, tfidf: csr_matrix, index_to_term: list[str]) -> list[str]:
-    return ["fake", "key", "words"]
+    # pull out only the relevant rows (articles)
+    target_rows = tfidf[list(cluster), :]
+    # take the mean of every column (term)
+    word_weights = target_rows.mean(axis=0)
+    # convert to list so it is easier to work with
+    word_weights = word_weights.to_list()[0]
+    # create dict to track indices while sorting
+    idx_to_weight = {idx: v for idx, v in enumerate(word_weights)}
+    # sort
+    sorted_idx_to_weight = sorted(idx_to_weight.items(), key=lambda item: item[1])
+    # grab the last N term indices
+    keywords = sorted_idx_to_weight[-5:]
+    # use index_to_term to convert to the right terms
+    return [index_to_term[idx] for (idx, v) in keywords]
 
 
 def load_clusters(clusters: list[RawCluster],
