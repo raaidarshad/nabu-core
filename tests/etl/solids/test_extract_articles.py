@@ -280,7 +280,7 @@ def test_load_articles():
     db_mock = mock_database_client()
 
     def _test_db_client(_init_context):
-        db_mock.add_all = Mock(return_value=1)
+        db_mock.exec = Mock(return_value=1)
         db_mock.commit = Mock(return_value=1)
         return db_mock
 
@@ -302,5 +302,5 @@ def test_load_articles():
     )
 
     assert result.success
-    assert db_mock.add_all.called_once_with(db_articles)
+    assert db_mock.add_all.exec(db_articles)
     assert db_mock.commit.called_once()
