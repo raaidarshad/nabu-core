@@ -6,6 +6,7 @@ from uuid import UUID
 from dateutil import parser
 from dateutil.tz import tzutc
 from dagster import AssetMaterialization, Output, String, solid
+from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session
 
 from etl.common import Context
@@ -111,12 +112,12 @@ def extract_articles_solid(context: Context, entries: list[FeedEntry], source_ma
 def load_articles(context: Context, articles: list[Article]):
     # take the collected articles and put them in the db
     db_client: Session = context.resources.database_client
-    db_articles = [Article(**article.dict()) for article in articles]
-    db_client.add_all(db_articles)
+    db_articles = [article.dict() for article in articles]
+    insert_statement = insert(Article).on_conflict_do_nothing(index_elements=["url"])
+    db_client.exec(statement=insert_statement, params=db_articles)
+    # db_client.add_all(db_articles)
     db_client.commit()
     yield AssetMaterialization(asset_key="article_table",
                                description="New rows added to article table",
-                               tags={
-                                   "time_threshold": context.solid_config["time_threshold"]
-                               })
+                               tags={"time_threshold": context.solid_config["time_threshold"]})
     yield Output(db_articles)
