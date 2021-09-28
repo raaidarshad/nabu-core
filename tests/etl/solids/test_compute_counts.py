@@ -5,9 +5,10 @@ from uuid import uuid4
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 from scipy.sparse import csr_matrix
 
-from etl.models import Article, TermCount
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_counts import get_articles, compute_count_matrix, compose_rows, load_counts
+from ptbmodels.models import Article, TermCount
+
 
 fake_articles = [
     Article(**{"id": uuid4(),

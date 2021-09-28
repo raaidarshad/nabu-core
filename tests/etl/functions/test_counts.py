@@ -5,9 +5,10 @@ from uuid import uuid4
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article, TermCount
 from etl.functions.counts import CountData, get_count_data, numerify, get_counts_from_db, \
     counts_to_matrix
+from ptbmodels.models import Article, TermCount
+
 
 id1 = uuid4()
 id2 = uuid4()

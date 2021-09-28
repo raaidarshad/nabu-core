@@ -7,7 +7,7 @@ from dagster import configured, resource
 from sqlalchemy.future.engine import Engine
 from sqlmodel import Session, create_engine
 
-from etl.models import Article, Source, TermCount
+from ptbmodels.models import Article, Source, TermCount
 
 
 @resource(config_schema={"connection_string": str})

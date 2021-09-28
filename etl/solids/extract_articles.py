@@ -10,8 +10,8 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session
 
 from etl.common import Context
-from etl.models import Article, Feed, FeedEntry, Source
 from etl.resources.html_parser import BaseParser
+from ptbmodels.models import Article, Feed, FeedEntry, Source
 
 
 @solid(required_resource_keys={"database_client"})
