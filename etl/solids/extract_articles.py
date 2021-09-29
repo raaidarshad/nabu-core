@@ -18,7 +18,7 @@ from ptbmodels.models import Article, Feed, FeedEntry, Source
 def get_all_sources(context: Context) -> list[Source]:
     db_client: Session = context.resources.database_client
     sources = db_client.query(Source).all()
-    context.log.info(f"Got {len(sources)} sources")
+    context.log.debug(f"Got {len(sources)} sources")
     return [Source(**s.__dict__) for s in sources]
 
 
@@ -45,7 +45,7 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
     def _format_time(raw_time: str) -> datetime.datetime:
         parsed = parser.parse(raw_time, tzinfos={"EDT": -14400, "EST": -18000})
         if not parsed.tzinfo:
-            context.log.info(f"No timezone detected for {raw_time}, setting to UTC")
+            context.log.debug(f"No timezone detected for {raw_time}, setting to UTC")
             parsed = parsed.astimezone(tz=tzutc())
         return parsed
 
@@ -60,7 +60,7 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
             context.log.debug(f"Source of id {source.id} not parsed successfully")
 
     filtered_feeds = list(filter(None, [_get_latest_feed(source) for source in sources]))
-    context.log.info(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")
+    context.log.debug(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")
     return filtered_feeds
 
 
@@ -76,7 +76,7 @@ def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry
     entries = []
     for feed in feeds:
         entries.extend([entry for entry in feed.entries if time_filter(entry, time_threshold)])
-    context.log.info(f"Filtered down to {len(entries)} entries that were published since {time_threshold}")
+    context.log.debug(f"Filtered down to {len(entries)} entries that were published since {time_threshold}")
     return entries
 
 
@@ -98,7 +98,7 @@ def extract_articles_solid(context: Context, entries: list[FeedEntry], source_ma
         try:
             text = parser.extract(content=response.content, parse_config=source.html_parser_config)
         except:
-            context.log.info(f"Entry with URL {feed_entry.url} was not parsed successfully")
+            context.log.debug(f"Entry with URL {feed_entry.url} was not parsed successfully")
             text = feed_entry.summary
         return Article(parsed_content=text, **feed_entry.dict())
 
