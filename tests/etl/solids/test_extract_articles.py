@@ -263,8 +263,8 @@ def test_extract_articles_parse_fails():
         assert expected.url == actual.url
         assert expected.published_at == actual.published_at
         assert expected.authors == actual.authors
-        # this is intentional, it should NOT be the parsed content here and should default to summary
-        assert expected.summary == actual.parsed_content
+        # this is intentional, it should NOT be the parsed content here and should default to title
+        assert expected.title == actual.parsed_content
 
 
 def test_load_articles():

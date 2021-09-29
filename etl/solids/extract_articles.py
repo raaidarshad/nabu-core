@@ -57,10 +57,7 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
         raw = context.resources.rss_parser.parse(source.rss_url, modified=last_modified_header)
 
         if raw.status == 200:
-            entries = [FeedEntry(source_id=source.id,
-                                 published_at=_format_time(e.published),
-                                 title=re.sub(CLEANR, '', e.title),
-                                 **e) for e in raw.entries]
+            entries = [FeedEntry(source_id=source.id, published_at=_format_time(e.published), **e) for e in raw.entries]
             context.log.debug(
                 f"Source of id {source.id} and name {source.name} has {len(entries)} available entries")
             return _parse_raw_to_feed(raw_feed=raw.feed, entries=entries, source_id=source.id)
