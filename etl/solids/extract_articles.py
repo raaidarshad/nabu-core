@@ -100,8 +100,12 @@ def extract_articles_solid(context: Context, entries: list[FeedEntry], source_ma
         try:
             text = parser.extract(content=response.content, parse_config=source.html_parser_config)
         except:
-            context.log.debug(f"Entry with URL {feed_entry.url} was not parsed successfully")
-            text = feed_entry.summary
+            context.log.debug(f"Entry with URL {feed_entry.url} was not parsed successfully, using summary for text")
+            if feed_entry.summary:
+                text = feed_entry.summary
+            else:
+                context.log.debug(f"Entry with URL {feed_entry.url} has no summary, using title for text")
+                text = feed_entry.title
         return Article(parsed_content=text, **feed_entry.dict())
 
     def _extract_article(feed_entry: FeedEntry) -> Article:

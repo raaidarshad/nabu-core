@@ -31,7 +31,7 @@ def get_articles(context: Context) -> list[Article]:
         outerjoin(TermCount). \
         filter(TermCount.article_id.is_(None)).all()
 
-    context.log.info(f"Got {len(articles)} articles")
+    context.log.debug(f"Got {len(articles)} articles")
     return [Article(**a.__dict__) for a in articles]
 
 
