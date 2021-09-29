@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article, TermCount
+from ptbmodels.models import Article, TermCount
 
 
 class CountData(BaseModel):

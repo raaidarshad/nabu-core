@@ -5,9 +5,9 @@ from uuid import uuid4
 from scipy.sparse import csr_matrix
 from sqlmodel import Session
 
-from etl.models import Article
 from etl.functions.clusters import clusterify, extract_keywords, get_articles_by_id, load_clusters
 from etl.functions.tfidf import SimilarityData
+from ptbmodels.models import Article
 
 
 def test_clusterify():

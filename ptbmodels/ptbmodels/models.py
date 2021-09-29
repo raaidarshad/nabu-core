@@ -3,31 +3,50 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import ARRAY, Column, Enum, Field, JSON, Relationship, String, SQLModel
+from sqlmodel import ARRAY, Column, Enum as SQLEnum, Field, JSON, Relationship, String, SQLModel
 
-from etl.common import AfAccuracy, AfBias, AsBias, MbfcAccuracy, MbfcBias
-
-
-class ClusterToLink(SQLModel, table=True):
-    cluster_id: Optional[UUID] = Field(default=None, foreign_key="cluster.id", primary_key=True)
-    article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
+from enum import Enum
 
 
-class Source(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    name: str
-    short_name: Optional[str]
-    long_name: Optional[str]
-    rss_url: str = Field(sa_column=Column(String, unique=True))
-    html_parser_config: dict = Field(sa_column=Column(JSON))
-    allsides_bias: Optional[AsBias] = Field(sa_column=Column(Enum(AsBias)))
-    mbfc_bias: Optional[MbfcBias] = Field(sa_column=Column(Enum(MbfcBias)))
-    mbfc_accuracy: Optional[MbfcAccuracy] = Field(sa_column=Column(Enum(MbfcAccuracy)))
-    af_bias: Optional[AfBias] = Field(sa_column=Column(Enum(AfBias)))
-    af_accuracy: Optional[AfAccuracy] = Field(sa_column=Column(Enum(AfAccuracy)))
+class MbfcBias(Enum):
+    LEAST_BIASED = "LEAST_BIASED"
+    LEFT_CENTER = "LEFT_CENTER"
+    RIGHT_CENTER = "RIGHT_CENTER"
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
+    FAR_LEFT = "FAR_LEFT"
+    FAR_RIGHT = "FAR_RIGHT"
 
-    class Config:
-        arbitrary_types_allowed = True
+
+class MbfcAccuracy(Enum):
+    VERY_LOW = "VERY_LOW"
+    LOW = "LOW"
+    MIXED = "MIXED"
+    MOSTLY_FACTUAL = "MOSTLY_FACTUAL"
+    HIGH = "HIGH"
+    VERY_HIGH = "VERY_HIGH"
+
+
+class AfBias(Enum):
+    MIDDLE = "MIDDLE"
+    SKEWS_LEFT = "SKEWS_LEFT"
+    SKEWS_RIGHT = "SKEWS_RIGHT"
+    HYPER_PARTISAN_LEFT = "HYPER_PARTISAN_LEFT"
+    HYPER_PARTISAN_RIGHT = "HYPER_PARTISAN_RIGHT"
+    MOST_EXTREME_LEFT = "MOST_EXTREME_LEFT"
+    MOST_EXTREME_RIGHT = "MOST_EXTREME_RIGHT"
+
+
+class AfAccuracy(Enum):
+    pass
+
+
+class AsBias(Enum):
+    LEFT = "LEFT"
+    LEAN_LEFT = "LEAN_LEFT"
+    CENTER = "CENTER"
+    LEAN_RIGHT = "LEAN_RIGHT"
+    RIGHT = "RIGHT"
 
 
 class FeedEntry(BaseModel):
@@ -46,6 +65,28 @@ class Feed(BaseModel):
     url: HttpUrl = Field(alias="link")
     updated_at: datetime
     source_id: UUID
+
+
+class ClusterToLink(SQLModel, table=True):
+    cluster_id: Optional[UUID] = Field(default=None, foreign_key="cluster.id", primary_key=True)
+    article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
+
+
+class Source(SQLModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    name: str
+    short_name: Optional[str]
+    long_name: Optional[str]
+    rss_url: str = Field(sa_column=Column(String, unique=True))
+    html_parser_config: dict = Field(sa_column=Column(JSON))
+    allsides_bias: Optional[AsBias] = Field(sa_column=Column(SQLEnum(AsBias)))
+    mbfc_bias: Optional[MbfcBias] = Field(sa_column=Column(SQLEnum(MbfcBias)))
+    mbfc_accuracy: Optional[MbfcAccuracy] = Field(sa_column=Column(SQLEnum(MbfcAccuracy)))
+    af_bias: Optional[AfBias] = Field(sa_column=Column(SQLEnum(AfBias)))
+    af_accuracy: Optional[AfAccuracy] = Field(sa_column=Column(SQLEnum(AfAccuracy)))
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class Article(SQLModel, table=True):

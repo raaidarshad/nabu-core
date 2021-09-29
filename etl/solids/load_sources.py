@@ -1,11 +1,10 @@
-import os
 import json
 
 from dagster import AssetMaterialization, Output, solid
 from sqlmodel import Session, SQLModel
 
 from etl.common import Context
-from etl.models import Source
+from ptbmodels.models import Source
 
 
 @solid(required_resource_keys={"database_client"})

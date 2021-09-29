@@ -7,7 +7,7 @@ import spacy
 from sqlmodel import Session
 
 from etl.common import Context
-from etl.models import Article, TermCount
+from ptbmodels.models import Article, TermCount
 
 # TODO probably make the nlp model a resource
 try:

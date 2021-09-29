@@ -5,7 +5,6 @@ from unittest.mock import Mock
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 import feedparser
 
-from etl.models import Article, Feed, FeedEntry, Source
 from etl.pipelines.extract_articles import test_mode
 from etl.resources.database_client import mock_database_client
 from etl.resources.html_parser import mock_html_parser
@@ -14,6 +13,8 @@ from etl.resources.thread_local import mock_thread_local
 from etl.resources.rss_parser import mock_rss_parser
 from etl.solids.extract_articles import get_all_sources, create_source_map, get_latest_feeds, filter_to_new_entries, \
     extract_articles_solid, load_articles
+from ptbmodels.models import Article, Feed, FeedEntry, Source
+
 
 sources = [
     Source(id=uuid4(), name="source1", rss_url="https://fakeone.com/", html_parser_config={"id": "merp"}),

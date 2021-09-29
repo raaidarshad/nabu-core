@@ -6,7 +6,7 @@ from scipy.sparse.csgraph import breadth_first_order
 from sqlmodel import Session
 
 from etl.functions.tfidf import SimilarityData
-from etl.models import Article, Cluster
+from ptbmodels.models import Article, Cluster
 
 RawCluster = frozenset[int]
 

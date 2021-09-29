@@ -1,12 +1,13 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from scipy.sparse import csr_matrix
 
-from etl.models import Article
 from etl.functions.counts import CountData
 from etl.functions.tfidf import SimilarityData, compute_similarities, compute_similarity_data, compute_tfidf, \
     filter_similarities
+from ptbmodels.models import Article
+
 
 counts = [10, 11, 12, 13]
 rows = [0, 1, 2, 3]

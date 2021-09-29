@@ -3,7 +3,7 @@ import json
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from etl.models import Source
+from ptbmodels.models import Source
 
 
 engine = create_engine(os.getenv("DB_CONNECTION_STRING"))
