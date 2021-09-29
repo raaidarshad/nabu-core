@@ -69,6 +69,7 @@ def extract_articles_test_database_client():
     db = mock_database_client()
     t_query = Mock()
     t_query.all = Mock(return_value=fake_sources)
+    t_query.count = Mock(return_value=1)
     db.query = Mock(return_value=t_query)
 
     db.add_all = Mock(return_value=1)
