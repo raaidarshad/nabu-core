@@ -1,10 +1,10 @@
 <script>
-    import Lanes from "./Lanes.svelte";
-    import About from "./About.svelte";
-    import Contact from "./Contact.svelte";
-    import Footer from "./Footer.svelte";
-    import Header from "./Header.svelte";
-    import Support from "./Support.svelte";
+    import Lanes from "./BasicView/Lanes.svelte";
+    import About from "./Common/About.svelte";
+    import Contact from "./Common/Contact.svelte";
+    import Footer from "./Common/Footer.svelte";
+    import Header from "./Common/Header.svelte";
+    import Support from "./Common/Support.svelte";
 
 </script>
 
