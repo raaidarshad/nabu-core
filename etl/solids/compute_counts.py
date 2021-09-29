@@ -72,10 +72,16 @@ def compose_rows(_context: Context,
 def load_counts(context: Context, counts: list[TermCount]):
     db_client: Session = context.resources.database_client
     counts = [TermCount(**count.dict()) for count in counts]
+    context.log.debug(f"Attempting to add {len(counts)} termcount rows to the DB")
+    count_before = db_client.query(TermCount).count()
     db_client.add_all(counts)
     db_client.commit()
-    yield AssetMaterialization(asset_key="count_table",
-                               description="New rows added to count table")
+    count_after = db_client.query(TermCount).count()
+    count_added = count_after - count_before
+    context.log.debug(f"Added {count_added} termcount rows to the DB")
+    if count_added > 0:
+        yield AssetMaterialization(asset_key="count_table",
+                                   description="New rows added to count table")
     yield Output(counts)
 
 
