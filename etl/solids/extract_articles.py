@@ -56,6 +56,8 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
         if raw.status == 200:
             entries = [FeedEntry(source_id=source.id, published_at=_format_time(e.published), **e) for e in raw.entries]
             return _parse_raw_to_feed(raw_feed=raw.feed, entries=entries, source_id=source.id)
+        else:
+            context.log.debug(f"Source of id {source.id} not parsed successfully")
 
     filtered_feeds = list(filter(None, [_get_latest_feed(source) for source in sources]))
     context.log.info(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")

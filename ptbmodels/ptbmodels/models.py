@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from pydantic import HttpUrl
+from pydantic import BaseModel, HttpUrl
 from sqlmodel import ARRAY, Column, Enum as SQLEnum, Field, JSON, Relationship, String, SQLModel
 
 from enum import Enum
@@ -47,6 +47,24 @@ class AsBias(Enum):
     CENTER = "CENTER"
     LEAN_RIGHT = "LEAN_RIGHT"
     RIGHT = "RIGHT"
+
+
+class FeedEntry(BaseModel):
+    title: str
+    summary: Optional[str]
+    published_at: datetime
+    url: HttpUrl = Field(alias="link")
+    authors: Optional[str] = Field(alias="author")
+    source_id: UUID
+
+
+class Feed(BaseModel):
+    title: str
+    subtitle: Optional[str]
+    entries: list[FeedEntry]
+    url: HttpUrl = Field(alias="link")
+    updated_at: datetime
+    source_id: UUID
 
 
 class ClusterToLink(SQLModel, table=True):

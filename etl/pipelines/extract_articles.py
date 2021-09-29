@@ -45,7 +45,7 @@ cloud_mode = ModeDefinition(name="cloud", resource_defs=cloud_resource_defs)
 local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
-my_threshold = datetime.utcnow() - timedelta(days=1)
+my_threshold = datetime.now(tz=timezone.utc) - timedelta(days=1)
 my_threshold = my_threshold.strftime("%Y-%m-%d %H:%M:%S.%f%z")
 
 main_preset = PresetDefinition(

@@ -35,7 +35,12 @@ def topics(limit: int = 5, db_client: Session = Depends(get_db_client)):
     clusters = db_client.exec(statement2).all()
     # sadly seem to need to manually include articles (and their sources) into the response
 
-    clusters = [{**c.dict(), "articles": [{**a.dict(), "source": a.source} for a in c.articles]} for c in clusters]
+    clusters = [{**c.dict(), "articles": [
+        {"url": a.url,
+         "title": a.title,
+         "published_at": a.published_at,
+         "source": a.source} for a in c.articles]
+    } for c in clusters]
 
     return clusters
 
