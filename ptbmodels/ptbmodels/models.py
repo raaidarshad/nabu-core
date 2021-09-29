@@ -91,7 +91,7 @@ class Source(SQLModel, table=True):
 
 class Article(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    url: HttpUrl = Field(nullable=False, sa_column=Column(unique=True))
+    url: HttpUrl = Field(nullable=False, sa_column=Column(String, unique=True))
     source_id: UUID = Field(foreign_key="source.id")
     summary: Optional[str] = Field(index=False)  # TODO remove this Field statement
     title: str

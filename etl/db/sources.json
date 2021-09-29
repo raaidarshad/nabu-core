@@ -14,6 +14,5 @@
   {"name": "The Washington Times", "short_name": "The Washington Times", "long_name": "The Washington Times - All", "rss_url": "https://www.washingtontimes.com/rss/headlines/news/", "html_parser_config": {"class_": "bigtext"}, "allsides_bias": "LEAN_RIGHT"},
   {"name": "Newsmax", "short_name": "Newsmax", "long_name": "Newsmax - Newsfront", "rss_url": "https://www.newsmax.com/rss/Newsfront/16", "html_parser_config": {"name": "div", "attrs": {"itemprop": "articleBody"}}, "allsides_bias": "LEAN_RIGHT"},
   {"name": "One America News Network", "short_name": "OANN", "long_name": "One America News Network - Newsroom", "rss_url": "https://www.oann.com/category/newsroom/feed", "html_parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"},
-  {"name": "Breitbart News", "short_name": "Breitbart", "long_name": "Breitbart News - All", "rss_url": "http://feeds.feedburner.com/breitbart", "html_parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"},
-  {"name": "New York Post", "short_name": "NYPost", "long_name": "New York Post - All", "rss_url": "https://nypost.com/feed/", "html_parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"}
+  {"name": "Breitbart News", "short_name": "Breitbart", "long_name": "Breitbart News - All", "rss_url": "http://feeds.feedburner.com/breitbart", "html_parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"}
 ]

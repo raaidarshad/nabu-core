@@ -283,6 +283,9 @@ def test_load_articles():
     def _test_db_client(_init_context):
         db_mock.exec = Mock(return_value=1)
         db_mock.commit = Mock(return_value=1)
+        a = Mock()
+        a.count = Mock(return_value=1)
+        db_mock.query = Mock(return_value=a)
         return db_mock
 
     result: SolidExecutionResult = execute_solid(
