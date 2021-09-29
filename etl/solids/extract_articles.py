@@ -29,7 +29,6 @@ def create_source_map(_context: Context, sources: list[Source]) -> dict[UUID, So
 
 @solid(required_resource_keys={"rss_parser"}, config_schema={"time_threshold": String})
 def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
-
     time_threshold_str = context.solid_config["time_threshold"]
     time_threshold = datetime.datetime.strptime(time_threshold_str, "%Y-%m-%d %H:%M:%S.%f%z")
     last_modified_header = time_threshold.strftime("%a, %d %m %Y %H:%M:%S GMT")
@@ -55,9 +54,11 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
 
         if raw.status == 200:
             entries = [FeedEntry(source_id=source.id, published_at=_format_time(e.published), **e) for e in raw.entries]
+            context.log.debug(
+                f"Source of id {source.id} and name {source.name} has {len(entries)} available entries")
             return _parse_raw_to_feed(raw_feed=raw.feed, entries=entries, source_id=source.id)
         else:
-            context.log.debug(f"Source of id {source.id} not parsed successfully")
+            context.log.debug(f"Source {source.id} ({source.long_name}) not parsed successfully")
 
     filtered_feeds = list(filter(None, [_get_latest_feed(source) for source in sources]))
     context.log.debug(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")
@@ -66,7 +67,6 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
 
 @solid(config_schema={"time_threshold": String})
 def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry]:
-
     def time_filter(entry: FeedEntry, later_than: datetime.datetime) -> bool:
         return entry.published_at > later_than
 
@@ -75,14 +75,16 @@ def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry
 
     entries = []
     for feed in feeds:
-        entries.extend([entry for entry in feed.entries if time_filter(entry, time_threshold)])
-    context.log.debug(f"Filtered down to {len(entries)} entries that were published since {time_threshold}")
+        new_entries = [entry for entry in feed.entries if time_filter(entry, time_threshold)]
+        context.log.debug(
+            f"Source {feed.source_id} {feed.url} filtered down to {len(new_entries)} articles since {time_threshold}")
+        entries.extend(new_entries)
+    context.log.debug(f"Filtered down to {len(entries)} entries total that were published since {time_threshold}")
     return entries
 
 
 @solid(required_resource_keys={"http_client", "html_parser"})
 def extract_articles_solid(context: Context, entries: list[FeedEntry], source_map: dict[UUID, Source]) -> list[Article]:
-
     def _get_response_for_entry(feed_entry: FeedEntry) -> requests.Response:
         # TODO wrap in try/except, handle error cases
         # TODO need to do whole concurrent futures thing, rethink resources for this one? idk
@@ -115,11 +117,16 @@ def load_articles(context: Context, articles: list[Article]):
     # take the collected articles and put them in the db
     db_client: Session = context.resources.database_client
     db_articles = [article.dict() for article in articles]
+    context.log.debug(f"Attempting to add {len(db_articles)} articles to the DB")
+    article_count_before = db_client.query(Article).count()
     insert_statement = insert(Article).on_conflict_do_nothing(index_elements=["url"])
     db_client.exec(statement=insert_statement, params=db_articles)
-    # db_client.add_all(db_articles)
     db_client.commit()
-    yield AssetMaterialization(asset_key="article_table",
-                               description="New rows added to article table",
-                               tags={"time_threshold": context.solid_config["time_threshold"]})
+    article_count_after = db_client.query(Article).count()
+    article_count_added = article_count_after - article_count_before
+    context.log.debug(f"Added {article_count_added} articles to the DB")
+    if article_count_added > 0:
+        yield AssetMaterialization(asset_key="article_table",
+                                   description="New rows added to article table",
+                                   tags={"time_threshold": context.solid_config["time_threshold"]})
     yield Output(db_articles)
