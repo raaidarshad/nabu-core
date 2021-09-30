@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ptbmodels"
-version = "0.1.4"
+version = "0.2.0"
 description = "SQLModel common code for Pop the Bubble"
 authors = ["Raaid <raaid@protonmail.com>"]
 
