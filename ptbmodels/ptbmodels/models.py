@@ -8,6 +8,11 @@ from sqlmodel import ARRAY, Column, Enum as SQLEnum, Field, JSON, Relationship, 
 from enum import Enum
 
 
+###############################
+### BIAS AND ACCURACY ENUMS ###
+###############################
+
+
 class MbfcBias(Enum):
     LEAST_BIASED = "LEAST_BIASED"
     LEFT_CENTER = "LEFT_CENTER"
@@ -16,15 +21,6 @@ class MbfcBias(Enum):
     RIGHT = "RIGHT"
     FAR_LEFT = "FAR_LEFT"
     FAR_RIGHT = "FAR_RIGHT"
-
-
-class MbfcAccuracy(Enum):
-    VERY_LOW = "VERY_LOW"
-    LOW = "LOW"
-    MIXED = "MIXED"
-    MOSTLY_FACTUAL = "MOSTLY_FACTUAL"
-    HIGH = "HIGH"
-    VERY_HIGH = "VERY_HIGH"
 
 
 class AfBias(Enum):
@@ -37,16 +33,43 @@ class AfBias(Enum):
     MOST_EXTREME_RIGHT = "MOST_EXTREME_RIGHT"
 
 
-class AfAccuracy(Enum):
-    pass
-
-
 class AsBias(Enum):
     LEFT = "LEFT"
     LEAN_LEFT = "LEAN_LEFT"
     CENTER = "CENTER"
     LEAN_RIGHT = "LEAN_RIGHT"
     RIGHT = "RIGHT"
+
+
+class BiasTypes(Enum):
+    # media bias fact check
+    MBFC = "MBFC"
+    # ad fontes
+    AF = "AF"
+    # all sides
+    AS = "AS"
+
+
+class MbfcAccuracy(Enum):
+    VERY_LOW = "VERY_LOW"
+    LOW = "LOW"
+    MIXED = "MIXED"
+    MOSTLY_FACTUAL = "MOSTLY_FACTUAL"
+    HIGH = "HIGH"
+    VERY_HIGH = "VERY_HIGH"
+
+
+class AfAccuracy(Enum):
+    pass
+
+
+class AccuracyTypes(Enum):
+    MBFC = "MBFC"
+
+
+#######################
+### INTERNAL MODELS ###
+#######################
 
 
 class FeedEntry(BaseModel):
@@ -67,59 +90,103 @@ class Feed(BaseModel):
     source_id: UUID
 
 
-class ClusterToLink(SQLModel, table=True):
-    cluster_id: Optional[UUID] = Field(default=None, foreign_key="cluster.id", primary_key=True)
+#########################
+### TABLE DEFINITIONS ###
+#########################
+
+
+class ArticleClusterLink(SQLModel, table=True):
+    article_cluster_id: Optional[UUID] = Field(default=None, foreign_key="articlecluster.id", primary_key=True)
     article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
 
 
 class Source(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str
-    short_name: Optional[str]
-    long_name: Optional[str]
-    rss_url: str = Field(sa_column=Column(String, unique=True))
-    html_parser_config: dict = Field(sa_column=Column(JSON))
-    allsides_bias: Optional[AsBias] = Field(sa_column=Column(SQLEnum(AsBias)))
-    mbfc_bias: Optional[MbfcBias] = Field(sa_column=Column(SQLEnum(MbfcBias)))
-    mbfc_accuracy: Optional[MbfcAccuracy] = Field(sa_column=Column(SQLEnum(MbfcAccuracy)))
-    af_bias: Optional[AfBias] = Field(sa_column=Column(SQLEnum(AfBias)))
-    af_accuracy: Optional[AfAccuracy] = Field(sa_column=Column(SQLEnum(AfAccuracy)))
 
-    class Config:
-        arbitrary_types_allowed = True
+    biases: List["Bias"] = Relationship(back_populates="source")
+    accuracies: List["Accuracy"] = Relationship(back_populates="source")
+    rss_feeds: List["RssFeed"] = Relationship(back_populates="source")
+
+
+class Bias(SQLModel, table=True):
+    source_id: UUID = Field(foreign_key="source.id", primary_key=True)
+    # TODO enum and rethink type/value, must be better way to do this
+    type: str = Field(primary_key=True)
+    value: str
+
+    source: Source = Relationship(back_populates="biases")
+
+
+class Accuracy(SQLModel, table=True):
+    source_id: UUID = Field(foreign_key="source.id", primary_key=True, index=True)
+    # TODO enum
+    type: str = Field(primary_key=True)
+    value: str
+
+    source: Source = Relationship(back_populates="accuracies")
+
+
+class RssFeed(SQLModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    source_id: UUID = Field(foreign_key="source.id")
+    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
+    parser_config: dict = Field(sa_column=Column(JSON))
+    # whether or not the http status code was 2XX on the most recent test
+    is_okay: bool = Field(default=True)
+
+    source: Source = Relationship(back_populates="rss_feeds")
 
 
 class Article(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    url: HttpUrl = Field(nullable=False, sa_column=Column(String, unique=True))
-    source_id: UUID = Field(foreign_key="source.id")
-    summary: Optional[str] = Field(index=False)  # TODO remove this Field statement
+    rss_feed_id: UUID = Field(foreign_key="rssfeed.id")
+    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
+    summary: str
     title: str
-    parsed_content: Optional[str] = Field(index=False)  # TODO remove this Field statement
-    published_at: datetime = Field(index=True)
     authors: Optional[str]
+    published_at: datetime = Field(index=True)
+    added_at: datetime = Field(index=True)
 
-    source: Source = Relationship()
+    rss_feed: RssFeed = Relationship()
     term_counts: List["TermCount"] = Relationship(back_populates="article")
-    clusters: List["Cluster"] = Relationship(back_populates="articles", link_model=ClusterToLink)
+    clusters: List["ArticleCluster"] = Relationship(back_populates="articles", link_model=ArticleClusterLink)
+    raw_content: "RawContent" = Relationship(back_populates="article")
+    parsed_content: "ParsedContent" = Relationship(back_populates="article")
 
-    class Config:
-        arbitrary_types_allowed = True
+
+class RawContent(SQLModel, table=True):
+    article_id: UUID = Field(foreign_key="article.id", primary_key=True)
+    content: str
+    added_at: datetime = Field(index=True)
+
+    article: Article = Relationship(back_populates="raw_content")
+
+
+class ParsedContent(SQLModel, table=True):
+    article_id: UUID = Field(foreign_key="article.id", primary_key=True)
+    content: str
+    added_at: datetime = Field(index=True)
+
+    article: Article = Relationship(back_populates="parsed_content")
 
 
 class TermCount(SQLModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True, index=True)
-    term: str = Field(index=True, primary_key=True)
+    term: str = Field(primary_key=True, index=True)
     count: int = Field(primary_key=True)
+    added_at: datetime = Field(index=True)
 
     article: Article = Relationship(back_populates="term_counts")
 
 
-class Cluster(SQLModel, table=True):
+class ArticleCluster(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    keywords: list[str] = Field(sa_column=Column(ARRAY(String)))
-    computed_at: datetime = Field(index=True)
-    # minute_span is the span of minutes that this cluster covers, so 60 is 1 hour, 1440 is a day, etc.
-    minute_span: int = Field(index=True)
+    # TODO enum
+    type: str
+    parameters: dict = Field(sa_column=Column(JSON))
+    added_at: datetime = Field(index=True)
+    # range of time that this cluster goes over, i.e. 1440 for a day
+    minute_span: int
 
-    articles: List[Article] = Relationship(back_populates="clusters", link_model=ClusterToLink)
+    articles: List[Article] = Relationship(back_populates="clusters", link_model=ArticleClusterLink)
