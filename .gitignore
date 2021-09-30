@@ -12,4 +12,5 @@
 .pytest_cache
 venv
 .ipynb_checkpoints
+.ipynb
 /ptbmodels/dist/
