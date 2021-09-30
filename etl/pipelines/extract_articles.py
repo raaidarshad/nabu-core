@@ -73,13 +73,12 @@ def extract_articles():
     load_articles(articles)
 
 
-freq = 15  # minutes
-
-
-# every 15 minutes
-@schedule(cron_schedule=f"*/{freq} * * * *", pipeline_name="extract_articles", mode="cloud")
+# every hour at the 13th minute (just picked some non-zero minute so it isn't on the hour out of respect to the
+# urls I am hitting)
+@schedule(cron_schedule=f"13 */1 * * *", pipeline_name="extract_articles", mode="cloud")
 def main_schedule(context: ScheduleExecutionContext):
-    raw_threshold = context.scheduled_execution_time - timedelta(minutes=freq)
+    # 4 hour span in case the rss feeds have articles that are back-published
+    raw_threshold = context.scheduled_execution_time - timedelta(hours=4)
     if not raw_threshold.tzinfo:
         raw_threshold = raw_threshold.astimezone(tz=timezone.utc)
     threshold = raw_threshold.strftime("%Y-%m-%d %H:%M:%S.%f%z")

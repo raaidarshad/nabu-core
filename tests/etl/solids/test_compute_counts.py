@@ -125,6 +125,9 @@ def test_load_counts():
     def _test_db_client(_init_context):
         db_mock.add_all = Mock(return_value=1)
         db_mock.commit = Mock(return_value=1)
+        t_query = Mock()
+        t_query.count = Mock(return_value=1)
+        db_mock.query = Mock(return_value=t_query)
         return db_mock
 
     result: SolidExecutionResult = execute_solid(

@@ -102,6 +102,7 @@ def compute_counts_test_database_client():
     d.all = Mock(return_value=fake_articles)
     c.filter = Mock(return_value=d)
     b.outerjoin = Mock(return_value=c)
+    a.count = Mock(return_value=1)
     a.filter = Mock(return_value=b)
     db.query = Mock(return_value=a)
 

@@ -1,5 +1,6 @@
 import concurrent.futures
 import datetime
+import re
 import requests
 from uuid import UUID
 
@@ -12,6 +13,9 @@ from sqlmodel import Session
 from etl.common import Context
 from etl.resources.html_parser import BaseParser
 from ptbmodels.models import Article, Feed, FeedEntry, Source
+
+
+CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 
 @solid(required_resource_keys={"database_client"})
@@ -58,7 +62,7 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
                 f"Source of id {source.id} and name {source.name} has {len(entries)} available entries")
             return _parse_raw_to_feed(raw_feed=raw.feed, entries=entries, source_id=source.id)
         else:
-            context.log.debug(f"Source {source.id} ({source.long_name}) not parsed successfully")
+            context.log.debug(f"Source {source.id} ({source.long_name}) not parsed successfully got code {raw.status}")
 
     filtered_feeds = list(filter(None, [_get_latest_feed(source) for source in sources]))
     context.log.debug(f"Filtered down to {len(filtered_feeds)} feeds updated since {time_threshold}")
@@ -87,7 +91,6 @@ def filter_to_new_entries(context: Context, feeds: list[Feed]) -> list[FeedEntry
 def extract_articles_solid(context: Context, entries: list[FeedEntry], source_map: dict[UUID, Source]) -> list[Article]:
     def _get_response_for_entry(feed_entry: FeedEntry) -> requests.Response:
         # TODO wrap in try/except, handle error cases
-        # TODO need to do whole concurrent futures thing, rethink resources for this one? idk
         http_session: requests.Session = context.resources.http_client
         return http_session.get(feed_entry.url)
 
@@ -97,11 +100,19 @@ def extract_articles_solid(context: Context, entries: list[FeedEntry], source_ma
         parser: BaseParser = context.resources.html_parser
         # TODO make try/except better here
         source = source_map[feed_entry.source_id]
+
+        # clean title and summary
+        feed_entry.title = re.sub(CLEANR, '', feed_entry.title)
+        if feed_entry.summary:
+            feed_entry.summary = re.sub(CLEANR, '', feed_entry.summary)
+
+        # try to extract text
         try:
             text = parser.extract(content=response.content, parse_config=source.html_parser_config)
+        # if it fails, fall back to the title/headline
         except:
-            context.log.debug(f"Entry with URL {feed_entry.url} was not parsed successfully")
-            text = feed_entry.summary
+            context.log.debug(f"Entry with URL {feed_entry.url} was not parsed successfully, using title for text")
+            text = feed_entry.title
         return Article(parsed_content=text, **feed_entry.dict())
 
     def _extract_article(feed_entry: FeedEntry) -> Article:
