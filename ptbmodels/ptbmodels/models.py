@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import ARRAY, Column, Enum as SQLEnum, Field, JSON, Relationship, String, SQLModel
+from sqlmodel import Column, Field, JSON, Relationship, String, SQLModel
 
 from enum import Enum
 
@@ -111,7 +111,7 @@ class Source(SQLModel, table=True):
 
 class Bias(SQLModel, table=True):
     source_id: UUID = Field(foreign_key="source.id", primary_key=True)
-    # TODO enum and rethink type/value, must be better way to do this
+    # TODO enum?
     type: str = Field(primary_key=True)
     value: str
 
@@ -120,7 +120,7 @@ class Bias(SQLModel, table=True):
 
 class Accuracy(SQLModel, table=True):
     source_id: UUID = Field(foreign_key="source.id", primary_key=True, index=True)
-    # TODO enum
+    # TODO enum?
     type: str = Field(primary_key=True)
     value: str
 
@@ -182,7 +182,7 @@ class TermCount(SQLModel, table=True):
 
 class ArticleCluster(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    # TODO enum
+    # TODO enum? might be more trouble than it is worth
     type: str
     parameters: dict = Field(sa_column=Column(JSON))
     added_at: datetime = Field(index=True)

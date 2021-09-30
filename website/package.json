@@ -4,7 +4,7 @@
   "scripts": {
     "build": "node_modules/.bin/rollup -c",
     "dev": "node_modules/.bin/rollup -c -w",
-    "start": "node_modules/.bin/sirv ../tests/public"
+    "start": "node_modules/.bin/sirv ../etl/tests/public"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",

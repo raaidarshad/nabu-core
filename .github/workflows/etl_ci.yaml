@@ -42,4 +42,4 @@ jobs:
     - name: Install spacy package
       run: python -m spacy download en_core_web_sm
     - name: run tests
-      run: pytest tests
+      run: pytest etl/tests
