@@ -3,7 +3,7 @@ from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output,
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
-from etl.common import Context, get_source_names, str_to_datetime
+from etl.common import Context, clean_text, get_current_time, get_source_names, str_to_datetime
 from etl.resources.rss_parser import RssParser
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
@@ -59,11 +59,13 @@ def _get_raw_feed(context: Context, rss_feed: RssFeed, parser: RssParser) -> Raw
     if raw.status == 200:
         entries = [RawFeedEntry(
             source_id=rss_feed.source_id,
+            rss_feed_id=rss_feed.id,
             published_at=str_to_datetime(e.published),
             **e) for e in raw.entries]
         return RawFeed(
             entries=entries,
             source_id=rss_feed.source_id,
+            rss_feed_id=rss_feed.id,
             **raw.feed
         )
     else:
@@ -81,7 +83,20 @@ def get_raw_feed_entries(context: Context, raw_feeds: list[RawFeed]) -> list[Raw
 
 @solid
 def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: list[RawFeedEntry]) -> list[Article]:
-    ...
+    context.log.debug(f"Transforming {len(raw_feed_entries)} RawFeedEntries to Articles")
+    current_time = get_current_time()
+
+    # sanitize inputs
+    for rfe in raw_feed_entries:
+        if rfe.authors:
+            rfe.authors = clean_text(rfe.authors)
+        rfe.title = clean_text(rfe.title)
+        if rfe.summary:
+            rfe.summary = clean_text(rfe.summary)
+        else:
+            rfe.summary = rfe.title
+
+    return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
 
 
 @solid(required_resource_keys={"database_client"})

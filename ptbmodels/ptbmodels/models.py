@@ -78,6 +78,7 @@ class RawFeedEntry(BaseModel):
     published_at: datetime
     url: HttpUrl = Field(alias="link")
     authors: Optional[str] = Field(alias="author")
+    rss_feed_id: UUID
     source_id: int
 
 
@@ -86,6 +87,7 @@ class RawFeed(BaseModel):
     subtitle: Optional[str]
     entries: list[RawFeedEntry]
     url: HttpUrl = Field(alias="link")
+    rss_feed_id: UUID
     source_id: int
 
 

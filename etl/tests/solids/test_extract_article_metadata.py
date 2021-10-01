@@ -5,11 +5,11 @@ from uuid import uuid4
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 import feedparser
 
-from etl.common import get_source_names, get_current_time, datetime_to_str
+from etl.common import clean_text, get_source_names, get_current_time, datetime_to_str
 from etl.resources.database_client import mock_database_client
 from etl.resources.rss_parser import mock_rss_parser
 from etl.solids.extract_article_metadata import get_raw_feed_entries, get_raw_feeds, get_rss_feeds, get_sources,\
-    load_articles
+    load_articles, transform_raw_feed_entries_to_articles
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
 
@@ -130,11 +130,13 @@ def test_get_raw_feeds():
                                          published_at=parsed.entries[0].published,
                                          link=parsed.entries[0].link,
                                          author=parsed.entries[0].author,
-                                         source_id=rss_feeds[idx].source_id
+                                         source_id=rss_feeds[idx].source_id,
+                                         rss_feed_id=rss_feeds[idx].id
                                      )
                                  ],
                                  link=parsed.feed.link,
-                                 source_id=rss_feeds[idx].source_id)
+                                 source_id=rss_feeds[idx].source_id,
+                                 rss_feed_id=rss_feeds[idx].id)
 
 
 def test_get_new_raw_feed_entries():
@@ -143,22 +145,26 @@ def test_get_new_raw_feed_entries():
             title=f"rfe{idx}",
             published_at=get_current_time(),
             link=f"https://fake{idx}.com",
-            source_id=idx
+            source_id=idx,
+            rss_feed_id=uuid4()
         )
         for idx in range(10)
     ]
+
     raw_feeds = [
         RawFeed(
             title="title1",
             entries=entries[:4],
             link="https://fake1.com",
-            source_id=1
+            source_id=1,
+            rss_feed_id=uuid4()
         ),
         RawFeed(
             title="title2",
             entries=entries[4:],
             link="https://fake2.com",
-            source_id=2
+            source_id=2,
+            rss_feed_id=uuid4()
         )
     ]
 
@@ -172,7 +178,36 @@ def test_get_new_raw_feed_entries():
 
 
 def test_transform_raw_feed_entries_to_articles():
-    ...
+    def _summary_if_idx_even(idx: int):
+        if idx % 2 == 0:
+            return "<p>textytexttext</p>"
+
+    entries = [
+        RawFeedEntry(
+            title=f"rfe{idx}",
+            summary=_summary_if_idx_even(idx),
+            published_at=get_current_time(),
+            link=f"https://fake{idx}.com",
+            source_id=idx,
+            rss_feed_id=uuid4()
+        )
+        for idx in range(10)
+    ]
+
+    result: SolidExecutionResult = execute_solid(
+        transform_raw_feed_entries_to_articles,
+        input_values={"raw_feed_entries": entries}
+    )
+
+    assert result.success
+    assert len(result.output_value()) == len(entries)
+    for idx, res in enumerate(result.output_value()):
+        assert res.title == entries[idx].title
+        assert res.published_at == entries[idx].published_at
+        assert res.url == entries[idx].url
+        assert res.summary in [entries[idx].title, clean_text(entries[idx].summary)]
+        assert res.source_id == entries[idx].source_id
+        assert res.rss_feed_id == entries[idx].rss_feed_id
 
 
 def test_load_articles():
