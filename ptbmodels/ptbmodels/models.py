@@ -140,7 +140,8 @@ class RssFeed(SQLModel, table=True):
 
 class Article(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    rss_feed_id: UUID = Field(foreign_key="rssfeed.id")
+    rss_feed_id: Optional[UUID] = Field(foreign_key="rssfeed.id")
+    source_id: UUID = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
     summary: str
     title: str
@@ -149,6 +150,7 @@ class Article(SQLModel, table=True):
     added_at: datetime = Field(index=True)
 
     rss_feed: RssFeed = Relationship()
+    source: Source = Relationship()
     term_counts: List["TermCount"] = Relationship(back_populates="article")
     clusters: List["ArticleCluster"] = Relationship(back_populates="articles", link_model=ArticleClusterLink)
     raw_content: "RawContent" = Relationship(back_populates="article")
