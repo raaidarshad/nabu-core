@@ -8,7 +8,8 @@ import feedparser
 from etl.common import get_source_names, get_current_time, datetime_to_str
 from etl.resources.database_client import mock_database_client
 from etl.resources.rss_parser import mock_rss_parser
-from etl.solids.extract_article_metadata import get_raw_feeds, get_rss_feeds, get_sources, load_articles
+from etl.solids.extract_article_metadata import get_raw_feed_entries, get_raw_feeds, get_rss_feeds, get_sources,\
+    load_articles
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
 
@@ -137,7 +138,37 @@ def test_get_raw_feeds():
 
 
 def test_get_new_raw_feed_entries():
-    ...
+    entries = [
+        RawFeedEntry(
+            title=f"rfe{idx}",
+            published_at=get_current_time(),
+            link=f"https://fake{idx}.com",
+            source_id=idx
+        )
+        for idx in range(10)
+    ]
+    raw_feeds = [
+        RawFeed(
+            title="title1",
+            entries=entries[:4],
+            link="https://fake1.com",
+            source_id=1
+        ),
+        RawFeed(
+            title="title2",
+            entries=entries[4:],
+            link="https://fake2.com",
+            source_id=2
+        )
+    ]
+
+    result: SolidExecutionResult = execute_solid(
+        get_raw_feed_entries,
+        input_values={"raw_feeds": raw_feeds}
+    )
+
+    assert result.success
+    assert result.output_value() == entries
 
 
 def test_transform_raw_feed_entries_to_articles():

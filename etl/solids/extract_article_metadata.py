@@ -1,6 +1,5 @@
 from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output, String, solid
 
-from requests.exceptions import HTTPError
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
@@ -51,7 +50,7 @@ def get_rss_feeds(context: Context) -> list[RssFeed]:
 @solid(required_resource_keys={"rss_parser"})
 def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
     raw_feeds = [_get_raw_feed(context, rss_feed, context.resources.rss_parser) for rss_feed in rss_feeds]
-    context.log.debug(f"Got {len(raw_feeds)} raw rss feeds")
+    context.log.debug(f"Got {len(raw_feeds)} raw rss feeds, expected {len(rss_feeds)}")
     return raw_feeds
 
 
@@ -72,8 +71,12 @@ def _get_raw_feed(context: Context, rss_feed: RssFeed, parser: RssParser) -> Raw
 
 
 @solid
-def get_new_raw_feed_entries(context: Context, raw_feeds: list[RawFeed]) -> list[RawFeedEntry]:
-    ...
+def get_raw_feed_entries(context: Context, raw_feeds: list[RawFeed]) -> list[RawFeedEntry]:
+    raw_feed_entries = []
+    for raw_feed in raw_feeds:
+        context.log.debug(f"RawFeed with url {raw_feed.url} has {len(raw_feed.entries)} entries")
+        raw_feed_entries.extend(raw_feed.entries)
+    return raw_feed_entries
 
 
 @solid
