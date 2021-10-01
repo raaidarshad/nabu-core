@@ -2,6 +2,7 @@
 
 from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output, String, solid
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
 from etl.common import Context, get_source_names
@@ -64,7 +65,17 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
 
 @solid(required_resource_keys={"database_client"})
 def load_articles(context: Context, articles: list[Article]):
-    # log how many we try to load
-    # log how many were actually loaded (so get count before and after)
-    # if any loaded, yield an asset materialization
-    ...
+    db_client: Session = context.resources.database_client
+    # db_articles = [article.dict() for article in articles]
+    context.log.debug(f"Attempting to add {len(articles)} rows to the Article table")
+    article_count_before = db_client.query(Article).count()
+    insert_statement = insert(Article).on_conflict_do_nothing(index_elements=["url"])
+    db_client.exec(statement=insert_statement, params=articles)
+    db_client.commit()
+    article_count_after = db_client.query(Article).count()
+    article_count_added = article_count_after - article_count_before
+    context.log.debug(f"Added {article_count_added} articles to the Article table")
+    if article_count_added > 0:
+        yield AssetMaterialization(asset_key="article_table",
+                                   description="New rows added to article table")
+    yield Output(articles)
