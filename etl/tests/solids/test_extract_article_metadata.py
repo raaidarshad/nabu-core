@@ -36,3 +36,24 @@ def test_get_sources():
 
     assert result.success
     assert result.output_value() == expected_sources
+
+
+def test_get_rss_feeds():
+    ...
+
+
+def test_get_raw_feeds():
+    ...
+
+
+def test_get_new_raw_feed_entries():
+    ...
+
+
+def test_transform_raw_feed_entries_to_articles():
+    ...
+
+
+def test_load_articles():
+    ...
+
