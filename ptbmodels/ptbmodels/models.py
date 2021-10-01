@@ -78,7 +78,7 @@ class FeedEntry(BaseModel):
     published_at: datetime
     url: HttpUrl = Field(alias="link")
     authors: Optional[str] = Field(alias="author")
-    source_id: UUID
+    source_id: int
 
 
 class Feed(BaseModel):
@@ -87,7 +87,7 @@ class Feed(BaseModel):
     entries: list[FeedEntry]
     url: HttpUrl = Field(alias="link")
     updated_at: datetime
-    source_id: UUID
+    source_id: int
 
 
 #########################
@@ -101,7 +101,7 @@ class ArticleClusterLink(SQLModel, table=True):
 
 
 class Source(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    id: int = Field(primary_key=True, index=True)
     name: str
 
     biases: List["Bias"] = Relationship(back_populates="source")
@@ -110,7 +110,7 @@ class Source(SQLModel, table=True):
 
 
 class Bias(SQLModel, table=True):
-    source_id: UUID = Field(foreign_key="source.id", primary_key=True)
+    source_id: int = Field(foreign_key="source.id", primary_key=True)
     # TODO enum?
     type: str = Field(primary_key=True)
     value: str
@@ -119,7 +119,7 @@ class Bias(SQLModel, table=True):
 
 
 class Accuracy(SQLModel, table=True):
-    source_id: UUID = Field(foreign_key="source.id", primary_key=True, index=True)
+    source_id: int = Field(foreign_key="source.id", primary_key=True, index=True)
     # TODO enum?
     type: str = Field(primary_key=True)
     value: str
@@ -129,7 +129,7 @@ class Accuracy(SQLModel, table=True):
 
 class RssFeed(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    source_id: UUID = Field(foreign_key="source.id")
+    source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
     parser_config: dict = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
@@ -141,7 +141,7 @@ class RssFeed(SQLModel, table=True):
 class Article(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
     rss_feed_id: Optional[UUID] = Field(foreign_key="rssfeed.id")
-    source_id: UUID = Field(foreign_key="source.id")
+    source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
     summary: str
     title: str

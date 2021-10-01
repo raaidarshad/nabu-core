@@ -27,7 +27,7 @@ def load_sources_from_file(context: Context, filepath: str):
 def create_tables(context: Context) -> str:
     db_engine = context.resources.database_engine
     SQLModel.metadata.create_all(db_engine)
-    return "etl/db/sources.json"
+    return "etl/db/source.json"
 
 
 def _load_json(filepath: str) -> list[dict]:
