@@ -3,7 +3,7 @@ from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output,
 from sqlmodel import Session, select
 
 from etl.common import Context, get_source_names
-from ptbmodels.models import Source
+from ptbmodels.models import RssFeed, Source
 
 SourceDenum = Enum("SourceDenum", [EnumValue("all")] + [EnumValue(n) for n in get_source_names()])
 
@@ -27,3 +27,7 @@ def get_sources(context: Context) -> list[Source]:
     sources = db_client.exec(statement).all()
     context.log.debug(f"Got {len(sources)} sources")
     return sources
+
+
+def get_feeds(context: Context) -> list[RssFeed]:
+    ...

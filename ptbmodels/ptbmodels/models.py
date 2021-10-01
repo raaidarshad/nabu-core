@@ -72,7 +72,7 @@ class AccuracyTypes(Enum):
 #######################
 
 
-class FeedEntry(BaseModel):
+class RawFeedEntry(BaseModel):
     title: str
     summary: Optional[str]
     published_at: datetime
@@ -81,10 +81,10 @@ class FeedEntry(BaseModel):
     source_id: int
 
 
-class Feed(BaseModel):
+class RawFeed(BaseModel):
     title: str
     subtitle: Optional[str]
-    entries: list[FeedEntry]
+    entries: list[RawFeedEntry]
     url: HttpUrl = Field(alias="link")
     updated_at: datetime
     source_id: int
