@@ -86,7 +86,6 @@ class RawFeed(BaseModel):
     subtitle: Optional[str]
     entries: list[RawFeedEntry]
     url: HttpUrl = Field(alias="link")
-    updated_at: datetime
     source_id: int
 
 

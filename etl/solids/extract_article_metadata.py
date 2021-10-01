@@ -1,11 +1,11 @@
-
-
 from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output, String, solid
 
+from requests.exceptions import HTTPError
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
-from etl.common import Context, get_source_names
+from etl.common import Context, get_source_names, str_to_datetime
+from etl.resources.rss_parser import RssParser
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
 
@@ -50,7 +50,25 @@ def get_rss_feeds(context: Context) -> list[RssFeed]:
 
 @solid(required_resource_keys={"rss_parser"})
 def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
-    ...
+    raw_feeds = [_get_raw_feed(context, rss_feed, context.resources.rss_parser) for rss_feed in rss_feeds]
+    context.log.debug(f"Got {len(raw_feeds)} raw rss feeds")
+    return raw_feeds
+
+
+def _get_raw_feed(context: Context, rss_feed: RssFeed, parser: RssParser) -> RawFeed:
+    raw = parser.parse(rss_feed.url)
+    if raw.status == 200:
+        entries = [RawFeedEntry(
+            source_id=rss_feed.source_id,
+            published_at=str_to_datetime(e.published),
+            **e) for e in raw.entries]
+        return RawFeed(
+            entries=entries,
+            source_id=rss_feed.source_id,
+            **raw.feed
+        )
+    else:
+        context.log.warning(f"RssFeed with url {rss_feed.url} not parsed, code: {raw.status}")
 
 
 @solid
