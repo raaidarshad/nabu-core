@@ -14,6 +14,7 @@ CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 def clean_text(dirty: str) -> str:
     return re.sub(CLEANR, '', dirty)
 
+
 def get_source_names() -> list[str]:
     with open("db/source.json", "r") as data:
         sources = json.load(data)

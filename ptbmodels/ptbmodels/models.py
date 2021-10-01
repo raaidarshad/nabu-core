@@ -103,7 +103,7 @@ class ArticleClusterLink(SQLModel, table=True):
 
 class Source(SQLModel, table=True):
     id: int = Field(primary_key=True, index=True)
-    name: str
+    name: str = Field(index=True, sa_column=Column(String, unique=True))
 
     biases: List["Bias"] = Relationship(back_populates="source")
     accuracies: List["Accuracy"] = Relationship(back_populates="source")
