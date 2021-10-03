@@ -1,9 +1,8 @@
-from dagster import Array, AssetMaterialization, Enum, EnumValue, Field, Output, String, solid
+from dagster import Array, Enum, EnumValue, Field, solid
 
-from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
-from etl.common import Context, clean_text, datetime_to_str, get_current_time, get_source_names, str_to_datetime
+from etl.common import DagsterTime, Context, clean_text, get_source_names, load_rows_factory, str_to_datetime
 from etl.resources.rss_parser import RssParser
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
@@ -15,12 +14,6 @@ SourceDenumConfig = Field(
     config=Array(SourceDenum),
     # if no source names provided, we will simply ask for all sources
     default_value=["all"],
-    is_required=False
-)
-
-AddedAt = Field(
-    config=String,
-    default_value=datetime_to_str(get_current_time()),
     is_required=False
 )
 
@@ -87,7 +80,7 @@ def get_raw_feed_entries(context: Context, raw_feeds: list[RawFeed]) -> list[Raw
     return raw_feed_entries
 
 
-@solid(config_schema={"runtime": AddedAt})
+@solid(config_schema={"runtime": DagsterTime})
 def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: list[RawFeedEntry]) -> list[Article]:
     context.log.debug(f"Transforming {len(raw_feed_entries)} RawFeedEntries to Articles")
     current_time = str_to_datetime(context.solid_config["runtime"])
@@ -105,23 +98,4 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
     return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
 
 
-@solid(required_resource_keys={"database_client"}, config_schema={"runtime": AddedAt})
-def load_articles(context: Context, articles: list[Article]):
-    db_client: Session = context.resources.database_client
-    runtime = context.solid_config["runtime"]
-    # db_articles = [article.dict() for article in articles]
-    context.log.debug(f"Attempting to add {len(articles)} rows to the Article table")
-    article_count_before = db_client.query(Article).count()
-    insert_statement = insert(Article).on_conflict_do_nothing(index_elements=["url"])
-    db_client.exec(statement=insert_statement, params=articles)
-    db_client.commit()
-    article_count_after = db_client.query(Article).count()
-    article_count_added = article_count_after - article_count_before
-    context.log.debug(f"Added {article_count_added} articles to the Article table")
-    if article_count_added > 0:
-        yield AssetMaterialization(
-            asset_key="article_table",
-            description="New rows added to article table",
-            tags={"runtime": runtime}
-        )
-    yield Output(articles)
+load_articles = load_rows_factory("load_articles", Article, ["url"])
