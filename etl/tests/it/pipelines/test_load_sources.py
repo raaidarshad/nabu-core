@@ -1,9 +1,11 @@
 from dagster import PipelineExecutionResult, execute_pipeline
+import pytest
 
 from etl.pipelines.load_sources import load_sources, load_rss_feeds
 
 
-def test_load_sources_and_rss_feeds():
+@pytest.mark.order(1)
+def test_load_sources():
     result: PipelineExecutionResult = execute_pipeline(
         load_sources,
         mode="local",
@@ -11,7 +13,7 @@ def test_load_sources_and_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "etl/db"
+                        "path": "db"
                     }
                 }
             }
@@ -30,7 +32,7 @@ def test_load_sources_and_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "etl/db/test_files"
+                        "path": "db/test_files"
                     }
                 }
             }
@@ -39,6 +41,9 @@ def test_load_sources_and_rss_feeds():
 
     assert result.success
 
+
+@pytest.mark.order(2)
+def test_load_rss_feeds():
     result: PipelineExecutionResult = execute_pipeline(
         load_rss_feeds,
         mode="local",
@@ -46,7 +51,7 @@ def test_load_sources_and_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "etl/db"
+                        "path": "db"
                     }
                 }
             }
@@ -65,7 +70,7 @@ def test_load_sources_and_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "etl/db/test_files"
+                        "path": "db/test_files"
                     }
                 }
             }
