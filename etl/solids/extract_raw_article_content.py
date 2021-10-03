@@ -1,7 +1,7 @@
 import concurrent.futures
 import requests
 
-from dagster import solid
+from dagster import Field, Int, solid
 from sqlmodel import Session, select
 
 from etl.common import DagsterTime, Context, load_rows_factory, str_to_datetime
@@ -21,9 +21,28 @@ def get_articles(context: Context) -> list[Article]:
     return articles
 
 
-@solid(required_resource_keys={"http_client"})
-def request_raw_content(context: Context, articles: list[Article]) -> RawContent:
-    ...
+MaxWorkers = Field(
+    config=Int,
+    default_value=10,
+    is_required=False
+)
+
+
+@solid(required_resource_keys={"http_client"}, config_schema={"max_workers": MaxWorkers, "runtime": DagsterTime})
+def request_raw_content(context: Context, articles: list[Article]) -> list[RawContent]:
+    runtime = str_to_datetime(context.solid_config["runtime"])
+
+    def _request_and_extract_raw_content(article: Article):
+        http_session: requests.Session = context.resources.http_client
+        try:
+            response = http_session.get(article.url)
+            return RawContent(article_id=article.id, content=response.text, added_at=runtime)
+        except requests.HTTPError as e:
+            context.log.debug(f"HTTP error {e} for article with url {article.url} and id {article.id}")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=context.solid_config["max_workers"]) as executor:
+        raw_content = executor.map(_request_and_extract_raw_content, articles)
+    return list(raw_content)
 
 
 load_raw_content = load_rows_factory("load_raw_content", RawContent, ["article_id"])

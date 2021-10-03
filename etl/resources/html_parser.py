@@ -6,7 +6,7 @@ from dagster import resource
 
 class BaseParser:
     @staticmethod
-    def extract(content: bytes, parse_config: dict) -> str:
+    def extract(content: str, parse_config: dict) -> str:
         soup = BeautifulSoup(content, "html.parser")
         story = soup.find(**parse_config)
         paragraphs = story.find_all("p")
