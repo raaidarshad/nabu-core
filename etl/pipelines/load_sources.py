@@ -29,7 +29,8 @@ test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
 main_preset = PresetDefinition(
     name="main_preset",
-    mode="cloud"
+    mode="cloud",
+    run_config={"solids": {"create_tables": {"config": {"path": "etl/db"}}}}
 )
 
 

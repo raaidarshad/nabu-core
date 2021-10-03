@@ -1,0 +1,4 @@
+[
+  {"source_id": 0, "url": "https://jacobinmag.com/feed", "parser_config": {"id": "post-content"}, "allsides_bias": "LEFT"},
+  {"source_id": 14, "url": "https://fake.com/feed", "parser_config": {"class_": "PostContent"}, "allsides_bias": "LEFT"}
+]

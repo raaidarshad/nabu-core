@@ -1,6 +1,6 @@
 import json
 
-from dagster import AssetMaterialization, Output, solid
+from dagster import AssetMaterialization, Output, String, solid
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, SQLModel
 
@@ -24,11 +24,12 @@ get_sources_from_file = get_entities_from_file_factory("get_sources_from_file", 
 get_rss_feeds_from_file = get_entities_from_file_factory("get_rssfeeds_from_file", RssFeed)
 
 
-@solid(required_resource_keys={"database_engine"})
+@solid(required_resource_keys={"database_engine"}, config_schema={"path": String})
 def create_tables(context: Context) -> str:
+    path = context.solid_config["path"]
     db_engine = context.resources.database_engine
     SQLModel.metadata.create_all(db_engine)
-    return "etl/db/{table_name}.json"
+    return path + "/{table_name}.json"
 
 
 def load_rows_factory(name: str, entity_type, on_conflict_col: str, **kwargs):
