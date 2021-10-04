@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import Column, Field, JSON, Relationship, String, SQLModel
+from sqlmodel import Column, Field, Index, JSON, Relationship, String, SQLModel, func
 
 from enum import Enum
 
@@ -84,7 +84,6 @@ class RawFeedEntry(BaseModel):
 
 class RawFeed(BaseModel):
     title: str
-    subtitle: Optional[str]
     entries: list[RawFeedEntry]
     url: HttpUrl = Field(alias="link")
     rss_feed_id: UUID
@@ -102,8 +101,8 @@ class ArticleClusterLink(SQLModel, table=True):
 
 
 class Source(SQLModel, table=True):
-    id: int = Field(primary_key=True, index=True)
-    name: str = Field(index=True, sa_column=Column(String, unique=True))
+    id: int = Field(primary_key=True)
+    name: str = Field(sa_column=Column(String, unique=True))
 
     biases: List["Bias"] = Relationship(back_populates="source")
     accuracies: List["Accuracy"] = Relationship(back_populates="source")
@@ -120,7 +119,7 @@ class Bias(SQLModel, table=True):
 
 
 class Accuracy(SQLModel, table=True):
-    source_id: int = Field(foreign_key="source.id", primary_key=True, index=True)
+    source_id: int = Field(foreign_key="source.id", primary_key=True)
     # TODO enum?
     type: str = Field(primary_key=True)
     value: str
@@ -129,9 +128,9 @@ class Accuracy(SQLModel, table=True):
 
 
 class RssFeed(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     source_id: int = Field(foreign_key="source.id")
-    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
+    url: HttpUrl = Field(sa_column=Column(String, unique=True))
     parser_config: dict = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
     is_okay: bool = Field(default=True)
@@ -140,15 +139,15 @@ class RssFeed(SQLModel, table=True):
 
 
 class Article(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     rss_feed_id: Optional[UUID] = Field(foreign_key="rssfeed.id")
     source_id: int = Field(foreign_key="source.id")
-    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
-    summary: str
-    title: str
-    authors: Optional[str]
-    published_at: datetime = Field(index=True)
-    added_at: datetime = Field(index=True)
+    url: HttpUrl = Field(sa_column=Column(String, unique=True))
+    summary: str = Field(index=False)
+    title: str = Field(index=False)
+    authors: Optional[str] = Field(index=False)
+    published_at: datetime
+    added_at: datetime
 
     rss_feed: RssFeed = Relationship()
     source: Source = Relationship()
@@ -158,37 +157,48 @@ class Article(SQLModel, table=True):
     parsed_content: "ParsedContent" = Relationship(back_populates="article")
 
 
+Index("ix_article_title", func.to_tsvector('english', Article.title), postgresql_using="gin")
+Index("ix_article_summary", func.to_tsvector('english', Article.summary), postgresql_using="gin")
+Index("ix_article_authors", func.to_tsvector('english', Article.authors), postgresql_using="gin")
+
+
 class RawContent(SQLModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True)
-    content: str
-    added_at: datetime = Field(index=True)
+    content: str = Field(index=False)
+    added_at: datetime
 
     article: Article = Relationship(back_populates="raw_content")
 
 
+Index("ix_rawcontent_content", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
 class ParsedContent(SQLModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True)
-    content: str
-    added_at: datetime = Field(index=True)
+    content: str = Field(index=False)
+    added_at: datetime
 
     article: Article = Relationship(back_populates="parsed_content")
 
 
+Index("ix_parsedcontent_content", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
 class TermCount(SQLModel, table=True):
-    article_id: UUID = Field(foreign_key="article.id", primary_key=True, index=True)
-    term: str = Field(primary_key=True, index=True)
+    article_id: UUID = Field(foreign_key="article.id", primary_key=True)
+    term: str = Field(primary_key=True)
     count: int = Field(primary_key=True)
-    added_at: datetime = Field(index=True)
+    added_at: datetime
 
     article: Article = Relationship(back_populates="term_counts")
 
 
 class ArticleCluster(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     # TODO enum? might be more trouble than it is worth
     type: str
     parameters: dict = Field(sa_column=Column(JSON))
-    added_at: datetime = Field(index=True)
+    added_at: datetime
     # range of time that this cluster goes over, i.e. 1440 for a day
     minute_span: int
 

@@ -12,9 +12,9 @@ def get_entities_from_file_factory(name: str, entity_type, **kwargs):
     def _load_rows_solid(context: Context, path_format: str):
         context.log.debug(f"Loading {entity_type.__name__} from JSON file")
         # load entities
-        entities = _load_json(filepath=path_format.format(table_name=entity_type.__tablename__))
+        j_entities = _load_json(filepath=path_format.format(table_name=entity_type.__tablename__))
         # emit entities
-        # entities = [entity_type(**e) for e in j_entities]
+        entities = [entity_type(**e) for e in j_entities]
         return entities
     return _load_rows_solid
 

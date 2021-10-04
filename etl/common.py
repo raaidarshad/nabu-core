@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import json
+import os
 import re
 
 from dagster.core.execution.context.compute import AbstractComputeExecutionContext
@@ -19,7 +20,8 @@ def clean_text(dirty: str) -> str:
 
 
 def get_source_names() -> list[str]:
-    with open("db/source.json", "r") as data:
+    path = os.getenv("DB_PATH")
+    with open(f"{path}/source.json", "r") as data:
         sources = json.load(data)
         return [s["name"] for s in sources]
 
@@ -55,7 +57,7 @@ def load_rows_factory(name: str, entity_type, on_conflict: list[str], **kwargs):
         context.log.debug(f"Attempting to add {len(entities)} rows to the {entity_type.__name__} table")
         count_before = db_client.query(entity_type).count()
         insert_statement = insert(entity_type).on_conflict_do_nothing(index_elements=on_conflict)
-        db_client.exec(statement=insert_statement, params=entities)
+        db_client.exec(statement=insert_statement, params=[e.dict() for e in entities])
         db_client.commit()
         count_after = db_client.query(entity_type).count()
         added = count_after - count_before
