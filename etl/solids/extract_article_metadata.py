@@ -1,6 +1,6 @@
 from dagster import Array, Enum, EnumValue, Field, solid
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, update
 
 from etl.common import DagsterTime, Context, clean_text, get_source_names, load_rows_factory, str_to_datetime
 from etl.resources.rss_parser import RssParser
@@ -46,10 +46,11 @@ def get_rss_feeds(context: Context) -> list[RssFeed]:
     return feeds
 
 
-@solid(required_resource_keys={"rss_parser"})
+@solid(required_resource_keys={"rss_parser", "database_client"})
 def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
     def _get_raw_feed(rss_feed: RssFeed) -> RawFeed:
         raw = context.resources.rss_parser.parse(rss_feed.url)
+        # if okay, parse entries
         if raw.status == 200:
             entries = [RawFeedEntry(
                 source_id=rss_feed.source_id,
@@ -62,6 +63,17 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
                 rss_feed_id=rss_feed.id,
                 **raw.feed
             )
+        # see https://pythonhosted.org/feedparser/http-redirect.html for details for 301 and 410 codes
+        elif raw.status in [301, 410]:
+            db_client: Session = context.resources.database_client
+            if raw.status == 301:
+                # if 310 or "permanent redirect", update rss feed url
+                statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(url=raw.href)
+            else:
+                # if 410 or "gone", set rss feed column of is_okay to False so we don't use it
+                statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(is_okay=False)
+            db_client.execute(statement)
+            db_client.commit()
         else:
             context.log.warning(f"RssFeed with url {rss_feed.url} not parsed, code: {raw.status}")
 

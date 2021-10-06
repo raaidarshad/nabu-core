@@ -114,7 +114,8 @@ def test_get_raw_feeds():
         get_raw_feeds,
         input_values={"rss_feeds": rss_feeds},
         mode_def=ModeDefinition(name="test",
-                                resource_defs={"rss_parser": ResourceDefinition(_test_rss_parser)})
+                                resource_defs={"rss_parser": ResourceDefinition(_test_rss_parser),
+                                               "database_client": mock_database_client})
     )
 
     assert result.success
