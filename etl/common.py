@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import json
 import os
 import re
+import unicodedata
 
 from dagster.core.execution.context.compute import AbstractComputeExecutionContext
 from dagster import AssetMaterialization, Field, Output, String, solid
@@ -16,11 +17,11 @@ CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 
 def clean_text(dirty: str) -> str:
-    return re.sub(CLEANR, '', dirty)
+    return unicodedata.normalize("NFKD", re.sub(CLEANR, '', dirty))
 
 
 def get_source_names() -> list[str]:
-    path = os.getenv("DB_PATH")
+    path = os.getenv("DB_PATH", "etl/db")
     with open(f"{path}/source.json", "r") as data:
         sources = json.load(data)
         return [s["name"] for s in sources]

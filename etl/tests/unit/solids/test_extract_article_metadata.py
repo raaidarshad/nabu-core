@@ -236,7 +236,7 @@ def test_load_articles():
         # needs a database_client that has add_all and commit methods
         mode_def=ModeDefinition(name="test_load_articles",
                                 resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
-        input_values={"articles": articles}
+        input_values={"entities": articles}
     )
 
     assert result.success
