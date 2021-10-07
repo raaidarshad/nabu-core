@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import json
 import os
 import re
+from typing import Type
 import unicodedata
 
 from dagster.core.execution.context.compute import AbstractComputeExecutionContext
@@ -11,6 +12,8 @@ from dateutil.tz import tzutc
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
+
+from ptbmodels.models import PTBModel, PTBTagModel
 
 Context = AbstractComputeExecutionContext
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
@@ -50,7 +53,8 @@ DagsterTime = Field(
 
 
 # TODO would be nice to have some type paramaterization for entity_type
-def get_rows_factory(name: str, entity_type, **kwargs):
+# TODO will likely add config to filter by source, and perhaps a "by id" override filter
+def get_rows_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     @solid(name=name,
            required_resource_keys={"database_client"},
            config_schema={"begin": DagsterTime, "end": DagsterTime}, **kwargs)
@@ -68,9 +72,9 @@ def get_rows_factory(name: str, entity_type, **kwargs):
 
 
 # TODO would be nice to have some type paramaterization for entity_type, maybe just have models inherit from parent
-def load_rows_factory(name: str, entity_type, on_conflict: list, do_update: bool = False, **kwargs):
+def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list, do_update: bool = False, **kwargs):
     @solid(name=name, required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime},  **kwargs)
-    def _load_rows_solid(context: Context, entities: list):
+    def _load_rows_solid(context: Context, entities: list[PTBModel]):
         # get db session
         db_client: Session = context.resources.database_client
 
