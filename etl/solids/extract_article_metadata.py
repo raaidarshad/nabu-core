@@ -39,7 +39,8 @@ def get_rss_feeds(context: Context) -> list[RssFeed]:
     if "all" in source_names:
         statement = select(RssFeed).where(RssFeed.is_okay)
     else:
-        statement = select(RssFeed).join(Source, RssFeed.source_id == Source.id).where(Source.name.in_(source_names))
+        statement = select(RssFeed).join(Source, RssFeed.source_id == Source.id).where(
+            (Source.name.in_(source_names)) & (RssFeed.is_okay))
     context.log.debug(f"Attempting to execute: {statement}")
     feeds = db_client.exec(statement).all()
     context.log.debug(f"Got {len(feeds)} feeds")

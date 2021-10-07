@@ -12,7 +12,7 @@ from sqlmodel import Session
 
 from etl.common import Context
 from etl.resources.html_parser import BaseParser
-from ptbmodels.models import Article, Feed, FeedEntry, Source
+from ptbmodels.models import Article, RawFeed, RawFeedEntry, Source
 
 
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
@@ -32,12 +32,12 @@ def create_source_map(_context: Context, sources: list[Source]) -> dict[UUID, So
 
 
 @solid(required_resource_keys={"rss_parser"}, config_schema={"time_threshold": String})
-def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
+def get_latest_feeds(context: Context, sources: list[Source]) -> list[RawFeed]:
     time_threshold_str = context.solid_config["time_threshold"]
     time_threshold = datetime.datetime.strptime(time_threshold_str, "%Y-%m-%d %H:%M:%S.%f%z")
     last_modified_header = time_threshold.strftime("%a, %d %m %Y %H:%M:%S GMT")
 
-    def _parse_raw_to_feed(raw_feed, entries: list[FeedEntry], source_id: UUID) -> Feed:
+    def _parse_raw_to_feed(raw_feed, entries: list[RawFeedEntry], source_id: UUID) -> RawFeed:
         try:
             updated = raw_feed.updated
         except AttributeError:
@@ -52,7 +52,7 @@ def get_latest_feeds(context: Context, sources: list[Source]) -> list[Feed]:
             parsed = parsed.astimezone(tz=tzutc())
         return parsed
 
-    def _get_latest_feed(source: Source) -> Feed:
+    def _get_latest_feed(source: Source) -> RawFeed:
         # TODO wrap in try/except to handle when retrieval/parsing unsuccessful
         raw = context.resources.rss_parser.parse(source.rss_url, modified=last_modified_header)
 
