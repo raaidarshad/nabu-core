@@ -39,13 +39,14 @@ def request_raw_content(context: Context, articles: list[Article]) -> list[RawCo
             if response.status_code == 200:
                 return RawContent(article_id=article.id, content=response.text, added_at=runtime)
             else:
-                context.log.warning(f"Got nonzero status code {response.status_code}")
+                context.log.warning(f"Got nonzero status code {response.status_code} for url {article.url}")
         except requests.HTTPError as e:
             context.log.warning(f"HTTP error {e} for article with url {article.url} and id {article.id}")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=context.solid_config["max_workers"]) as executor:
         raw_content = executor.map(_request_and_extract_raw_content, articles)
-    return list(raw_content)
+    # need to filter out None entries
+    return list(filter(None, raw_content))
 
 
 load_raw_content = load_rows_factory("load_raw_content", RawContent, ["article_id"])

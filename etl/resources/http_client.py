@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import requests
 from requests.adapters import HTTPAdapter
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 from urllib3.util.retry import Retry
 
 from dagster import resource, InitResourceContext
@@ -35,5 +35,5 @@ def http_client(init_context: InitResourceContext) -> requests.Session:
 
 
 @resource(required_resource_keys={"thread_local"})
-def mock_http_client() -> requests.Session:
-    return Mock(spec=requests.Session)
+def mock_http_client(_init_context) -> requests.Session:
+    return MagicMock(spec=requests.Session)

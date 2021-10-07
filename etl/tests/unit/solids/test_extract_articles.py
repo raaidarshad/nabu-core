@@ -15,7 +15,6 @@ from etl.solids.extract_articles import get_all_sources, create_source_map, get_
     extract_articles_solid, load_articles
 from ptbmodels.models import Article, Feed, FeedEntry, Source
 
-
 sources = [
     Source(id=uuid4(), name="source1", rss_url="https://fakeone.com/", html_parser_config={"id": "merp"}),
     Source(id=uuid4(), name="source2", rss_url="https://faketwo.com/", html_parser_config={"id": "merp"})
