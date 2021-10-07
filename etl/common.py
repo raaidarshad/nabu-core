@@ -52,7 +52,6 @@ DagsterTime = Field(
 )
 
 
-# TODO would be nice to have some type paramaterization for entity_type
 # TODO will likely add config to filter by source, and perhaps a "by id" override filter
 def get_rows_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     @solid(name=name,
@@ -71,7 +70,6 @@ def get_rows_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     return _get_rows_solid
 
 
-# TODO would be nice to have some type paramaterization for entity_type, maybe just have models inherit from parent
 def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list, do_update: bool = False, **kwargs):
     @solid(name=name, required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime},  **kwargs)
     def _load_rows_solid(context: Context, entities: list[PTBModel]):
