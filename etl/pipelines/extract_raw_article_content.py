@@ -1,6 +1,7 @@
 from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, SensorEvaluationContext, \
     asset_sensor, pipeline
 
+from etl.common import get_current_time, datetime_to_str
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     extract_articles_test_database_client
 from etl.resources.http_client import http_client, mock_http_client
@@ -45,15 +46,18 @@ def extract_raw_article_content():
 # schedules/sensors
 @asset_sensor(asset_key=AssetKey("article_table"), pipeline_name="extract_raw_article_content", mode="cloud")
 def extract_new_article_raw_content(context: SensorEvaluationContext, asset_event: EventLogEntry):
-    runtime = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
+    article_runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
+    raw_content_runtime = datetime_to_str(get_current_time())
 
     yield RunRequest(
         run_key=context.cursor,
         run_config={
             "solids": {
-                "get_articles": {"config": {"begin": runtime, "end": runtime}},
-                "request_raw_content": {"config": {"runtime": runtime}},
-                "load_raw_content": {"config": {"runtime": runtime}}
+                # we specify both begin and end as the same so it operates in "batch" or "tag" mode,
+                # where we use the exact timestamp as a batch tag to pull the right articles
+                "get_articles": {"config": {"begin": article_runtime_tag, "end": article_runtime_tag}},
+                "request_raw_content": {"config": {"runtime": raw_content_runtime}},
+                "load_raw_content": {"config": {"runtime": raw_content_runtime}}
             }
         }
     )
