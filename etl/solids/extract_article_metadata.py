@@ -3,7 +3,6 @@ from dagster import Array, Enum, EnumValue, Field, solid
 from sqlmodel import Session, select, update
 
 from etl.common import DagsterTime, Context, clean_text, get_source_names, load_rows_factory, str_to_datetime
-from etl.resources.rss_parser import RssParser
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
 
@@ -110,4 +109,4 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
     return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
 
 
-load_articles = load_rows_factory("load_articles", Article, ["url"])
+load_articles = load_rows_factory("load_articles", Article, [Article.url])

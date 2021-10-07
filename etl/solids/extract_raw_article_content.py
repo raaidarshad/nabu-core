@@ -2,23 +2,12 @@ import concurrent.futures
 import requests
 
 from dagster import Field, Int, solid
-from sqlmodel import Session, select
 
-from etl.common import DagsterTime, Context, load_rows_factory, str_to_datetime
+from etl.common import DagsterTime, Context, get_rows_factory, load_rows_factory, str_to_datetime
 from ptbmodels.models import Article, RawContent
 
 
-@solid(required_resource_keys={"database_client"}, config_schema={"begin": DagsterTime, "end": DagsterTime})
-def get_articles(context: Context) -> list[Article]:
-    db_client: Session = context.resources.database_client
-    begin = str_to_datetime(context.solid_config["begin"])
-    end = str_to_datetime(context.solid_config["end"])
-
-    statement = select(Article).where((begin <= Article.added_at) & (Article.added_at <= end))
-    context.log.debug(f"Attempting to execute: {statement}")
-    articles = db_client.exec(statement).all()
-    context.log.debug(f"Got {len(articles)} articles")
-    return articles
+get_articles = get_rows_factory("get_articles", Article)
 
 
 MaxWorkers = Field(
@@ -31,9 +20,9 @@ MaxWorkers = Field(
 @solid(required_resource_keys={"http_client"}, config_schema={"max_workers": MaxWorkers, "runtime": DagsterTime})
 def request_raw_content(context: Context, articles: list[Article]) -> list[RawContent]:
     runtime = str_to_datetime(context.solid_config["runtime"])
+    http_session: requests.Session = context.resources.http_client
 
     def _request_and_extract_raw_content(article: Article):
-        http_session: requests.Session = context.resources.http_client
         try:
             response = http_session.get(article.url)
             if response.status_code == 200:
@@ -49,4 +38,4 @@ def request_raw_content(context: Context, articles: list[Article]) -> list[RawCo
     return list(filter(None, raw_content))
 
 
-load_raw_content = load_rows_factory("load_raw_content", RawContent, ["article_id"])
+load_raw_content = load_rows_factory("load_raw_content", RawContent, [RawContent.article_id])

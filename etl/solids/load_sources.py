@@ -31,8 +31,8 @@ def create_tables(context: Context) -> str:
     return path + "/{table_name}.json"
 
 
-load_source_rows = load_rows_factory("load_source_rows", Source, ["name"])
-load_rss_feed_rows = load_rows_factory("load_rss_feed_rows", RssFeed, ["url"])
+load_source_rows = load_rows_factory("load_source_rows", Source, [Source.name])
+load_rss_feed_rows = load_rows_factory("load_rss_feed_rows", RssFeed, [RssFeed.url])
 
 
 def _load_json(filepath: str) -> list[dict]:
