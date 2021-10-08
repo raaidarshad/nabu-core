@@ -1,142 +1,129 @@
-from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
-from scipy.sparse import csr_matrix
 
+from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_counts import get_parsed_content, compute_term_counts, load_term_counts
-from ptbmodels.models import Article, TermCount
+from ptbmodels.models import ParsedContent, TermCount
 
 
-fake_articles = [
-    Article(**{"id": uuid4(),
-               "url": "https://fake.com",
-               "source_id": uuid4(),
-               "title": "fake title",
-               "published_at": datetime.now(tz=timezone.utc),
-               "parsed_content": "fake raaid content"}),
-    Article(**{"id": uuid4(),
-               "url": "https://notreal.com",
-               "source_id": uuid4(),
-               "title": "unreal title",
-               "published_at": datetime.now(tz=timezone.utc) - timedelta(seconds=30),
-               "parsed_content": "unreal raaid content"})
-]
+def test_get_parsed_content():
+    expected_parsed_content = [
+        ParsedContent(article_id=uuid4(),
+                      content=f"fake{idx}",
+                      added_at=get_current_time()
+                      ) for idx in range(3)
+    ]
 
-expected_articles = [Article(**fa.__dict__) for fa in fake_articles]
-expected_content = " ".join([fa.parsed_content for fa in fake_articles])
-expected_features = sorted(list(set(expected_content.split())))
-
-
-def test_get_articles():
     def _test_db_client(_init_context):
         db = mock_database_client()
+        t_query = Mock()
+        t_query.all = Mock(return_value=expected_parsed_content)
+        db.exec = Mock(return_value=t_query)
+        return db
+
+    result: SolidExecutionResult = execute_solid(
+        get_parsed_content,
+        mode_def=ModeDefinition(name="test",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
+    )
+
+    assert result.success
+    assert result.output_value() == expected_parsed_content
+
+
+def test_compute_term_counts():
+    now = get_current_time()
+    article_id1 = uuid4()
+    article_id2 = uuid4()
+    parsed_content = [
+        ParsedContent(
+            article_id=article_id1,
+            content="fake fake content",
+            added_at=now
+        ),
+        ParsedContent(
+            article_id=article_id2,
+            content="fake content raaid",
+            added_at=now
+        )
+    ]
+
+    expected_term_counts = [
+        TermCount(
+            article_id=article_id1,
+            term="fake",
+            count=2,
+            added_at=now
+        ),
+        TermCount(
+            article_id=article_id1,
+            term="content",
+            count=1,
+            added_at=now
+        ),
+        TermCount(
+            article_id=article_id2,
+            term="fake",
+            count=1,
+            added_at=now
+        ),
+        TermCount(
+            article_id=article_id2,
+            term="content",
+            count=1,
+            added_at=now
+        ),
+        TermCount(
+            article_id=article_id2,
+            term="raaid",
+            count=1,
+            added_at=now
+        )
+    ]
+
+    result: SolidExecutionResult = execute_solid(
+        compute_term_counts,
+        run_config={"solids": {"compute_term_counts": {"config": {"runtime": datetime_to_str(now)}}}},
+        input_values={"parsed_content": parsed_content}
+    )
+
+    assert result.success
+    assert result.output_value() == expected_term_counts
+
+
+def test_load_term_counts():
+    term_counts = [
+        TermCount(
+            article_id=uuid4(),
+            term=f"term{idx}",
+            count=idx,
+            added_at=get_current_time()
+        ) for idx in range(3)
+    ]
+
+    db = mock_database_client()
+
+    def _test_db_client(_init_context):
+        db.exec = Mock(return_value=1)
+        db.commit = Mock(return_value=1)
         a = Mock()
-        b = Mock()
-        c = Mock()
-        d = Mock()
-        d.all = Mock(return_value=fake_articles)
-        c.filter = Mock(return_value=d)
-        b.outerjoin = Mock(return_value=c)
-        a.filter = Mock(return_value=b)
+        a.count = Mock(return_value=1)
         db.query = Mock(return_value=a)
         return db
 
     result: SolidExecutionResult = execute_solid(
-        get_articles,
-        mode_def=ModeDefinition(name="test_get_articles",
+        load_term_counts,
+        mode_def=ModeDefinition(name="test",
                                 resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
-        run_config={
-            "solids": {
-                "get_articles": {
-                    "config": {
-                        "time_threshold": str(datetime.now(timezone.utc) - timedelta(hours=1))
-                    }
-                }
-            }
-        }
+        input_values={"entities": term_counts}
     )
 
     assert result.success
-    assert len(result.output_value()) == len(fake_articles)
-    for idx, article in enumerate(result.output_value()):
-        assert expected_articles[idx] == article
-
-
-def test_compute_count_matrix():
-    result: SolidExecutionResult = execute_solid(
-        compute_count_matrix,
-        input_values={"articles": expected_articles}
-    )
-
-    assert result.success
-
-    features = result.output_value("features")
-
-    # this is a bit tricky because this solid tokenizes, so if we use stop words in the test
-    # data, it won't show up here, and it'll also lemmatize certain words so that they aren't
-    # the same. I think it is sane to test with no stop words and to just confirm that the
-    # expected amount of tokens are present
-    assert len(expected_features) == len(features)
-
-    count_matrix = result.output_value("count_matrix")
-    assert list(count_matrix.data) == [1, 1, 1, 1, 1, 1]
-    assert list(count_matrix.indices) == [1, 2, 0, 2, 0, 3]
-    assert list(count_matrix.indptr) == [0, 3, 6]
-    assert tuple(count_matrix.shape) == (2, 4)
-
-
-def test_compose_rows():
-    result: SolidExecutionResult = execute_solid(
-        compose_rows,
-        input_values={
-            "articles": expected_articles,
-            "features": expected_features,
-            "count_matrix": csr_matrix(([1, 1, 1, 1, 1, 1], ([0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 2, 3])), shape=(2, 4))
-        }
-    )
-
-    assert result.success
-    assert len(result.output_value()) == 6
-    assert result.output_value() == [
-        TermCount(article_id=expected_articles[0].id, term='content', count=1),
-        TermCount(article_id=expected_articles[0].id, term='fake', count=1),
-        TermCount(article_id=expected_articles[0].id, term='raaid', count=1),
-        TermCount(article_id=expected_articles[1].id, term='content', count=1),
-        TermCount(article_id=expected_articles[1].id, term='raaid', count=1),
-        TermCount(article_id=expected_articles[1].id, term='unreal', count=1),
-    ]
-
-
-def test_load_counts():
-    counts = [
-        TermCount(article_id=uuid4(), term="president", count=4),
-        TermCount(article_id=uuid4(), term="congress", count=2),
-        TermCount(article_id=uuid4(), term="environment", count=20),
-        TermCount(article_id=uuid4(), term="markets", count=2)
-    ]
-
-    db_counts = [TermCount(**count.dict()) for count in counts]
-
-    db_mock = mock_database_client()
-
-    def _test_db_client(_init_context):
-        db_mock.add_all = Mock(return_value=1)
-        db_mock.commit = Mock(return_value=1)
-        t_query = Mock()
-        t_query.count = Mock(return_value=1)
-        db_mock.query = Mock(return_value=t_query)
-        return db_mock
-
-    result: SolidExecutionResult = execute_solid(
-        load_counts,
-        mode_def=ModeDefinition(name="test_load_counts",
-                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
-        input_values={"counts": counts}
-    )
-
-    assert result.success
-    assert db_mock.add_all.called_once_with(db_counts)
-    assert db_mock.commit.called_once()
+    assert result.output_value() == term_counts
+    # count of rows in mock should be the same, therefore no asset should be materialized
+    assert result.materializations_during_compute == []
+    assert db.exec.called_once()
+    assert db.commit.called_once()
