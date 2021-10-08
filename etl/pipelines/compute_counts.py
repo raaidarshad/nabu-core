@@ -17,11 +17,23 @@ local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
 # presets
-main_preset = PresetDefinition(mode="local", name="main_preset")
+main_preset = PresetDefinition(name="main", mode="local")
+now = datetime_to_str(get_current_time())
+timed_preset = PresetDefinition(name="timed",
+                                mode="local",
+                                run_config={
+                                    "solids": {
+                                        "get_parsed_content": {"config": {"begin": now,
+                                                                          "end": now}},
+                                        "compute_term_counts": {"config": {"runtime": now}},
+                                        "load_term_counts": {"config": {"runtime": now}}}
+                                })
 
 
 # pipelines
-@pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[main_preset], tags={"table": "termcount"})
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
+          preset_defs=[main_preset, timed_preset],
+          tags={"table": "termcount"})
 def compute_counts():
     parsed_content = get_parsed_content()
     term_counts = compute_term_counts(parsed_content)

@@ -28,11 +28,23 @@ local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
 # preset definitions
-main_preset = PresetDefinition(name="main_preset", mode="local")
+main_preset = PresetDefinition(name="main", mode="local")
+now = datetime_to_str(get_current_time())
+timed_preset = PresetDefinition(name="timed",
+                                mode="local",
+                                run_config={
+                                    "solids": {
+                                        "get_raw_content": {"config": {"begin": now, "end": now}},
+                                        "parse_raw_content": {"config": {"runtime": now}},
+                                        "load_parsed_content": {"config": {"runtime": now}}
+                                    }
+                                })
 
 
 # pipelines
-@pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[main_preset], tags={"table": "parsedcontent"})
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
+          preset_defs=[main_preset, timed_preset],
+          tags={"table": "parsedcontent"})
 def transform_parsed_article_content():
     raw_content = get_raw_content()
     parsed_content = parse_raw_content(raw_content)
