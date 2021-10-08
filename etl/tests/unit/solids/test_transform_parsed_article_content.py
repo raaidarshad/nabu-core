@@ -1,11 +1,11 @@
 from unittest.mock import Mock
 from uuid import uuid4
 
-from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, build_init_resource_context, execute_solid
+from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.resources.html_parser import html_parser, mock_html_parser
+from etl.resources.html_parser import mock_html_parser
 from etl.solids.transform_parsed_article_content import get_raw_content, parse_raw_content, load_parsed_content
 from ptbmodels.models import Article, ParsedContent, RawContent, RssFeed
 
