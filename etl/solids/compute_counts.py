@@ -1,15 +1,11 @@
-import datetime
-
-from dagster import AssetMaterialization, Output, OutputDefinition, String, solid
-from scipy.sparse import csr_matrix
+from dagster import solid
 from sklearn.feature_extraction.text import CountVectorizer
 import spacy
-from sqlmodel import Session
 
-from etl.common import Context
-from ptbmodels.models import Article, TermCount
+from etl.common import Context, DagsterTime, get_rows_factory, load_rows_factory, str_to_datetime
+from ptbmodels.models import ParsedContent, TermCount
 
-# TODO probably make the nlp model a resource
+
 try:
     nlp = spacy.load("en_core_web_sm")
 except IOError:
@@ -17,72 +13,32 @@ except IOError:
     nlp = spacy.load("en_core_web_sm")
 
 
-@solid(required_resource_keys={"database_client"}, config_schema={"time_threshold": String})
-def get_articles(context: Context) -> list[Article]:
-    db_client: Session = context.resources.database_client
-    time_threshold_str = context.solid_config["time_threshold"]
-    time_threshold = datetime.datetime.strptime(time_threshold_str, "%Y-%m-%d %H:%M:%S.%f%z")
-
-    # filter to articles published after time threshold
-    # left join, then
-    # get articles with ids NOT in counts
-    articles = db_client.query(Article). \
-        filter(Article.published_at >= time_threshold). \
-        outerjoin(TermCount). \
-        filter(TermCount.article_id.is_(None)).all()
-
-    context.log.debug(f"Got {len(articles)} articles")
-    return [Article(**a.__dict__) for a in articles]
+get_parsed_content = get_rows_factory("get_parsed_content", ParsedContent)
 
 
-@solid(output_defs=[
-    OutputDefinition(name="count_matrix"),
-    OutputDefinition(name="features")
-])
-def compute_count_matrix(_context: Context, articles: list[Article]):
+@solid(config_schema={"runtime": DagsterTime})
+def compute_term_counts(context: Context, parsed_content: list[ParsedContent]) -> list[TermCount]:
+    runtime = str_to_datetime(context.solid_config["runtime"])
     count_vectorizer = CountVectorizer(tokenizer=_spacy_tokenizer)
-    corpus = [article.parsed_content for article in articles]
+    corpus = [pc.content for pc in parsed_content]
     count_matrix = count_vectorizer.fit_transform(corpus)
-    features = count_vectorizer.get_feature_names()
-    yield Output(count_matrix, "count_matrix")
-    yield Output(features, "features")
-
-
-@solid
-def compose_rows(_context: Context,
-                 articles: list[Article],
-                 features: list[str],
-                 count_matrix: csr_matrix) -> list[TermCount]:
-    assert len(articles) == count_matrix.shape[0], "Number of articles != number of rows in count_matrix"
-    assert len(features) == count_matrix.shape[1], "Number of features != number of cols in count_matrix"
+    # TODO change to .get_feature_names_out with sklearn 1.0
+    terms = count_vectorizer.get_feature_names()
 
     counts = []
 
-    for idx in range(count_matrix.shape[0]):
-        current_indices = count_matrix.getrow(idx).indices
-        current_data = count_matrix.getrow(idx).data
-        for jdx in range(len(current_indices)):
-            counts.append(
-                TermCount(article_id=articles[idx].id, term=features[current_indices[jdx]], count=current_data[jdx]))
+    for idx, row in enumerate(count_matrix):
+        for count, col_index in zip(row.data, row.indices):
+            counts.append(TermCount(article_id=parsed_content[idx].article_id,
+                                    term=terms[col_index],
+                                    count=count,
+                                    added_at=runtime
+                                    ))
 
     return counts
 
 
-@solid(required_resource_keys={"database_client"})
-def load_counts(context: Context, counts: list[TermCount]):
-    db_client: Session = context.resources.database_client
-    counts = [TermCount(**count.dict()) for count in counts]
-    context.log.debug(f"Attempting to add {len(counts)} termcount rows to the DB")
-    count_before = db_client.query(TermCount).count()
-    db_client.add_all(counts)
-    db_client.commit()
-    count_after = db_client.query(TermCount).count()
-    count_added = count_after - count_before
-    context.log.debug(f"Added {count_added} termcount rows to the DB")
-    if count_added > 0:
-        yield AssetMaterialization(asset_key="count_table",
-                                   description="New rows added to count table")
-    yield Output(counts)
+load_term_counts = load_rows_factory("load_term_counts", TermCount, [TermCount.article_id, TermCount.term])
 
 
 def _spacy_tokenizer(document):

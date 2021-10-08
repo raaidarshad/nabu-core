@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - 'etl/**'
+      - '.github/workflows/etl_ci.yaml'
 jobs:
   run-tests:
     runs-on: ubuntu-latest
