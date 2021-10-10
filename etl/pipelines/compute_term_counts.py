@@ -4,7 +4,7 @@ from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, R
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_counts_test_database_client
-from etl.solids.compute_counts import get_parsed_content, compute_term_counts, load_term_counts
+from etl.solids.compute_term_counts import get_parsed_content, compute_term_counts, load_term_counts
 
 # resources
 cloud_resource_defs = {"database_client": cloud_database_client}
