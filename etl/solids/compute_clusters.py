@@ -41,3 +41,18 @@ def compute_and_load_clusters(context: Context, similarity_data: SimilarityData)
     yield AssetMaterialization(asset_key="cluster_table", description="New rows added to cluster table")
     # yield a dummy output, don't have access to the rows to add right here
     yield Output(1)
+
+
+# good, modular solids to have here for a variety of clustering approaches
+
+# get_term_counts
+
+# compute_tfidf
+# compute_tfidf_similarity (rename? compute_cosines?)
+
+# compute_bfs_clusters
+# compute_heirarchical_clusters
+# compute_dbscan_clusters
+# compute_optical_clusters
+
+# load_article_clusters

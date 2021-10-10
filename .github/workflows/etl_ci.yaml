@@ -41,5 +41,7 @@ jobs:
       run: cd etl && poetry config virtualenvs.create false && poetry install --no-interaction
     - name: Install spacy package
       run: python -m spacy download en_core_web_sm
-    - name: run tests
-      run: pytest etl/tests
+    # TODO this currently only runs unit tests for solids; once tests are updated, it should run all unit tests
+    - name: run unit tests
+      run: pytest etl/tests/unit/solids
+    # TODO add a step of run integration tests, I think, unless it takes tooo long or hits too much external stuff
