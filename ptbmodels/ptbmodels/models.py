@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import Column, Field, JSON, Relationship, String, SQLModel
+from sqlmodel import Column, Field, Index, JSON, Relationship, String, SQLModel, func
 
 from enum import Enum
 
@@ -72,27 +72,34 @@ class AccuracyTypes(Enum):
 #######################
 
 
-class FeedEntry(BaseModel):
+class RawFeedEntry(BaseModel):
     title: str
     summary: Optional[str]
     published_at: datetime
     url: HttpUrl = Field(alias="link")
     authors: Optional[str] = Field(alias="author")
-    source_id: UUID
+    rss_feed_id: UUID
+    source_id: int
 
 
-class Feed(BaseModel):
+class RawFeed(BaseModel):
     title: str
-    subtitle: Optional[str]
-    entries: list[FeedEntry]
+    entries: list[RawFeedEntry]
     url: HttpUrl = Field(alias="link")
-    updated_at: datetime
-    source_id: UUID
+    rss_feed_id: UUID
+    source_id: int
 
 
 #########################
 ### TABLE DEFINITIONS ###
 #########################
+
+class PTBModel(SQLModel):
+    pass
+
+
+class PTBTagModel(PTBModel):
+    added_at: datetime
 
 
 class ArticleClusterLink(SQLModel, table=True):
@@ -100,17 +107,17 @@ class ArticleClusterLink(SQLModel, table=True):
     article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
 
 
-class Source(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    name: str
+class Source(PTBModel, table=True):
+    id: int = Field(primary_key=True)
+    name: str = Field(sa_column=Column(String, unique=True))
 
     biases: List["Bias"] = Relationship(back_populates="source")
     accuracies: List["Accuracy"] = Relationship(back_populates="source")
     rss_feeds: List["RssFeed"] = Relationship(back_populates="source")
 
 
-class Bias(SQLModel, table=True):
-    source_id: UUID = Field(foreign_key="source.id", primary_key=True)
+class Bias(PTBModel, table=True):
+    source_id: int = Field(foreign_key="source.id", primary_key=True)
     # TODO enum?
     type: str = Field(primary_key=True)
     value: str
@@ -118,8 +125,8 @@ class Bias(SQLModel, table=True):
     source: Source = Relationship(back_populates="biases")
 
 
-class Accuracy(SQLModel, table=True):
-    source_id: UUID = Field(foreign_key="source.id", primary_key=True, index=True)
+class Accuracy(PTBModel, table=True):
+    source_id: int = Field(foreign_key="source.id", primary_key=True)
     # TODO enum?
     type: str = Field(primary_key=True)
     value: str
@@ -127,10 +134,10 @@ class Accuracy(SQLModel, table=True):
     source: Source = Relationship(back_populates="accuracies")
 
 
-class RssFeed(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    source_id: UUID = Field(foreign_key="source.id")
-    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
+class RssFeed(PTBModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    source_id: int = Field(foreign_key="source.id")
+    url: HttpUrl = Field(sa_column=Column(String, unique=True))
     parser_config: dict = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
     is_okay: bool = Field(default=True)
@@ -138,54 +145,62 @@ class RssFeed(SQLModel, table=True):
     source: Source = Relationship(back_populates="rss_feeds")
 
 
-class Article(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
-    rss_feed_id: UUID = Field(foreign_key="rssfeed.id")
-    url: HttpUrl = Field(sa_column=Column(String, unique=True), index=True)
-    summary: str
-    title: str
-    authors: Optional[str]
-    published_at: datetime = Field(index=True)
-    added_at: datetime = Field(index=True)
+class Article(PTBTagModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    rss_feed_id: Optional[UUID] = Field(foreign_key="rssfeed.id")
+    source_id: int = Field(foreign_key="source.id")
+    url: HttpUrl = Field(sa_column=Column(String, unique=True))
+    summary: str = Field(index=False)
+    title: str = Field(index=False)
+    authors: Optional[str] = Field(index=False)
+    published_at: datetime
 
     rss_feed: RssFeed = Relationship()
+    source: Source = Relationship()
     term_counts: List["TermCount"] = Relationship(back_populates="article")
     clusters: List["ArticleCluster"] = Relationship(back_populates="articles", link_model=ArticleClusterLink)
     raw_content: "RawContent" = Relationship(back_populates="article")
     parsed_content: "ParsedContent" = Relationship(back_populates="article")
 
 
-class RawContent(SQLModel, table=True):
+Index("ix_article_title", func.to_tsvector('english', Article.title), postgresql_using="gin")
+Index("ix_article_summary", func.to_tsvector('english', Article.summary), postgresql_using="gin")
+Index("ix_article_authors", func.to_tsvector('english', Article.authors), postgresql_using="gin")
+
+
+class RawContent(PTBTagModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True)
-    content: str
-    added_at: datetime = Field(index=True)
+    content: str = Field(index=False)
 
     article: Article = Relationship(back_populates="raw_content")
 
 
-class ParsedContent(SQLModel, table=True):
+Index("ix_rawcontent_content", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
+class ParsedContent(PTBTagModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True)
-    content: str
-    added_at: datetime = Field(index=True)
+    content: str = Field(index=False)
 
     article: Article = Relationship(back_populates="parsed_content")
 
 
-class TermCount(SQLModel, table=True):
-    article_id: UUID = Field(foreign_key="article.id", primary_key=True, index=True)
-    term: str = Field(primary_key=True, index=True)
+Index("ix_parsedcontent_content", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
+class TermCount(PTBTagModel, table=True):
+    article_id: UUID = Field(foreign_key="article.id", primary_key=True)
+    term: str = Field(primary_key=True)
     count: int = Field(primary_key=True)
-    added_at: datetime = Field(index=True)
 
     article: Article = Relationship(back_populates="term_counts")
 
 
-class ArticleCluster(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, index=True)
+class ArticleCluster(PTBTagModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     # TODO enum? might be more trouble than it is worth
     type: str
     parameters: dict = Field(sa_column=Column(JSON))
-    added_at: datetime = Field(index=True)
     # range of time that this cluster goes over, i.e. 1440 for a day
     minute_span: int
 

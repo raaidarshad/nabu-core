@@ -1,0 +1,19 @@
+[
+  {"source_id": 0, "url": "https://jacobinmag.com/feed", "parser_config": {"id": "post-content"}, "allsides_bias": "LEFT"},
+  {"source_id": 1, "url": "https://theintercept.com/feed/?lang=en", "parser_config": {"class_": "PostContent"}, "allsides_bias": "LEFT"},
+  {"source_id": 2, "url": "https://www.vox.com/rss/index.xml", "parser_config": {"class_": "c-entry-content"}, "allsides_bias": "LEFT"},
+  {"source_id": 3, "url": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", "parser_config": {"name": "section", "attrs": {"name": "articleBody"}}, "allsides_bias": "LEAN_LEFT"},
+  {"source_id": 4, "url": "https://www.theguardian.com/world/rss", "parser_config": {"class_": "article-body-commercial-selector"}, "allsides_bias": "LEAN_LEFT"},
+  {"source_id": 5, "url": "http://feeds.washingtonpost.com/rss/national?itid=lk_inline_manual_39", "parser_config": {"class_":  "article-body"}, "allsides_bias": "LEAN_LEFT"},
+  {"source_id": 5, "url": "http://feeds.washingtonpost.com/rss/world?itid=lk_inline_manual_43", "parser_config": {"class_":  "article-body"}, "allsides_bias": "LEAN_LEFT"},
+  {"source_id": 6, "url": "https://feeds.npr.org/1001/rss.xml", "parser_config": {"id": "storytext"}, "allsides_bias": "CENTER"},
+  {"source_id": 7, "url": "https://feeds.a.dj.com/rss/RSSWorldNews.xml", "parser_config": {"class_": "article-content"}, "allsides_bias": "CENTER"},
+  {"source_id": 8, "url": "https://www.reutersagency.com/feed/?taxonomy=best-regions&post_type=best", "parser_config": {"class_": "et_pb_post_content"}, "allsides_bias": "CENTER"},
+  {"source_id": 9, "url": "http://feeds.foxnews.com/foxnews/latest", "parser_config": {"class_": "article-body"}, "allsides_bias": "LEAN_RIGHT"},
+  {"source_id": 9, "url": "http://feeds.foxnews.com/foxnews/world", "parser_config": {"class_": "article-body"}, "allsides_bias": "LEAN_RIGHT"},
+  {"source_id": 10, "url": "https://www.washingtontimes.com/rss/headlines/news/", "parser_config": {"class_": "bigtext"}, "allsides_bias": "LEAN_RIGHT"},
+  {"source_id": 11, "url": "https://www.newsmax.com/rss/Newsfront/16", "parser_config": {"name": "div", "attrs": {"itemprop": "articleBody"}}, "allsides_bias": "LEAN_RIGHT"},
+  {"source_id": 12, "url": "https://www.oann.com/feed", "parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"},
+  {"source_id": 12, "url": "https://www.oann.com/category/newsroom/feed", "parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"},
+  {"source_id": 13, "url": "http://feeds.feedburner.com/breitbart", "parser_config": {"class_": "entry-content"}, "allsides_bias": "RIGHT"}
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": 0,
+    "name": "Jacobin Magazine"
+  },
+  {
+    "id": 1,
+    "name": "The Intercept"
+  },
+  {
+    "id": 2,
+    "name": "Vox"
+  },
+  {
+    "id": 3,
+    "name": "New York Times"
+  },
+  {
+    "id": 4,
+    "name": "The Guardian"
+  },
+  {
+    "id": 5,
+    "name": "The Washington Post"
+  },
+  {
+    "id": 6,
+    "name": "National Public Radio"
+  },
+  {
+    "id": 7,
+    "name": "The Wall Street Journal"
+  },
+  {
+    "id": 8,
+    "name": "Reuters"
+  },
+  {
+    "id": 9,
+    "name": "Fox News"
+  },
+  {
+    "id": 10,
+    "name": "The Washington Times"
+  },
+  {
+    "id": 11,
+    "name": "Newsmax"
+  },
+  {
+    "id": 12,
+    "name": "One America News Network"
+  },
+  {
+    "id": 13,
+    "name": "Breitbart News"
+  }
+]

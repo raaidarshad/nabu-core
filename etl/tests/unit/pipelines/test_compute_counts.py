@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from dagster import PipelineExecutionResult, execute_pipeline
 
-from etl.pipelines.compute_counts import compute_counts
+from etl.pipelines.compute_term_counts import compute_counts
 
 
 def test_compute_counts():

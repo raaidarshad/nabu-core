@@ -6,7 +6,7 @@ from scipy.sparse.csgraph import breadth_first_order
 from sqlmodel import Session
 
 from etl.functions.tfidf import SimilarityData
-from ptbmodels.models import Article, Cluster
+from ptbmodels.models import Article, ArticleCluster
 
 RawCluster = frozenset[int]
 
@@ -62,13 +62,13 @@ def load_clusters(clusters: list[RawCluster],
         article_ids = [similarity_data.index_to_article_id[idx] for idx in cluster]
         articles = get_articles_by_id(article_ids, db_client)
 
-        c = Cluster(keywords=keywords,
-                    articles=articles,
-                    computed_at=computed_at,
-                    minute_span=minute_span)
+        c = ArticleCluster(keywords=keywords,
+                           articles=articles,
+                           computed_at=computed_at,
+                           minute_span=minute_span)
         prepped.append(c)
 
-    old_clusters_to_delete = db_client.query(Cluster).filter(Cluster.minute_span == minute_span).all()
+    old_clusters_to_delete = db_client.query(ArticleCluster).filter(ArticleCluster.minute_span == minute_span).all()
     for old_cluster in old_clusters_to_delete:
         db_client.delete(old_cluster)
     db_client.add_all(prepped)

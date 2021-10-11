@@ -1,5 +1,5 @@
 import threading
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 
 from dagster import resource
 
@@ -11,4 +11,4 @@ def thread_local():
 
 @resource
 def mock_thread_local():
-    return Mock(spec=threading.local)
+    return MagicMock(spec=threading.local)

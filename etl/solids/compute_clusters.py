@@ -8,6 +8,16 @@ from etl.functions.tfidf import SimilarityData, compute_similarity_data
 from etl.functions.clusters import compute_cluster_data
 
 
+# want to do this with various clustering methods; do we want to store similarity data as
+# an intermediate piece? or we can wrap various clustering methods into solids,
+# then create specific pipelines and configs. needs some thinking/writing
+
+# get count terms
+# compute similarity
+# compute article clusters
+# load article clusters
+
+
 @solid(required_resource_keys={"database_client"}, config_schema={"minute_span": Int})
 def get_counts(context: Context) -> CountData:
     db_client: Session = context.resources.database_client
@@ -31,3 +41,18 @@ def compute_and_load_clusters(context: Context, similarity_data: SimilarityData)
     yield AssetMaterialization(asset_key="cluster_table", description="New rows added to cluster table")
     # yield a dummy output, don't have access to the rows to add right here
     yield Output(1)
+
+
+# good, modular solids to have here for a variety of clustering approaches
+
+# get_term_counts
+
+# compute_tfidf
+# compute_tfidf_similarity (rename? compute_cosines?)
+
+# compute_bfs_clusters
+# compute_heirarchical_clusters
+# compute_dbscan_clusters
+# compute_optical_clusters
+
+# load_article_clusters

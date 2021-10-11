@@ -17,7 +17,7 @@ def load_sources_from_file():
     # get db session
     db: Session = get_session()
     # load json file
-    raw_sources = _load_json(filepath="sources.json")
+    raw_sources = _load_json(filepath="source.json")
     # write to db
     _write_sources(db=db, sources=raw_sources)
     # print to see if it worked
