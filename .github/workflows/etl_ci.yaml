@@ -44,4 +44,6 @@ jobs:
     # TODO this currently only runs unit tests for solids; once tests are updated, it should run all unit tests
     - name: run unit tests
       run: pytest etl/tests/unit/solids
-    # TODO add a step of run integration tests, I think, unless it takes tooo long or hits too much external stuff
+    # run the integration tests twice to make sure things don't break on rerun
+    - name: run integration tests
+      run: pytest etl/tests/it && pytest etl/tests/it
