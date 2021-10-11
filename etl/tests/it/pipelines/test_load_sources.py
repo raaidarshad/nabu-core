@@ -13,7 +13,7 @@ def test_load_sources():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "db"
+                        "path": "etl/db"
                     }
                 }
             }
@@ -32,7 +32,7 @@ def test_load_sources():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "db/test_files"
+                        "path": "etl/db/test_files"
                     }
                 }
             }
@@ -51,7 +51,7 @@ def test_load_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "db"
+                        "path": "etl/db"
                     }
                 }
             }
@@ -70,7 +70,7 @@ def test_load_rss_feeds():
             "solids": {
                 "create_tables": {
                     "config": {
-                        "path": "db/test_files"
+                        "path": "etl/db/test_files"
                     }
                 }
             }

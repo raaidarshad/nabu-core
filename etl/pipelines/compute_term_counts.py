@@ -4,7 +4,7 @@ from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, R
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_counts_test_database_client
-from etl.solids.compute_term_counts import get_parsed_content, compute_term_counts, load_term_counts
+from etl.solids.compute_term_counts import get_parsed_content, compute_counts, load_term_counts
 
 # resources
 cloud_resource_defs = {"database_client": cloud_database_client}
@@ -25,7 +25,7 @@ timed_preset = PresetDefinition(name="timed",
                                     "solids": {
                                         "get_parsed_content": {"config": {"begin": now,
                                                                           "end": now}},
-                                        "compute_term_counts": {"config": {"runtime": now}},
+                                        "compute_counts": {"config": {"runtime": now}},
                                         "load_term_counts": {"config": {"runtime": now}}}
                                 })
 
@@ -34,9 +34,9 @@ timed_preset = PresetDefinition(name="timed",
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
           preset_defs=[main_preset, timed_preset],
           tags={"table": "termcount"})
-def compute_counts():
+def compute_term_counts():
     parsed_content = get_parsed_content()
-    term_counts = compute_term_counts(parsed_content)
+    term_counts = compute_counts(parsed_content)
     load_term_counts(term_counts)
 
 
@@ -52,7 +52,7 @@ def compute_counts_sensor(context: SensorEvaluationContext, asset_event: EventLo
             "solids": {
                 "get_parsed_content": {"config": {"begin": parsed_content_runtime_tag,
                                                   "end": parsed_content_runtime_tag}},
-                "compute_term_counts": {"config": {"runtime": term_counts_runtime}},
+                "compute_counts": {"config": {"runtime": term_counts_runtime}},
                 "load_term_counts": {"config": {"runtime": term_counts_runtime}}}
         },
     )

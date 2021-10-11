@@ -76,29 +76,33 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
         # get db session
         db_client: Session = context.resources.database_client
 
-        context.log.debug(f"Attempting to add {len(entities)} rows to the {entity_type.__name__} table")
-        count_before = db_client.query(entity_type).count()
-        base_insert_statement = insert(entity_type)
-        if do_update:
-            # TODO not sure how to make this generalized for the set_ argument
-            insert_statement = base_insert_statement.on_conflict_do_update(
-                index_elements=on_conflict,
-                set_=dict(base_insert_statement.excluded)
-            )
-        else:
-            insert_statement = insert(entity_type).on_conflict_do_nothing(index_elements=on_conflict)
-        db_client.exec(statement=insert_statement, params=[e.dict() for e in entities])
-        db_client.commit()
-        count_after = db_client.query(entity_type).count()
-        added = count_after - count_before
-        context.log.debug(f"Added {added} rows to the {entity_type.__name__} table")
+        if entities:
+            context.log.debug(f"Attempting to add {len(entities)} rows to the {entity_type.__name__} table")
+            count_before = db_client.query(entity_type).count()
+            base_insert_statement = insert(entity_type)
+            if do_update:
+                # TODO not sure how to make this generalized for the set_ argument
+                insert_statement = base_insert_statement.on_conflict_do_update(
+                    index_elements=on_conflict,
+                    set_=dict(base_insert_statement.excluded)
+                )
+            else:
+                insert_statement = insert(entity_type).on_conflict_do_nothing(index_elements=on_conflict)
+            db_client.exec(statement=insert_statement, params=[e.dict() for e in entities])
+            db_client.commit()
+            count_after = db_client.query(entity_type).count()
+            added = count_after - count_before
+            context.log.debug(f"Added {added} rows to the {entity_type.__name__} table")
 
-        if added > 0:
-            yield AssetMaterialization(
-                asset_key=f"{entity_type.__tablename__}_table",
-                description=f"New rows added to {entity_type.__tablename__} table",
-                tags={"runtime": context.solid_config["runtime"]}
-            )
-        yield Output(entities)
+            if added > 0:
+                yield AssetMaterialization(
+                    asset_key=f"{entity_type.__tablename__}_table",
+                    description=f"New rows added to {entity_type.__tablename__} table",
+                    tags={"runtime": context.solid_config["runtime"]}
+                )
+            yield Output(entities)
+        else:
+            context.log.debug("No entities to add")
+            yield Output(entities)
 
     return _load_rows_solid

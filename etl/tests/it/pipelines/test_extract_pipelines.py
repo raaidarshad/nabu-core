@@ -19,7 +19,7 @@ def test_extract_article_metadata():
         mode="local",
         run_config={
             "solids": {
-                "get_sources": {"config": {"sources": ["Reuters"]}},
+                "get_rss_feeds": {"config": {"sources": ["Reuters"]}},
                 "transform_raw_feed_entries_to_articles": {"config": {"runtime": runtime}},
                 "load_articles": {"config": {"runtime": runtime}}
             }
@@ -71,7 +71,7 @@ def test_compute_term_counts():
         run_config={
             "solids": {
                 "get_parsed_content": {"config": {"begin": runtime, "end": runtime}},
-                "compute_term_counts": {"config": {"runtime": runtime}},
+                "compute_counts": {"config": {"runtime": runtime}},
                 "load_term_counts": {"config": {"runtime": runtime}}
             }
         }

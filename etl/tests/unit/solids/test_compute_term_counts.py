@@ -5,7 +5,7 @@ from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, ex
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.solids.compute_term_counts import get_parsed_content, compute_term_counts, load_term_counts
+from etl.solids.compute_term_counts import get_parsed_content, compute_counts, load_term_counts
 from ptbmodels.models import ParsedContent, TermCount
 
 
@@ -85,8 +85,8 @@ def test_compute_term_counts():
     ]
 
     result: SolidExecutionResult = execute_solid(
-        compute_term_counts,
-        run_config={"solids": {"compute_term_counts": {"config": {"runtime": datetime_to_str(now)}}}},
+        compute_counts,
+        run_config={"solids": {"compute_counts": {"config": {"runtime": datetime_to_str(now)}}}},
         input_values={"parsed_content": parsed_content}
     )
 
