@@ -24,4 +24,4 @@ sqlmodel = "^0.0.4"
 [tool.poetry.dev-dependencies]
 dagit = "^0.12.1"
 pytest = "^6.2.4"
-pytest-order = "1.0.0"
+pytest-order = "^1.0.0"
