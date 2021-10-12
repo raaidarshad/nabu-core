@@ -61,7 +61,7 @@ timed_preset = PresetDefinition(
 
 
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[timed_preset], tags={"table": "articlecluster"})
-def compute_clusters():
+def compute_article_clusters():
     counts = get_term_counts()
     tfidf = compute_tfidf(counts)
     clusters = cluster_articles(tfidf)
