@@ -85,7 +85,7 @@ ClusterDenum = Enum("ClusterDenum",
 
 ClusterDenumConfig = Field(
     config=ClusterDenum,
-    default_value="OPTICS",
+    default_value="Agglomerative",
     is_required=False
 )
 
