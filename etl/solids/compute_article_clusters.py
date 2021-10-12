@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from dagster import Dict, Enum, EnumValue, Field, solid
+from dagster import Enum, EnumValue, Field, solid
 from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
@@ -90,7 +90,7 @@ ClusterDenumConfig = Field(
 
 @solid(config_schema={"runtime": DagsterTime,
                       "cluster_type": ClusterDenumConfig,
-                      "cluster_parameters": Field(config=Dict, default_value={}, is_required=False),
+                      "cluster_parameters": Field(config=dict, default_value={}, is_required=False),
                       "begin": DagsterTime,
                       "end": DagsterTime})
 def compute_article_clusters(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:

@@ -3,7 +3,7 @@ from dagster import AssetKey, ModeDefinition, PresetDefinition, RunRequest, \
 
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_clusters_test_database_client
-from etl.solids.compute_clusters import get_counts, compute_similarity, compute_and_load_clusters
+from etl.solids.compute_article_clusters import get_counts, compute_similarity, compute_and_load_clusters
 
 cloud_resource_defs = {"database_client": cloud_database_client}
 local_resource_defs = {"database_client": local_database_client}
