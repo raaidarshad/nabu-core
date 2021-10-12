@@ -107,6 +107,8 @@ def test_cluster_articles():
     real = result.output_value()
 
     assert len(real) == 2
+    assert real[0].articles == [tfidf.index_to_article[0], tfidf.index_to_article[1], tfidf.index_to_article[5]]
+    assert real[1].articles == [tfidf.index_to_article[2], tfidf.index_to_article[3], tfidf.index_to_article[4]]
 
 
 def test_load_article_clusters():

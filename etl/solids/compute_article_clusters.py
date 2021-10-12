@@ -121,7 +121,9 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
             begin=str_to_datetime(context.solid_config["begin"]),
             end=str_to_datetime(context.solid_config["end"]),
             added_at=str_to_datetime(context.solid_config["runtime"]),
-            articles=[tfidf.index_to_article[idx] for idx in rows]
+            # for some reason, _sa_instance_state gets dropped when the article list
+            # is passed to TFIDF, so we have to recreate Article objects here
+            articles=[Article(**tfidf.index_to_article[idx].dict()) for idx in rows]
         ) for _, rows in clusters_and_rows
     ]
 
