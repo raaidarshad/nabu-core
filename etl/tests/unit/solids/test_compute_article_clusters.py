@@ -2,10 +2,12 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
+import numpy as np
+from scipy.sparse import csr_matrix
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.solids.compute_article_clusters import compute_article_clusters, compute_tfidf, get_term_counts, \
+from etl.solids.compute_article_clusters import cluster_articles, compute_tfidf, get_term_counts, \
     load_article_clusters, TFIDF
 from ptbmodels.models import Article, ArticleCluster, TermCount
 
@@ -58,7 +60,6 @@ def test_compute_tfidf():
         input_values={"term_counts": term_counts}
     )
 
-    # assert success, shape, types, and presence, otherwise the test code will just re-implement the app code
     assert result.success
 
     real = result.output_value()
@@ -69,8 +70,43 @@ def test_compute_tfidf():
     assert len(real.index_to_term) == 3
 
 
-def test_compute_article_clusters():
-    ...
+def test_cluster_articles():
+    x = np.array([[0.1, 0.1, 0.6],
+                  [0.2, 0.2, 0.6],
+                  [0.9, 0.1, 0.2],
+                  [0.8, 0.2, 0.2],
+                  [0.8, 0.1, 0.1],
+                  [0.2, 0.3, 0.7]])
+    x = csr_matrix(x)
+    tfidf = TFIDF(
+        tfidf=x,
+        counts=x,
+        index_to_term=["first", "second", "third"],
+        index_to_article=[Article(id=uuid4(),
+                                  source_id=idx,
+                                  url=f"https://fake.com/article{idx}",
+                                  summary=f"summary{idx}",
+                                  title=f"title{idx}",
+                                  published_at=get_current_time(),
+                                  added_at=get_current_time()
+                                  ) for idx in range(6)]
+    )
+
+    result: SolidExecutionResult = execute_solid(
+        cluster_articles,
+        input_values={"tfidf": tfidf},
+        run_config={"solids": {"cluster_articles": {"config": {
+            "runtime": datetime_to_str(get_current_time()),
+            "begin": datetime_to_str(get_current_time()),
+            "end": datetime_to_str(get_current_time()),
+            "cluster_type": "Agglomerative"
+        }}}}
+    )
+
+    assert result.success
+    real = result.output_value()
+
+    assert len(real) == 2
 
 
 def test_load_article_clusters():

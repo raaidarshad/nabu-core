@@ -29,7 +29,9 @@ class PTB0(ClusterMixin, BaseEstimator):
         self.threshold = threshold
         self.min_cluster_size = min_cluster_size
 
-    def fit(self, X: csr_matrix, y=None, sample_weight=None):
+    def fit(self, X, y=None, sample_weight=None):
+        # convert to sparse
+        X = csr_matrix(X)
         # dot product of X with its transpose to get a cosine-similarity matrix,
         # where the value at [i, j] tells you the cosine similarity between
         # article i and article j
@@ -93,7 +95,7 @@ ClusterDenumConfig = Field(
                       "cluster_parameters": Field(config=dict, default_value={}, is_required=False),
                       "begin": DagsterTime,
                       "end": DagsterTime})
-def compute_article_clusters(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
+def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
     cluster_type: str = context.solid_config["cluster_type"]
     cluster_parameters: dict = context.solid_config["cluster_parameters"]
 
@@ -106,7 +108,7 @@ def compute_article_clusters(context: Context, tfidf: TFIDF) -> list[ArticleClus
     }[cluster_type]
 
     # compute clusters given the specified cluster type and parameters
-    clustering = cluster_method(**cluster_parameters).fit(tfidf.tfidf)
+    clustering = cluster_method(**cluster_parameters).fit(tfidf.tfidf.toarray())
     # transform [0 0 1 1] to [(0, [0, 1]), (1, [2, 3])] so we know which row
     # indices are in the same cluster, allowing us to reference the correct
     # articles when adding the ArticleCluster to the DB
