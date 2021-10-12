@@ -162,6 +162,12 @@ class Article(PTBTagModel, table=True):
     raw_content: "RawContent" = Relationship(back_populates="article")
     parsed_content: "ParsedContent" = Relationship(back_populates="article")
 
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.id == other.id
+
 
 Index("ix_article_title", func.to_tsvector('english', Article.title), postgresql_using="gin")
 Index("ix_article_summary", func.to_tsvector('english', Article.summary), postgresql_using="gin")
