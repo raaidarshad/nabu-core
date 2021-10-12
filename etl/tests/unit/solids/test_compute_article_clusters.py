@@ -58,14 +58,15 @@ def test_compute_tfidf():
         input_values={"term_counts": term_counts}
     )
 
+    # assert success, shape, types, and presence, otherwise the test code will just re-implement the app code
     assert result.success
 
     real = result.output_value()
     assert isinstance(real, TFIDF)
-    assert real.tfidf.shape == (2, 2)
-    assert real.counts.shape == (2, 2)
-    assert len(real.index_to_article) == 4
-    assert len(real.index_to_term) == 4
+    assert real.tfidf.shape == (3, 3)
+    assert real.counts.shape == (3, 3)
+    assert len(real.index_to_article) == 3
+    assert len(real.index_to_term) == 3
 
 
 def test_compute_article_clusters():
