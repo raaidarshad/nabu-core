@@ -6,7 +6,7 @@ from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, ex
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
 from etl.solids.compute_article_clusters import compute_article_clusters, compute_tfidf, get_term_counts, \
-    load_article_clusters
+    load_article_clusters, TFIDF
 from ptbmodels.models import Article, ArticleCluster, TermCount
 
 
@@ -36,9 +36,36 @@ def test_get_term_counts():
     assert result.output_value() == expected_term_counts
 
 
-
 def test_compute_tfidf():
-    ...
+    term_counts = [
+        TermCount(article_id=uuid4(),
+                  term=f"term{idx}",
+                  count=idx,
+                  added_at=get_current_time(),
+                  article=Article(id=uuid4(),
+                                  source_id=idx,
+                                  url=f"https://fake.com/article{idx}",
+                                  summary=f"summary{idx}",
+                                  title=f"title{idx}",
+                                  published_at=get_current_time(),
+                                  added_at=get_current_time()
+                                  )
+                  ) for idx in range(3)
+    ]
+
+    result: SolidExecutionResult = execute_solid(
+        compute_tfidf,
+        input_values={"term_counts": term_counts}
+    )
+
+    assert result.success
+
+    real = result.output_value()
+    assert isinstance(real, TFIDF)
+    assert real.tfidf.shape == (2, 2)
+    assert real.counts.shape == (2, 2)
+    assert len(real.index_to_article) == 4
+    assert len(real.index_to_term) == 4
 
 
 def test_compute_article_clusters():
