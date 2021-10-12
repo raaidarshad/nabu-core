@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from dagster import AssetKey, ModeDefinition, PresetDefinition, RunRequest, \
     SensorEvaluationContext, asset_sensor, pipeline
 
@@ -16,20 +18,23 @@ local_mode = ModeDefinition(name="local", resource_defs=local_resource_defs)
 test_mode = ModeDefinition(name="test", resource_defs=test_resource_defs)
 
 # presets
-now = datetime_to_str(get_current_time())
+raw_now = get_current_time()
+begin = datetime_to_str(raw_now - timedelta(hours=1))
+now = datetime_to_str(raw_now)
 timed_preset = PresetDefinition(
     mode="local",
     name="timed",
-    run_config={"solids": {
-        "get_term_counts": {"config": {"begin": now, "end": now}}},
-        "cluster_articles": {"config": {"runtime": now,
-                                        "cluster_type": "Agglomerative",
-                                        "cluster_parameters": {"distance_threshold": 0.2},
-                                        "begin": now,
-                                        "end": now
-                                        }},
-        "load_article_clusters": {"config": {"runtime": now}}
-    }
+    run_config={
+        "solids": {
+            "get_term_counts": {"config": {"begin": begin, "end": now}},
+            "cluster_articles": {"config": {"runtime": now,
+                                            "cluster_type": "Agglomerative",
+                                            "cluster_parameters": {"distance_threshold": 0.2, "n_clusters": None},
+                                            "begin": begin,
+                                            "end": now
+                                            }},
+            "load_article_clusters": {"config": {"runtime": now}}
+        }}
 )
 
 
