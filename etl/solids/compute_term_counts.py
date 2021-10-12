@@ -26,8 +26,7 @@ def compute_counts(context: Context, parsed_content: list[ParsedContent]) -> lis
 
     if corpus:
         count_matrix = count_vectorizer.fit_transform(corpus)
-        # TODO change to .get_feature_names_out with sklearn 1.0
-        terms = count_vectorizer.get_feature_names()
+        terms = count_vectorizer.get_feature_names_out()
 
         for idx, row in enumerate(count_matrix):
             for count, col_index in zip(row.data, row.indices):
