@@ -201,7 +201,7 @@ class ArticleCluster(PTBTagModel, table=True):
     # TODO enum? might be more trouble than it is worth
     type: str
     parameters: dict = Field(sa_column=Column(JSON))
-    # range of time that this cluster goes over, i.e. 1440 for a day
-    minute_span: int
+    begin: datetime
+    end: datetime
 
     articles: List[Article] = Relationship(back_populates="clusters", link_model=ArticleClusterLink)
