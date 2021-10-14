@@ -48,5 +48,6 @@ def _spacy_tokenizer(document):
     tokens = nlp(document)
     tokens = [token.lemma_ for token in tokens if (
             not token.is_stop and not token.is_punct and token.lemma_.strip() != ''
+            # not entirely sure if supposed to use "SYM" or import SYM from spacy
             and not token.pos_ == "SYM")]
     return tokens
