@@ -39,8 +39,9 @@ def compute_counts(context: Context, parsed_content: list[ParsedContent]) -> lis
     return counts
 
 
+# TODO once count is removed as a pk, remove it from this list too
 load_term_counts = load_rows_factory("load_term_counts", TermCount,
-                                     [TermCount.article_id, TermCount.term])
+                                     [TermCount.article_id, TermCount.term, TermCount.count])
 
 
 def _spacy_tokenizer(document):
