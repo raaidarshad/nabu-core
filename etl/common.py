@@ -81,10 +81,13 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
             count_before = db_client.query(entity_type).count()
             base_insert_statement = insert(entity_type)
             if do_update:
-                # TODO not sure how to make this generalized for the set_ argument
+                # get all columns
+                all_cols = list(entity_type.__fields__.keys())
+                # filter to only the ones that are not in on_conflict
+                cols_to_update = [col for col in all_cols if col not in on_conflict]
                 insert_statement = base_insert_statement.on_conflict_do_update(
                     index_elements=on_conflict,
-                    set_=dict(base_insert_statement.excluded)
+                    set_={col: base_insert_statement.excluded[col] for col in cols_to_update}
                 )
             else:
                 insert_statement = insert(entity_type).on_conflict_do_nothing(index_elements=on_conflict)
