@@ -197,7 +197,7 @@ Index("ix_parsedcontent_content", func.to_tsvector('english', RawContent.content
 class TermCount(PTBTagModel, table=True):
     article_id: UUID = Field(foreign_key="article.id", primary_key=True)
     term: str = Field(primary_key=True)
-    count: int = Field(primary_key=True)
+    count: int
 
     article: Article = Relationship(back_populates="term_counts")
 

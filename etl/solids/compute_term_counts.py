@@ -26,8 +26,7 @@ def compute_counts(context: Context, parsed_content: list[ParsedContent]) -> lis
 
     if corpus:
         count_matrix = count_vectorizer.fit_transform(corpus)
-        # TODO change to .get_feature_names_out with sklearn 1.0
-        terms = count_vectorizer.get_feature_names()
+        terms = count_vectorizer.get_feature_names_out()
 
         for idx, row in enumerate(count_matrix):
             for count, col_index in zip(row.data, row.indices):
@@ -41,11 +40,12 @@ def compute_counts(context: Context, parsed_content: list[ParsedContent]) -> lis
 
 
 load_term_counts = load_rows_factory("load_term_counts", TermCount,
-                                     [TermCount.article_id, TermCount.term, TermCount.count])
+                                     [TermCount.article_id, TermCount.term])
 
 
 def _spacy_tokenizer(document):
     tokens = nlp(document)
     tokens = [token.lemma_ for token in tokens if (
-            not token.is_stop and not token.is_punct and token.lemma_.strip() != '')]
+            not token.is_stop and not token.is_punct and token.lemma_.strip() != ''
+            and not token.pos_ == "SYM")]
     return tokens
