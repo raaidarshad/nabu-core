@@ -147,7 +147,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "ptbmodels"
-version = "0.2.9"
+version = "0.2.12"
 description = "SQLModel common code for Pop the Bubble"
 category = "main"
 optional = false
@@ -319,7 +319,7 @@ standard = ["websockets (>=9.1)", "httptools (>=0.2.0,<0.3.0)", "watchgod (>=0.6
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "f950c7cf957bdab1fe175d0f2805766dbf245e82b62bd54a69afb6957d5e5eb3"
+content-hash = "10de3beaf75dfee3e5c48a95b25988c024b974ec59b822bfb1abe7a8b1e6fcb7"
 
 [metadata.files]
 aiofiles = [
@@ -434,8 +434,8 @@ psycopg2 = [
     {file = "psycopg2-2.9.1.tar.gz", hash = "sha256:de5303a6f1d0a7a34b9d40e4d3bef684ccc44a49bbe3eb85e3c0bffb4a131b7c"},
 ]
 ptbmodels = [
-    {file = "ptbmodels-0.2.9-py3-none-any.whl", hash = "sha256:2ae3b62e8f5ea9dec7072f571e2f1c2c8c15e6dd0bb0a34a02bd65842b0ca1a0"},
-    {file = "ptbmodels-0.2.9.tar.gz", hash = "sha256:3965c3691c74e848a61c3cb59b4991ee0df3cefcec86ae582d74f44710f8559d"},
+    {file = "ptbmodels-0.2.12-py3-none-any.whl", hash = "sha256:ea075afef2b48ebf4a662bb37515972d0bf230782e31009701ed8bafc30967aa"},
+    {file = "ptbmodels-0.2.12.tar.gz", hash = "sha256:76e64f060ee474ffaf931fd86a91b432f6bbad58762de2277c2dfc245e6ed6f8"},
 ]
 py = [
     {file = "py-1.10.0-py2.py3-none-any.whl", hash = "sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a"},
