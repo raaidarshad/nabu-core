@@ -25,7 +25,9 @@ db_user_etl = do.DatabaseUser("db_user_etl", cluster_id=db_cluster.id)
 db_user_monitor = do.DatabaseUser("db_user_monitor", cluster_id=db_cluster.id)
 
 # create db conn strings for each user to the right db
-db_conn_etl = f"postgresql://{db_user_etl.name}:{db_user_etl.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
+
+# TODO this doesn't render properly in the secret, investigate and fix
+db_conn_etl = f"postgresql://{str(db_user_etl.name)}:{str(db_user_etl.password)}@{str(db_cluster.private_host)}:{str(db_cluster.port)}/{str(db_etl.name)}"
 # db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
 
 # create a k8s cluster and node pools
@@ -60,7 +62,7 @@ docker_secret_name = "docker-secret"
 ptb_registry = do.ContainerRegistryDockerCredentials("ptb-registry", registry_name="ptb")
 docker_secret = Secret("docker-secret",
                        args=SecretInitArgs(
-                           type="dockerconfigjson",
+                           type="kubernetes.io/dockerconfigjson",
                            string_data={".dockerconfigjson": ptb_registry.docker_credentials},
                            metadata=ObjectMetaArgs(name=docker_secret_name)
                        ), opts=opts)
