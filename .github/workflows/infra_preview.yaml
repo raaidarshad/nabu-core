@@ -19,6 +19,7 @@ jobs:
       - uses: pulumi/actions@v3
         with:
           command: preview
-          stack-name: infrastructure/etl/dev
+          stack-name: dev
+          work-dir: infrastructure/etl
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
