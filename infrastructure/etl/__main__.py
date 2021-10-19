@@ -111,4 +111,4 @@ release_args = ReleaseArgs(
     }
 )
 
-release = Release("ptb", args=release_args)
+release = Release("ptb", args=release_args, opts=opts)
