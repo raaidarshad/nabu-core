@@ -18,7 +18,7 @@ jobs:
       - run: cd infrastructure/etl && pip install -r requirements.txt
       - uses: pulumi/actions@v3
         with:
-          command: cd infrastructure/etl && preview
-          stack-name: dev
+          command: preview
+          stack-name: infrastructure/etl/dev
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
