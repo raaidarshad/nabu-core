@@ -36,7 +36,7 @@ k8s = do.KubernetesCluster("ptb-k8s",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
                                size="s-1vcpu-2gb",
-                               node_count=2
+                               node_count=3
                            ))
 
 kube_provider = Provider("ptb-k8s-provider", args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
