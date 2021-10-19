@@ -1,14 +1,14 @@
-name: Pulumi preview
+name: Pulumi deploy
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
       - 'infrastructure/**'
-      - '.github/workflows/infra_preview.yaml'
+      - '.github/workflows/infra_deploy.yaml'
 jobs:
-  preview:
-    name: Preview
+  update:
+    name: Update
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
       - run: pip install -r requirements.txt
       - uses: pulumi/actions@v3
         with:
-          command: preview
+          command: up
           stack-name: dev
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
