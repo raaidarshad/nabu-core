@@ -1,6 +1,6 @@
 from dagster import repository
-#
-# from etl.pipelines.compute_clusters import compute_clusters, count_table_day_sensor, count_table_week_sensor
+
+from etl.pipelines.compute_article_clusters import compute_article_clusters
 from etl.pipelines.compute_term_counts import compute_term_counts, compute_counts_sensor
 from etl.pipelines.extract_article_metadata import extract_article_metadata, main_schedule
 from etl.pipelines.transform_parsed_article_content import transform_parsed_article_content,\
@@ -13,8 +13,8 @@ from etl.pipelines.load_sources import load_rss_feeds, load_sources
 def ptb_repository():
     return [
         # pipelines
+        compute_article_clusters,
         compute_term_counts,
-        # compute_clusters,
         extract_article_metadata,
         extract_raw_article_content,
         transform_parsed_article_content,
@@ -26,6 +26,4 @@ def ptb_repository():
         extract_raw_article_content_sensor,
         transform_parsed_article_content_sensor,
         compute_counts_sensor
-        # count_table_day_sensor,
-        # count_table_week_sensor
     ]
