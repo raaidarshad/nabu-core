@@ -1,6 +1,6 @@
 """A DigitalOcean Python Pulumi program"""
 
-from pulumi import Config, ResourceOptions
+from pulumi import Config, Output, ResourceOptions
 import pulumi_digitalocean as do
 from pulumi_kubernetes import Provider, ProviderArgs
 from pulumi_kubernetes.core.v1 import Secret, SecretInitArgs
@@ -25,9 +25,8 @@ db_user_etl = do.DatabaseUser("db_user_etl", cluster_id=db_cluster.id)
 db_user_monitor = do.DatabaseUser("db_user_monitor", cluster_id=db_cluster.id)
 
 # create db conn strings for each user to the right db
-
-# TODO this doesn't render properly in the secret, investigate and fix
-db_conn_etl = f"postgresql://{str(db_user_etl.name)}:{str(db_user_etl.password)}@{str(db_cluster.private_host)}:{str(db_cluster.port)}/{str(db_etl.name)}"
+db_cluster_port = db_cluster.port.apply(lambda port: str(port))
+db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.password, "@", db_cluster.private_host, ":", db_cluster_port, "/", db_etl.name)
 # db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
 
 # create a k8s cluster and node pools
@@ -69,6 +68,7 @@ docker_secret = Secret("docker-secret",
 # helm
 
 release_args = ReleaseArgs(
+    name="dagster-etl",
     chart="dagster",
     repository_opts=RepositoryOptsArgs(
         repo="https://dagster-io.github.io/helm"
@@ -113,4 +113,4 @@ release_args = ReleaseArgs(
     }
 )
 
-release = Release("ptb", args=release_args, opts=opts)
+# release = Release("ptb", args=release_args, opts=opts)
