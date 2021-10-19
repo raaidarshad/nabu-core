@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build container image
-      run: cd etl && docker build -t registry.digitalocean.com/ptb/etl:$(echo $GITHUB_SHA | head -c7) .
+      run: cd etl && docker build -t registry.digitalocean.com/ptb/etl:$(echo $GITHUB_SHA | head -c7) -t registry.digitalocean.com/ptb/etl:latest .
 
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
@@ -27,4 +27,4 @@ jobs:
       run: doctl registry login --expiry-seconds 600
 
     - name: Push image to DigitalOcean Container Registry
-      run: docker push registry.digitalocean.com/ptb/etl:$(echo $GITHUB_SHA | head -c7)
+      run: docker push registry.digitalocean.com/ptb/etl --all-tags

@@ -1,0 +1,6 @@
+name: etl
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: ptb etl infrastructure on digitalocean
