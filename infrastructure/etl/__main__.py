@@ -11,7 +11,7 @@ region = "nyc3"
 config = Config()
 
 # create a db cluster, dbs, and users
-db_cluster = do.DatabaseCluster("postgres",
+db_cluster = do.DatabaseCluster("ptb-postgres",
                                 engine="pg",
                                 node_count=1,
                                 region=region,
@@ -30,7 +30,7 @@ db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.
 # db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
 
 # create a k8s cluster and node pools
-k8s = do.KubernetesCluster("main-k8s",
+k8s = do.KubernetesCluster("ptb-k8s",
                            region=region,
                            version="1.21.3-do.0",
                            node_pool=do.KubernetesClusterNodePoolArgs(
@@ -39,7 +39,7 @@ k8s = do.KubernetesCluster("main-k8s",
                                node_count=2
                            ))
 
-kube_provider = Provider("main-provider", args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
+kube_provider = Provider("ptb-k8s-provider", args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
 opts = ResourceOptions(provider=kube_provider)
 
 # put db credentials in secret in cluster
