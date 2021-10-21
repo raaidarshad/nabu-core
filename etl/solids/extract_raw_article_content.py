@@ -24,7 +24,8 @@ def request_raw_content(context: Context, articles: list[Article]) -> list[RawCo
 
     def _request_and_extract_raw_content(article: Article):
         try:
-            response = http_session.get(article.url)
+            # retries and backoff configured in http_client resource, adding a timeout here as well just in case
+            response = http_session.get(article.url, timeout=5)
             if response.status_code == 200:
                 context.log.info(f"{article.url} requested successfully")
                 return RawContent(article_id=article.id, content=response.text, added_at=runtime)
