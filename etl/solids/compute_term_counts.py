@@ -46,5 +46,6 @@ load_term_counts = load_rows_factory("load_term_counts", TermCount,
 def _spacy_tokenizer(document):
     tokens = nlp(document)
     tokens = [token.lemma_ for token in tokens if (
-            not token.is_stop and not token.is_punct and token.lemma_.strip() != '')]
+            not token.is_stop and not token.is_punct and token.lemma_.strip() != ''
+            and not token.pos_ == "SYM")]
     return tokens
