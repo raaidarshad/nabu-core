@@ -7,6 +7,7 @@ from dagster import resource
 class BaseParser:
     @staticmethod
     def extract(content: str, parse_config: dict) -> str:
+        # TODO change this so that it considers the possibility that parse_config is a list of possible configs
         soup = BeautifulSoup(content, "html.parser")
         story = soup.find(**parse_config)
         paragraphs = story.find_all("p")

@@ -2,7 +2,7 @@ from datetime import timezone
 
 from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
-from etl.common import datetime_to_str, get_current_time
+from etl.common import datetime_to_str, get_current_time, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     extract_articles_test_database_client
 from etl.resources.rss_parser import mock_rss_parser, rss_parser
@@ -46,6 +46,7 @@ timed_preset = PresetDefinition(name="timed",
 # pipelines
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
           preset_defs=[main_preset, timed_preset],
+          solid_retry_policy=ptb_retry_policy,
           tags={"table": "article"})
 def extract_article_metadata():
     rss_feeds = get_rss_feeds()

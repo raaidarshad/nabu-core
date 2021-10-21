@@ -6,7 +6,7 @@ from typing import Type
 import unicodedata
 
 from dagster.core.execution.context.compute import AbstractComputeExecutionContext
-from dagster import AssetMaterialization, Field, Output, String, solid
+from dagster import AssetMaterialization, Backoff, Field, Output, RetryPolicy, String, solid
 from dateutil import parser
 from dateutil.tz import tzutc
 from sqlalchemy.dialects.postgresql import insert
@@ -17,6 +17,9 @@ from ptbmodels.models import PTBModel, PTBTagModel
 
 Context = AbstractComputeExecutionContext
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+
+
+ptb_retry_policy = RetryPolicy(max_retries=2, delay=3, backoff=Backoff.EXPONENTIAL)
 
 
 def clean_text(dirty: str) -> str:
@@ -63,9 +66,9 @@ def get_rows_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
         end = str_to_datetime(context.solid_config["end"])
 
         statement = select(entity_type).where((begin <= entity_type.added_at) & (entity_type.added_at <= end))
-        context.log.debug(f"Attempting to execute: {statement}")
+        context.log.info(f"Attempting to execute: {statement}")
         entities = db_client.exec(statement).all()
-        context.log.debug(f"Got {len(entities)} rows of {entity_type.__name__}")
+        context.log.info(f"Got {len(entities)} rows of {entity_type.__name__}")
         return entities
     return _get_rows_solid
 
@@ -77,7 +80,7 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
         db_client: Session = context.resources.database_client
 
         if entities:
-            context.log.debug(f"Attempting to add {len(entities)} rows to the {entity_type.__name__} table")
+            context.log.info(f"Attempting to add {len(entities)} rows to the {entity_type.__name__} table")
             count_before = db_client.query(entity_type).count()
             base_insert_statement = insert(entity_type)
             if do_update:
@@ -95,7 +98,7 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
             db_client.commit()
             count_after = db_client.query(entity_type).count()
             added = count_after - count_before
-            context.log.debug(f"Added {added} rows to the {entity_type.__name__} table")
+            context.log.info(f"Added {added} rows to the {entity_type.__name__} table")
 
             if added > 0:
                 yield AssetMaterialization(
@@ -105,7 +108,7 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
                 )
             yield Output(entities)
         else:
-            context.log.debug("No entities to add")
+            context.log.info("No entities to add")
             yield Output(entities)
 
     return _load_rows_solid

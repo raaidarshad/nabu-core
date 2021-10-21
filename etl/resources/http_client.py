@@ -18,7 +18,10 @@ headers = OrderedDict([
     ("Upgrade-Insecure-Requests", "1")
 ])
 
-adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1, allowed_methods={"GET"}))
+adapter = HTTPAdapter(max_retries=Retry(total=2,
+                                        backoff_factor=0.1,
+                                        allowed_methods={"GET"},
+                                        respect_retry_after_header=False))
 
 
 @resource(required_resource_keys={"thread_local"})

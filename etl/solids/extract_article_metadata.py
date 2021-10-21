@@ -25,9 +25,9 @@ def get_sources(context: Context) -> list[Source]:
         statement = select(Source)
     else:
         statement = select(Source).where(Source.name.in_(source_names))
-    context.log.debug(f"Attempting to execute: {statement}")
+    context.log.info(f"Attempting to execute: {statement}")
     sources = db_client.exec(statement).all()
-    context.log.debug(f"Got {len(sources)} sources")
+    context.log.info(f"Got {len(sources)} sources")
     return sources
 
 
@@ -40,9 +40,9 @@ def get_rss_feeds(context: Context) -> list[RssFeed]:
     else:
         statement = select(RssFeed).join(Source, RssFeed.source_id == Source.id).where(
             (Source.name.in_(source_names)) & (RssFeed.is_okay))
-    context.log.debug(f"Attempting to execute: {statement}")
+    context.log.info(f"Attempting to execute: {statement}")
     feeds = db_client.exec(statement).all()
-    context.log.debug(f"Got {len(feeds)} feeds")
+    context.log.info(f"Got {len(feeds)} feeds")
     return feeds
 
 
@@ -78,7 +78,7 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
             context.log.warning(f"RssFeed with url {rss_feed.url} not parsed, code: {raw.status}")
 
     raw_feeds = list(filter(None, [_get_raw_feed(rss_feed) for rss_feed in rss_feeds]))
-    context.log.debug(f"Got {len(raw_feeds)} raw rss feeds, expected {len(rss_feeds)}")
+    context.log.info(f"Got {len(raw_feeds)} raw rss feeds, expected {len(rss_feeds)}")
     return raw_feeds
 
 
@@ -86,14 +86,14 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
 def get_raw_feed_entries(context: Context, raw_feeds: list[RawFeed]) -> list[RawFeedEntry]:
     raw_feed_entries = []
     for raw_feed in raw_feeds:
-        context.log.debug(f"RawFeed with url {raw_feed.url} has {len(raw_feed.entries)} entries")
+        context.log.info(f"RawFeed with url {raw_feed.url} has {len(raw_feed.entries)} entries")
         raw_feed_entries.extend(raw_feed.entries)
     return raw_feed_entries
 
 
 @solid(config_schema={"runtime": DagsterTime})
 def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: list[RawFeedEntry]) -> list[Article]:
-    context.log.debug(f"Transforming {len(raw_feed_entries)} RawFeedEntries to Articles")
+    context.log.info(f"Transforming {len(raw_feed_entries)} RawFeedEntries to Articles")
     current_time = str_to_datetime(context.solid_config["runtime"])
 
     # sanitize inputs

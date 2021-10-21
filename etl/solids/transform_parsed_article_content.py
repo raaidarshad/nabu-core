@@ -14,12 +14,14 @@ def parse_raw_content(context: Context, raw_content: list[RawContent]) -> list[P
 
     def _raw_to_parsed(raw: RawContent):
         try:
+            parsed_content = parser.extract(raw.content, raw.article.rss_feed.parser_config)
+            context.log.info(f"{raw.article_id} parsed successfully")
             return ParsedContent(
                 article_id=raw.article_id,
-                content=parser.extract(raw.content, raw.article.rss_feed.parser_config),
+                content=parsed_content,
                 added_at=runtime)
         except AttributeError:
-            context.log.debug(
+            context.log.warning(
                 f"Article id {raw.article_id} with parser_config {raw.article.rss_feed.parser_config} failed to parse.")
 
     # filter out None values for when we have a try/except statement implemented
