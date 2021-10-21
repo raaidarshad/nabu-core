@@ -31,7 +31,7 @@ def request_raw_content(context: Context, articles: list[Article]) -> list[RawCo
                 return RawContent(article_id=article.id, content=response.text, added_at=runtime)
             else:
                 context.log.warning(f"Got nonzero status code {response.status_code} for url {article.url}")
-        except requests.HTTPError as e:
+        except (requests.HTTPError, requests.exceptions.ConnectionError) as e:
             context.log.warning(f"HTTP error {e} for article with url {article.url} and id {article.id}")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=context.solid_config["max_workers"]) as executor:
