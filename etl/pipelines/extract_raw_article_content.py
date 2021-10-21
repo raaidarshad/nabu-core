@@ -1,7 +1,7 @@
 from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, SensorEvaluationContext, \
     asset_sensor, pipeline
 
-from etl.common import get_current_time, datetime_to_str
+from etl.common import get_current_time, datetime_to_str, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     extract_articles_test_database_client
 from etl.resources.http_client import http_client, mock_http_client
@@ -48,6 +48,7 @@ timed_preset = PresetDefinition(name="timed",
 # pipelines
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
           preset_defs=[main_preset, timed_preset],
+          solid_retry_policy=ptb_retry_policy,
           tags={"table": "rawcontent"})
 def extract_raw_article_content():
     articles = get_articles()

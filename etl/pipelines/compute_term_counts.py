@@ -1,7 +1,7 @@
 from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, \
     SensorEvaluationContext, asset_sensor, pipeline
 
-from etl.common import datetime_to_str, get_current_time
+from etl.common import datetime_to_str, get_current_time, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_counts_test_database_client
 from etl.solids.compute_term_counts import get_parsed_content, compute_counts, load_term_counts
@@ -33,6 +33,7 @@ timed_preset = PresetDefinition(name="timed",
 # pipelines
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode],
           preset_defs=[main_preset, timed_preset],
+          solid_retry_policy=ptb_retry_policy,
           tags={"table": "termcount"})
 def compute_term_counts():
     parsed_content = get_parsed_content()

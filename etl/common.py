@@ -6,7 +6,7 @@ from typing import Type
 import unicodedata
 
 from dagster.core.execution.context.compute import AbstractComputeExecutionContext
-from dagster import AssetMaterialization, Field, Output, String, solid
+from dagster import AssetMaterialization, Backoff, Field, Output, RetryPolicy, String, solid
 from dateutil import parser
 from dateutil.tz import tzutc
 from sqlalchemy.dialects.postgresql import insert
@@ -17,6 +17,9 @@ from ptbmodels.models import PTBModel, PTBTagModel
 
 Context = AbstractComputeExecutionContext
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+
+
+ptb_retry_policy = RetryPolicy(max_retries=2, delay=3, backoff=Backoff.EXPONENTIAL)
 
 
 def clean_text(dirty: str) -> str:
