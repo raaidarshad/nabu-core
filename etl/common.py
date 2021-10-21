@@ -19,7 +19,7 @@ Context = AbstractComputeExecutionContext
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 
-ptb_retry_policy = RetryPolicy(max_retries=2, delay=3, backoff=Backoff.EXPONENTIAL)
+ptb_retry_policy = RetryPolicy(max_retries=1, delay=3, backoff=Backoff.EXPONENTIAL)
 
 
 def clean_text(dirty: str) -> str:
