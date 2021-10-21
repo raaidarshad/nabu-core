@@ -26,6 +26,7 @@ def request_raw_content(context: Context, articles: list[Article]) -> list[RawCo
         try:
             response = http_session.get(article.url)
             if response.status_code == 200:
+                context.log.info(f"{article.url} requested successfully")
                 return RawContent(article_id=article.id, content=response.text, added_at=runtime)
             else:
                 context.log.warning(f"Got nonzero status code {response.status_code} for url {article.url}")
