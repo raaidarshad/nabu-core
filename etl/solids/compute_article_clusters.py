@@ -134,7 +134,12 @@ def _numerify(target: list) -> tuple[list, list]:
 
 
 ClusterDenum = Enum("ClusterDenum",
-                    [EnumValue("Agglomerative"), EnumValue("DBSCAN"), EnumValue("OPTICS"), EnumValue("PTB0")])
+                    [EnumValue("Agglomerative"),
+                     EnumValue("DBSCAN"),
+                     EnumValue("OPTICS"),
+                     EnumValue("PTB0"),
+                     EnumValue("PTB1")
+                     ])
 
 ClusterDenumConfig = Field(
     config=ClusterDenum,
@@ -157,7 +162,8 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
         "Agglomerative": AgglomerativeClustering,
         "DBSCAN": DBSCAN,
         "OPTICS": OPTICS,
-        "PTB0": PTB0
+        "PTB0": PTB0,
+        "PTB1": PTB1
     }[cluster_type]
 
     # compute clusters given the specified cluster type and parameters
