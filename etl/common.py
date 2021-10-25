@@ -44,6 +44,11 @@ def str_to_datetime(target: str) -> datetime:
     return parsed
 
 
+def load_json(filepath: str) -> list[dict]:
+    with open(filepath, "r") as data:
+        return json.load(data)
+
+
 def datetime_to_str(target: datetime) -> str:
     return target.strftime("%Y-%m-%d %H:%M:%S.%f%z")
 

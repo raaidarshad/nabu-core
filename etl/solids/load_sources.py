@@ -1,9 +1,7 @@
-import json
-
 from dagster import String, solid
 from sqlmodel import SQLModel
 
-from etl.common import Context, load_rows_factory
+from etl.common import Context, load_json, load_rows_factory
 from ptbmodels.models import RssFeed, Source
 
 
@@ -12,7 +10,7 @@ def get_entities_from_file_factory(name: str, entity_type, **kwargs):
     def _load_rows_solid(context: Context, path_format: str):
         context.log.info(f"Loading {entity_type.__name__} from JSON file")
         # load entities
-        j_entities = _load_json(filepath=path_format.format(table_name=entity_type.__tablename__))
+        j_entities = load_json(filepath=path_format.format(table_name=entity_type.__tablename__))
         # emit entities
         entities = [entity_type(**e) for e in j_entities]
         return entities
@@ -33,8 +31,3 @@ def create_tables(context: Context) -> str:
 
 load_source_rows = load_rows_factory("load_source_rows", Source, [Source.name])
 load_rss_feed_rows = load_rows_factory("load_rss_feed_rows", RssFeed, [RssFeed.url])
-
-
-def _load_json(filepath: str) -> list[dict]:
-    with open(filepath, "r") as data:
-        return json.load(data)

@@ -1,14 +1,17 @@
 from collections import defaultdict
+import json
 
-from dagster import Enum, EnumValue, Field, solid
+from dagster import Enum, EnumValue, Field, String, solid
+import numpy as np
 from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.cluster import AgglomerativeClustering, DBSCAN, OPTICS
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics import adjusted_mutual_info_score
 
-from etl.common import Context, DagsterTime, get_rows_factory, load_rows_factory, str_to_datetime
+from etl.common import Context, DagsterTime, get_rows_factory, load_json, load_rows_factory, str_to_datetime
 from ptbmodels.models import Article, ArticleCluster, TermCount
 
 
@@ -136,3 +139,34 @@ def _get_indices(seq):
 
 
 load_article_clusters = load_rows_factory("load_article_clusters", ArticleCluster, [ArticleCluster.id])
+
+
+@solid(config_schema={"load_path": String, "write_path": String})
+def measure_algorithms(context: Context, tfidf: TFIDF):
+    # [{article_id, label}, ...] shouldn't need to align it seems to pull the info in the same order
+    truth_data = load_json(context.solid_config["load_path"])
+    labels_true = [td["label"] for td in truth_data]
+
+    agglomeratives = [{"method": AgglomerativeClustering, "params": {"n_clusters": None, "distance_threshold": t}}
+                      for t in np.linspace(0.1, 0.9, 17)]
+
+    dbscans = [{"method": DBSCAN, "params": {"eps": eps, "min_samples": ms}}
+               for eps in list(np.linspace(0.1, 0.9, 17)) for ms in list(range(2, 10))]
+
+    opticss = [{"method": OPTICS, "params": {"min_samples": ms}} for ms in list(range(2, 10))]
+
+    ptb0s = [{"method": PTB0, "params": {"threshold": t}} for t in list(np.linspace(0.1, 0.9, 17))]
+    algos = [*agglomeratives, *dbscans, *opticss, *ptb0s]
+
+    for ap in algos:
+        cluster_method = ap["method"]
+        params = ap["params"]
+        clustering = cluster_method(**params).fit(tfidf.tfidf.toarray())
+        ap["score"] = adjusted_mutual_info_score(labels_true, clustering.labels_)
+        context.log.info(ap)
+
+    # do something with list of dicts, probably sort it then print it or something
+    algos = sorted(algos, key=lambda t: t["score"], reverse=True)
+
+    with open(context.solid_config["write_path"], "w") as outfile:
+        json.dump(algos, outfile)

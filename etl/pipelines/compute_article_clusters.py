@@ -6,7 +6,8 @@ from dagster import AssetKey, ModeDefinition, PresetDefinition, RunRequest, \
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_clusters_test_database_client
-from etl.solids.compute_article_clusters import get_term_counts, compute_tfidf, cluster_articles, load_article_clusters
+from etl.solids.compute_article_clusters import get_term_counts, compute_tfidf, cluster_articles, \
+    load_article_clusters, measure_algorithms
 
 cloud_resource_defs = {"database_client": cloud_database_client}
 local_resource_defs = {"database_client": local_database_client}
@@ -71,3 +72,10 @@ def compute_article_clusters():
     tfidf = compute_tfidf(counts)
     clusters = cluster_articles(tfidf)
     load_article_clusters(clusters)
+
+
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode])
+def measure_clustering_methods():
+    counts = get_term_counts()
+    tfidf = compute_tfidf(counts)
+    measure_algorithms(tfidf)
