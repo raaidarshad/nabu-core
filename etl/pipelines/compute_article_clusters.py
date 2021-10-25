@@ -38,6 +38,18 @@ timed_preset = PresetDefinition(
         }}
 )
 
+measure_20211021_preset = PresetDefinition(
+    mode="cloud",
+    name="20211021_measure",
+    run_config={
+        "solids": {
+            "get_term_counts": {"config": {"begin": "2021-10-21 13:13:00.000000", "end": "2021-10-21 14:13:00.000000"}},
+            "measure_algorithms": {"config": {"load_path": "algo_measurement/truth/20211021.json",
+                                              "write_path": "algo_measurement/results/20211021.json"}}
+        }
+    }
+)
+
 
 # sensors TODO, might want this to be on its own schedule now instead
 # @asset_sensor(asset_key=AssetKey("count_table"), pipeline_name="compute_clusters", mode="cloud")
@@ -74,7 +86,7 @@ def compute_article_clusters():
     load_article_clusters(clusters)
 
 
-@pipeline(mode_defs=[cloud_mode, local_mode, test_mode])
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[measure_20211021_preset])
 def measure_clustering_methods():
     counts = get_term_counts()
     tfidf = compute_tfidf(counts)
