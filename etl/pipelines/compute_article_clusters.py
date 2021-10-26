@@ -43,7 +43,8 @@ measure_20211021_preset = PresetDefinition(
     name="20211021_measure",
     run_config={
         "solids": {
-            "get_term_counts": {"config": {"begin": "2021-10-21 13:13:00.000000", "end": "2021-10-21 14:13:00.000000"}},
+            "get_term_counts": {"config": {"begin": "2021-10-21 13:13:00.000000+0000",
+                                           "end": "2021-10-21 14:20:00.000000+0000"}},
             "measure_algorithms": {"config": {"load_path": "algo_measurement/truth/20211021.json",
                                               "write_path": "algo_measurement/results/20211021.json"}}
         }

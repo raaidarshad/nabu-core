@@ -61,9 +61,12 @@ get_term_counts = get_rows_factory("get_term_counts", TermCount)
 def compute_tfidf(context: Context, term_counts: list[TermCount]) -> TFIDF:
     # recreate count matrix and keep track of index_to_id and index_to_term
     counts, articles, terms = zip(*[(tc.count, tc.article, tc.term) for tc in term_counts])
+    context.log.info(f"Number of articles found: {len(articles)}")
+    context.log.info(f"Number of unique articles found: {len(set(articles))}")
     index_articles, index_to_article = _numerify(articles)
     index_terms, index_to_term = _numerify(terms)
     sparse_counts = csr_matrix((counts, (index_articles, index_terms)))
+    context.log.info(f"Count matrix has {sparse_counts.shape[0]} rows and {sparse_counts.shape[1]} cols")
 
     # create tfidf matrix
     tfidf = TfidfTransformer().fit_transform(sparse_counts)
@@ -146,6 +149,8 @@ def measure_algorithms(context: Context, tfidf: TFIDF):
     # [{article_id, label}, ...] shouldn't need to align it seems to pull the info in the same order
     truth_data = load_json(context.solid_config["load_path"])
     labels_true = [td["label"] for td in truth_data]
+    context.log.info(f"truth data has length {len(labels_true)}")
+    context.log.info(f"tfidf has {len(tfidf.index_to_article)} rows")
 
     agglomeratives = [{"method": AgglomerativeClustering, "params": {"n_clusters": None, "distance_threshold": t}}
                       for t in np.linspace(0.1, 0.9, 17)]
@@ -162,7 +167,9 @@ def measure_algorithms(context: Context, tfidf: TFIDF):
         cluster_method = ap["method"]
         params = ap["params"]
         clustering = cluster_method(**params).fit(tfidf.tfidf.toarray())
+        context.log.info(len(clustering.labels_))
         ap["score"] = adjusted_mutual_info_score(labels_true, clustering.labels_)
+        ap["method"] = cluster_method.__name__
         context.log.info(ap)
 
     # do something with list of dicts, probably sort it then print it or something
