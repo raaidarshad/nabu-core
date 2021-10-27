@@ -1,29 +1,28 @@
 import enum
 from collections import defaultdict
+from dataclasses import dataclass
 from itertools import groupby
 
-from dagster import Enum, EnumValue, Field, solid
+from dagster import AssetMaterialization, Enum, EnumValue, Field, Output, solid
 import numpy as np
-from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.cluster import AgglomerativeClustering, DBSCAN, OPTICS
 from sklearn.feature_extraction.text import TfidfTransformer
+from sqlmodel import Session
 
-from etl.common import Context, DagsterTime, get_rows_factory, load_rows_factory, str_to_datetime
+from etl.common import Context, DagsterTime, get_rows_factory, str_to_datetime
 from ptbmodels.models import Article, ArticleCluster, TermCount
 
 
 # intermediate models
-class TFIDF(BaseModel):
+@dataclass
+class TFIDF:
     tfidf: csr_matrix
     counts: csr_matrix
     index_to_article: list[Article]
     index_to_term: list[str]
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PTB1Cluster:
@@ -118,6 +117,7 @@ def compute_tfidf(context: Context, term_counts: list[TermCount]) -> TFIDF:
     # create tfidf matrix
     tfidf = TfidfTransformer().fit_transform(sparse_counts)
 
+    context.log.info(f"Size of the matrix is [{sparse_counts.shape[0]}, {sparse_counts.shape[1]}]")
     # create intermediate object
     return TFIDF(
         tfidf=tfidf,
@@ -180,9 +180,7 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
             begin=str_to_datetime(context.solid_config["begin"]),
             end=str_to_datetime(context.solid_config["end"]),
             added_at=str_to_datetime(context.solid_config["runtime"]),
-            # for some reason, _sa_instance_state gets dropped when the article list
-            # is passed to TFIDF, so we have to recreate Article objects here
-            articles=[Article(**tfidf.index_to_article[idx].dict()) for idx in rows]
+            articles=[tfidf.index_to_article[idx] for idx in rows]
         ) for _, rows in clusters_and_rows
     ]
 
@@ -194,4 +192,26 @@ def _get_indices(seq):
     return ((key, locs) for key, locs in tally.items() if len(locs) > 1)
 
 
-load_article_clusters = load_rows_factory("load_article_clusters", ArticleCluster, [ArticleCluster.id])
+@solid(required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime})
+def load_article_clusters(context: Context, entities: list[ArticleCluster]):
+    db_client: Session = context.resources.database_client
+
+    if entities:
+        context.log.info(f"Attempting to add {len(entities)} rows to the {ArticleCluster.__name__} table")
+        count_before = db_client.query(ArticleCluster).count()
+        db_client.add_all(entities)
+        db_client.commit()
+        count_after = db_client.query(ArticleCluster).count()
+        added = count_after - count_before
+        context.log.info(f"Added {added} rows to the {ArticleCluster.__name__} table")
+
+        if added > 0:
+            yield AssetMaterialization(
+                asset_key=f"{ArticleCluster.__tablename__}_table",
+                description=f"New rows added to {ArticleCluster.__tablename__} table",
+                tags={"runtime": context.solid_config["runtime"]}
+            )
+        yield Output(entities)
+    else:
+        context.log.info("No entities to add")
+        yield Output(entities)
