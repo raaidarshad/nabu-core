@@ -4,7 +4,7 @@ from dagster import String, solid
 from sqlmodel import SQLModel
 
 from etl.common import Context, load_rows_factory
-from ptbmodels.models import RssFeed, Source
+from ptbmodels.models import Bias, RssFeed, Source
 
 
 def get_entities_from_file_factory(name: str, entity_type, **kwargs):
@@ -21,6 +21,7 @@ def get_entities_from_file_factory(name: str, entity_type, **kwargs):
 
 get_sources_from_file = get_entities_from_file_factory("get_sources_from_file", Source)
 get_rss_feeds_from_file = get_entities_from_file_factory("get_rssfeeds_from_file", RssFeed)
+get_biases_from_file = get_entities_from_file_factory("get_biases_from_file", Bias)
 
 
 @solid(required_resource_keys={"database_engine"}, config_schema={"path": String})
@@ -33,6 +34,7 @@ def create_tables(context: Context) -> str:
 
 load_source_rows = load_rows_factory("load_source_rows", Source, [Source.name])
 load_rss_feed_rows = load_rows_factory("load_rss_feed_rows", RssFeed, [RssFeed.url])
+load_bias_rows = load_rows_factory("load_bias_rows", Bias, [Bias.source_id, Bias.type])
 
 
 def _load_json(filepath: str) -> list[dict]:
