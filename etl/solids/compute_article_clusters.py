@@ -1,7 +1,7 @@
 from collections import defaultdict
+from dataclasses import dataclass
 
 from dagster import Enum, EnumValue, Field, solid
-from pydantic import BaseModel
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -13,14 +13,12 @@ from ptbmodels.models import Article, ArticleCluster, TermCount
 
 
 # intermediate models
-class TFIDF(BaseModel):
+@dataclass
+class TFIDF:
     tfidf: csr_matrix
     counts: csr_matrix
     index_to_article: list[Article]
     index_to_term: list[str]
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 # custom clustering models
@@ -115,26 +113,16 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
     # articles when adding the ArticleCluster to the DB
     clusters_and_rows = _get_indices(clustering.labels_)
 
-    out = [
+    return [
         ArticleCluster(
             type=cluster_type,
             parameters=cluster_parameters,
             begin=str_to_datetime(context.solid_config["begin"]),
             end=str_to_datetime(context.solid_config["end"]),
             added_at=str_to_datetime(context.solid_config["runtime"]),
-            # for some reason, _sa_instance_state gets dropped when the article list
-            # is passed to TFIDF, so we have to recreate Article objects here
-            articles=[Article(**tfidf.index_to_article[idx].dict()) for idx in rows]
+            articles=[tfidf.index_to_article[idx] for idx in rows]
         ) for _, rows in clusters_and_rows
     ]
-
-    context.log.info(f"The TFIDF object has {len(tfidf.index_to_article)} articles in it")
-
-    for ac in out:
-        context.log.info(f"This cluster has {len(ac.articles)} articles")
-        context.log.info(f"Here are their titles: {[a.title for a in ac.articles]}")
-
-    return out
 
 
 def _get_indices(seq):
