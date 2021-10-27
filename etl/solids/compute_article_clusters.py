@@ -65,6 +65,7 @@ def compute_tfidf(context: Context, term_counts: list[TermCount]) -> TFIDF:
     # create tfidf matrix
     tfidf = TfidfTransformer().fit_transform(sparse_counts)
 
+    context.log.info(f"Size of the matrix is [{sparse_counts.shape[0]}, {sparse_counts.shape[1]}]")
     # create intermediate object
     return TFIDF(
         tfidf=tfidf,
@@ -114,7 +115,7 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
     # articles when adding the ArticleCluster to the DB
     clusters_and_rows = _get_indices(clustering.labels_)
 
-    return [
+    out = [
         ArticleCluster(
             type=cluster_type,
             parameters=cluster_parameters,
@@ -126,6 +127,14 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
             articles=[Article(**tfidf.index_to_article[idx].dict()) for idx in rows]
         ) for _, rows in clusters_and_rows
     ]
+
+    context.log.info(f"The TFIDF object has {len(tfidf.index_to_article)} articles in it")
+
+    for ac in out:
+        context.log.info(f"This cluster has {len(ac.articles)} articles")
+        context.log.info(f"Here are their titles: {[a.title for a in ac.articles]}")
+
+    return out
 
 
 def _get_indices(seq):
