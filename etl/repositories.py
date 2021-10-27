@@ -6,7 +6,7 @@ from etl.pipelines.extract_article_metadata import extract_article_metadata, mai
 from etl.pipelines.transform_parsed_article_content import transform_parsed_article_content,\
     transform_parsed_article_content_sensor
 from etl.pipelines.extract_raw_article_content import extract_raw_article_content, extract_raw_article_content_sensor
-from etl.pipelines.load_sources import load_rss_feeds, load_sources
+from etl.pipelines.load_sources import load_biases, load_rss_feeds, load_sources
 
 
 @repository
@@ -18,6 +18,7 @@ def ptb_repository():
         extract_article_metadata,
         extract_raw_article_content,
         transform_parsed_article_content,
+        load_biases,
         load_sources,
         load_rss_feeds,
         # schedules
