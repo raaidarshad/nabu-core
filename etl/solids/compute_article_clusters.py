@@ -120,7 +120,7 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
             begin=str_to_datetime(context.solid_config["begin"]),
             end=str_to_datetime(context.solid_config["end"]),
             added_at=str_to_datetime(context.solid_config["runtime"]),
-            articles=[tfidf.index_to_article[idx].dict() for idx in rows]
+            articles=[tfidf.index_to_article[idx] for idx in rows]
         ) for _, rows in clusters_and_rows
     ]
 
