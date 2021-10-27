@@ -2,8 +2,8 @@ from dagster import ModeDefinition, PresetDefinition, pipeline
 
 from etl.resources.database_client import cloud_database_client, cloud_database_engine, local_database_client, \
     local_database_engine, mock_database_client, mock_database_engine
-from etl.solids.load_sources import create_tables, get_rss_feeds_from_file, get_sources_from_file, load_rss_feed_rows, \
-    load_source_rows
+from etl.solids.load_sources import create_tables, get_biases_from_file, get_rss_feeds_from_file, \
+    get_sources_from_file, load_bias_rows, load_rss_feed_rows, load_source_rows
 
 
 # resources
@@ -47,3 +47,9 @@ def load_rss_feeds():
     rss_feeds = get_rss_feeds_from_file(path_format=path_format)
     load_rss_feed_rows(rss_feeds)
 
+
+@pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[main_preset], tags={"table": "bias"})
+def load_biases():
+    path_format = create_tables()
+    biases = get_biases_from_file(path_format=path_format)
+    load_bias_rows(biases)
