@@ -1,0 +1,16 @@
+[
+  {"source_id": 0, "type": "ALLSIDES", "value": "LEFT"},
+  {"source_id": 1, "type": "ALLSIDES", "value": "LEFT"},
+  {"source_id": 2, "type": "ALLSIDES", "value": "LEFT"},
+  {"source_id": 3, "type": "ALLSIDES", "value": "LEAN_LEFT"},
+  {"source_id": 4, "type": "ALLSIDES", "value": "LEAN_LEFT"},
+  {"source_id": 5, "type": "ALLSIDES", "value": "LEAN_LEFT"},
+  {"source_id": 6, "type": "ALLSIDES", "value": "CENTER"},
+  {"source_id": 7, "type": "ALLSIDES", "value": "CENTER"},
+  {"source_id": 8, "type": "ALLSIDES", "value": "CENTER"},
+  {"source_id": 9, "type": "ALLSIDES", "value": "LEAN_RIGHT"},
+  {"source_id": 10, "type": "ALLSIDES", "value": "LEAN_RIGHT"},
+  {"source_id": 11, "type": "ALLSIDES", "value": "LEAN_RIGHT"},
+  {"source_id": 12, "type": "ALLSIDES", "value": "RIGHT"},
+  {"source_id": 13, "type": "ALLSIDES", "value": "RIGHT"}
+]

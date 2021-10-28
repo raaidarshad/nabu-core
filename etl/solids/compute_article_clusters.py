@@ -1,7 +1,10 @@
+import enum
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import groupby
 
 from dagster import AssetMaterialization, Enum, EnumValue, Field, Output, solid
+import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import breadth_first_order
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -20,6 +23,13 @@ class TFIDF:
     counts: csr_matrix
     index_to_article: list[Article]
     index_to_term: list[str]
+
+
+class PTB1Cluster:
+    def __init__(self, threshold: float, labels: np.array):
+        self.threshold = threshold
+        self.labels = labels
+        self.cluster_count = len(set(labels))
 
 
 # custom clustering models
@@ -41,13 +51,56 @@ class PTB0(ClusterMixin, BaseEstimator):
             frozenset(breadth_first_order(filtered, idx, directed=False, return_predecessors=False)) for idx in
             range(filtered.shape[0])]
 
-        self.labels_ = self._encode_to_int(clusters)
+        self.labels_ = np.array(self._encode_to_int(clusters))
         return self
 
     @staticmethod
     def _encode_to_int(seq):
         cmap = {item: idx for idx, item in enumerate(set(seq))}
         return [cmap[item] for item in seq]
+
+
+class PTB1Arbitration(enum.Enum):
+    COARSE = "COARSE"
+    FINE = "FINE"
+
+
+class PTB1(ClusterMixin, BaseEstimator):
+    def __init__(self, start: float = 0.2, stop: float = 0.6, steps: int = 40,
+                 arbitration: PTB1Arbitration = PTB1Arbitration.COARSE,
+                 drop_bottom: bool = True):
+        self.start = start
+        self.stop = stop
+        self.steps = steps
+        self.arbitration = arbitration
+        self.drop_bottom = drop_bottom
+
+    def fit(self, X, y=None, sample_weight=None):
+        # use PTB0 for every threshold between (inclusive) start and stop with the specified number of steps
+        clusters = [PTB1Cluster(threshold, PTB0(threshold).fit(X).labels_) for threshold in
+                    np.linspace(self.start, self.stop, self.steps)]
+        # group by the number of clusters, so list of (cluster count, PTB1Cluster)
+        grouped = [(cluster_count, list(clusters)) for cluster_count, clusters in
+                   groupby(clusters, key=lambda t: t.cluster_count)]
+
+        # drop the bottom term because it will likely be a max, but not the one we are interested in
+        # don't drop it if there is only one group!
+        if self.drop_bottom and len(grouped) != 1:
+            grouped = grouped[1:]
+
+        # find which group (so which cluster_count) spans the largest number of steps. that will be our target output
+        if self.arbitration == PTB1Arbitration.COARSE:
+            # find the lowest (coarsest) max
+            target_group = max(grouped, key=lambda t: len(t[1]))
+        else:
+            # find the highest (finest) max
+            target_group = max(reversed(grouped), key=lambda t: len(t[1]))
+
+        self.labels_ = target_group[1][0].labels
+        self.threshold_ = target_group[1][0].threshold
+        self.cluster_count_ = target_group[1][0].cluster_count
+
+        return self
 
 
 get_term_counts = get_rows_factory("get_term_counts", TermCount)
@@ -81,7 +134,12 @@ def _numerify(target: list) -> tuple[list, list]:
 
 
 ClusterDenum = Enum("ClusterDenum",
-                    [EnumValue("Agglomerative"), EnumValue("DBSCAN"), EnumValue("OPTICS"), EnumValue("PTB0")])
+                    [EnumValue("Agglomerative"),
+                     EnumValue("DBSCAN"),
+                     EnumValue("OPTICS"),
+                     EnumValue("PTB0"),
+                     EnumValue("PTB1")
+                     ])
 
 ClusterDenumConfig = Field(
     config=ClusterDenum,
@@ -104,7 +162,8 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
         "Agglomerative": AgglomerativeClustering,
         "DBSCAN": DBSCAN,
         "OPTICS": OPTICS,
-        "PTB0": PTB0
+        "PTB0": PTB0,
+        "PTB1": PTB1
     }[cluster_type]
 
     # compute clusters given the specified cluster type and parameters
