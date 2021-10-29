@@ -7,9 +7,9 @@ from scipy.sparse import csr_matrix
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.solids.compute_article_clusters import cluster_articles, compute_tfidf, get_term_counts, \
+from etl.solids.compute_article_clusters import cluster_articles, compute_tfidf, extract_keywords, get_term_counts, \
     load_article_clusters, TFIDF
-from ptbmodels.models import Article, ArticleCluster, TermCount
+from ptbmodels.models import Article, ArticleCluster, ArticleClusterKeyword, TermCount
 
 
 def test_get_term_counts():
@@ -71,12 +71,12 @@ def test_compute_tfidf():
 
 
 def test_cluster_articles():
-    x = np.array([[0.1, 0.1, 0.6],
-                  [0.2, 0.2, 0.6],
+    x = np.array([[0.3, 0.1, 0.7],
+                  [0.3, 0.1, 0.7],
                   [0.9, 0.1, 0.2],
                   [0.8, 0.2, 0.2],
                   [0.8, 0.1, 0.1],
-                  [0.2, 0.3, 0.7]])
+                  [0.3, 0.1, 0.7]])
     x = csr_matrix(x)
     tfidf = TFIDF(
         tfidf=x,
@@ -109,6 +109,10 @@ def test_cluster_articles():
     assert len(real) == 2
     assert real[0].articles == [tfidf.index_to_article[0], tfidf.index_to_article[1], tfidf.index_to_article[5]]
     assert real[1].articles == [tfidf.index_to_article[2], tfidf.index_to_article[3], tfidf.index_to_article[4]]
+    assert real[0].keywords == [ArticleClusterKeyword(term="third", weight=0.7),
+                                ArticleClusterKeyword(term="first", weight=0.3),
+                                ArticleClusterKeyword(term="second", weight=0.1)
+                                ]
 
 
 def test_load_article_clusters():
@@ -154,3 +158,31 @@ def test_load_article_clusters():
     assert result.materializations_during_compute == []
     assert db.exec.called_once()
     assert db.commit.called_once()
+
+
+def test_extract_keywords():
+    x = np.array([[0.1, 0.3, 0.6],
+                  [0.2, 0.3, 0.6],
+                  [0.9, 0.1, 0.2],
+                  [0.8, 0.2, 0.2],
+                  [0.8, 0.1, 0.1],
+                  [0.3, 0.3, 0.6]])
+    x = csr_matrix(x)
+    tfidf = TFIDF(
+        tfidf=x,
+        counts=x,
+        index_to_term=["first", "second", "third"],
+        index_to_article=[Article(id=uuid4(),
+                                  source_id=idx,
+                                  url=f"https://fake.com/article{idx}",
+                                  summary=f"summary{idx}",
+                                  title=f"title{idx}",
+                                  published_at=get_current_time(),
+                                  added_at=get_current_time()
+                                  ) for idx in range(6)]
+    )
+    real = extract_keywords([0, 1, 5], tfidf)
+
+    assert real[0] == ArticleClusterKeyword(term="third", weight=0.6)
+    assert real[1] == ArticleClusterKeyword(term="second", weight=0.3)
+    assert real[2] == ArticleClusterKeyword(term="first", weight=0.2)

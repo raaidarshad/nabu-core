@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sqlmodel import Session
 
 from etl.common import Context, DagsterTime, get_rows_factory, str_to_datetime
-from ptbmodels.models import Article, ArticleCluster, TermCount
+from ptbmodels.models import Article, ArticleCluster, ArticleClusterKeyword, TermCount
 
 
 # intermediate models
@@ -180,8 +180,32 @@ def cluster_articles(context: Context, tfidf: TFIDF) -> list[ArticleCluster]:
             begin=str_to_datetime(context.solid_config["begin"]),
             end=str_to_datetime(context.solid_config["end"]),
             added_at=str_to_datetime(context.solid_config["runtime"]),
-            articles=[tfidf.index_to_article[idx] for idx in rows]
+            articles=[tfidf.index_to_article[idx] for idx in rows],
+            keywords=extract_keywords(rows, tfidf)
         ) for _, rows in clusters_and_rows
+    ]
+
+
+def extract_keywords(article_indices: list[int], tfidf: TFIDF, limit: int = 10) -> list[ArticleClusterKeyword]:
+    # pull out only the relevant rows (articles)
+    target_rows = tfidf.tfidf[article_indices, :]
+    # take the mean of every column (term)
+    word_weights = target_rows.mean(axis=0)
+    # convert to list so it is easier to work with
+    word_weights = word_weights.tolist()[0]
+    # create dict to track indices while sorting
+    idx_weight = [(idx, weight) for idx, weight in enumerate(word_weights)]
+    # sort by weight desc
+    sorted_idx_weight = sorted(idx_weight, key=lambda item: item[1], reverse=True)
+    # grab the first N term indices
+    keywords = sorted_idx_weight[:limit]
+    # use index_to_term to convert to the right terms
+    return [
+        ArticleClusterKeyword(
+            # article_cluster_id="",
+            term=tfidf.index_to_term[idx],
+            weight=weight
+        ) for idx, weight in keywords
     ]
 
 
