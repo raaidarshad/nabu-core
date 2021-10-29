@@ -211,3 +211,12 @@ class ArticleCluster(PTBTagModel, table=True):
     end: datetime
 
     articles: List[Article] = Relationship(back_populates="clusters", link_model=ArticleClusterLink)
+    keywords: List["ArticleClusterKeyword"] = Relationship(back_populates="article_cluster")
+
+
+class ArticleClusterKeyword(PTBModel, table=True):
+    article_cluster_id: UUID = Field(foreign_key="articlecluster.id", primary_key=True)
+    term: str = Field(primary_key=True)
+    weight: float
+
+    article_cluster: ArticleCluster = Relationship(back_populates="keywords")
