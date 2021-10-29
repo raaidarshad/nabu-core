@@ -217,7 +217,7 @@ class ArticleCluster(PTBTagModel, table=True):
 
 class ArticleClusterKeyword(PTBModel, table=True):
     article_cluster_id: UUID = Field(foreign_key="articlecluster.id", primary_key=True)
-    term: str = Field(primary_key=True)
+    term: str = Field(primary_key=True, index=False)
     weight: float
 
     article_cluster: ArticleCluster = Relationship(back_populates="keywords")
