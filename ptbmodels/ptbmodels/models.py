@@ -221,3 +221,6 @@ class ArticleClusterKeyword(PTBModel, table=True):
     weight: float
 
     article_cluster: ArticleCluster = Relationship(back_populates="keywords")
+
+
+Index("ix_articleclusterkeyword_term", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
