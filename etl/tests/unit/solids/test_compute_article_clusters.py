@@ -71,12 +71,12 @@ def test_compute_tfidf():
 
 
 def test_cluster_articles():
-    x = np.array([[0.1, 0.1, 0.6],
-                  [0.2, 0.2, 0.6],
+    x = np.array([[0.3, 0.1, 0.7],
+                  [0.3, 0.1, 0.7],
                   [0.9, 0.1, 0.2],
                   [0.8, 0.2, 0.2],
                   [0.8, 0.1, 0.1],
-                  [0.2, 0.3, 0.7]])
+                  [0.3, 0.1, 0.7]])
     x = csr_matrix(x)
     tfidf = TFIDF(
         tfidf=x,
@@ -109,6 +109,10 @@ def test_cluster_articles():
     assert len(real) == 2
     assert real[0].articles == [tfidf.index_to_article[0], tfidf.index_to_article[1], tfidf.index_to_article[5]]
     assert real[1].articles == [tfidf.index_to_article[2], tfidf.index_to_article[3], tfidf.index_to_article[4]]
+    assert real[0].keywords == [ArticleClusterKeyword(term="third", weight=0.7),
+                                ArticleClusterKeyword(term="first", weight=0.3),
+                                ArticleClusterKeyword(term="second", weight=0.1)
+                                ]
 
 
 def test_load_article_clusters():
