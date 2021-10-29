@@ -103,8 +103,9 @@ class PTBTagModel(PTBModel):
 
 
 class ArticleClusterLink(SQLModel, table=True):
-    article_cluster_id: Optional[UUID] = Field(default=None, foreign_key="articlecluster.id", primary_key=True)
-    article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True)
+    article_cluster_id: Optional[UUID] = Field(default=None, foreign_key="articlecluster.id", primary_key=True,
+                                               nullable=False)
+    article_id: Optional[UUID] = Field(default=None, foreign_key="article.id", primary_key=True, nullable=False)
 
 
 class Source(PTBModel, table=True):
@@ -135,7 +136,7 @@ class Accuracy(PTBModel, table=True):
 
 
 class RssFeed(PTBModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True))
     parser_config: dict = Field(sa_column=Column(JSON))
@@ -146,7 +147,7 @@ class RssFeed(PTBModel, table=True):
 
 
 class Article(PTBTagModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     rss_feed_id: Optional[UUID] = Field(foreign_key="rssfeed.id")
     source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True))
@@ -203,7 +204,7 @@ class TermCount(PTBTagModel, table=True):
 
 
 class ArticleCluster(PTBTagModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     # TODO enum? might be more trouble than it is worth
     type: str
     parameters: dict = Field(sa_column=Column(JSON))
@@ -211,3 +212,15 @@ class ArticleCluster(PTBTagModel, table=True):
     end: datetime
 
     articles: List[Article] = Relationship(back_populates="clusters", link_model=ArticleClusterLink)
+    keywords: List["ArticleClusterKeyword"] = Relationship(back_populates="article_cluster")
+
+
+class ArticleClusterKeyword(PTBModel, table=True):
+    article_cluster_id: UUID = Field(foreign_key="articlecluster.id", primary_key=True)
+    term: str = Field(primary_key=True, index=False)
+    weight: float
+
+    article_cluster: ArticleCluster = Relationship(back_populates="keywords")
+
+
+Index("ix_articleclusterkeyword_term", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
