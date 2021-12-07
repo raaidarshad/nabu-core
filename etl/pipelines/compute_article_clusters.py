@@ -1,7 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, timezone
 
-from dagster import AssetKey, ModeDefinition, PresetDefinition, RunRequest, \
-    SensorEvaluationContext, asset_sensor, pipeline
+from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
@@ -38,36 +37,29 @@ timed_preset = PresetDefinition(
 )
 
 
-# sensors TODO, might want this to be on its own schedule now instead
-# @asset_sensor(asset_key=AssetKey("count_table"), pipeline_name="compute_clusters", mode="cloud")
-# def count_table_day_sensor(context: SensorEvaluationContext, asset_event):
-#     yield _run_generator(day_minute_span, context.cursor)
-#
-#
-# @asset_sensor(asset_key=AssetKey("count_table"), pipeline_name="compute_clusters", mode="cloud")
-# def count_table_week_sensor(context: SensorEvaluationContext, asset_event):
-#     yield _run_generator(week_minute_span, context.cursor)
-#
-#
-# def _run_generator(minute_span: int, run_key) -> RunRequest:
-#     return RunRequest(
-#         run_key=run_key,
-#         run_config={"solids": {
-#             "get_term_counts": {"config": {"begin": now, "end": now}}},
-#             "cluster_articles": {"config": {"runtime": now,
-#                                             "cluster_type": "Agglomerative",
-#                                             "cluster_parameters": {"distance_threshold": 0.2},
-#                                             "begin": now,
-#                                             "end": now
-#                                             }},
-#             "load_article_clusters": {"config": {"runtime": now}}
-#         }
-#     )
-
-
+# pipelines
 @pipeline(mode_defs=[cloud_mode, local_mode, test_mode], preset_defs=[timed_preset], tags={"table": "articlecluster"})
 def compute_article_clusters():
     counts = get_term_counts()
     tfidf = compute_tfidf(counts)
     clusters = cluster_articles(tfidf)
     load_article_clusters(clusters)
+
+
+# schedules/sensors
+@schedule(cron_schedule="30 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+def article_cluster_schedule(context: ScheduleExecutionContext):
+    runtime = context.scheduled_execution_time
+    if not runtime.tzinfo:
+        runtime = runtime.astimezone(tz=timezone.utc)
+    begin = runtime - timedelta(hours=12)
+    return {"solids": {
+        "get_term_counts": {"config": {"begin": begin, "end": runtime}}},
+        "cluster_articles": {"config": {"runtime": runtime,
+                                        "cluster_type": "PTB0",
+                                        "cluster_parameters": {"threshold": 0.4},
+                                        "begin": begin,
+                                        "end": runtime
+                                        }},
+        "load_article_clusters": {"config": {"runtime": runtime}}
+    }
