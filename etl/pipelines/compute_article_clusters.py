@@ -55,7 +55,7 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
     begin = datetime_to_str(runtime - timedelta(hours=12))
     runtime = datetime_to_str(runtime)
     return {"solids": {
-        "get_term_counts": {"config": {"begin": begin, "end": runtime}}},
+        "get_term_counts": {"config": {"begin": begin, "end": runtime}},
         "cluster_articles": {"config": {"runtime": runtime,
                                         "cluster_type": "PTB0",
                                         "cluster_parameters": {"threshold": 0.4},
@@ -63,4 +63,4 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
                                         "end": runtime
                                         }},
         "load_article_clusters": {"config": {"runtime": runtime}}
-    }
+    }}
