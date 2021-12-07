@@ -7,7 +7,6 @@ authors = ["Raaid Arshad <raaid@protonmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 beautifulsoup4 = "^4.9.3"
-boto3 = "^1.20.21"
 dagster = "^0.12.1"
 dagster-k8s = "^0.12.1"
 dagster-postgres = "^0.12.1"
