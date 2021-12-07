@@ -1,3 +1,5 @@
+import json
+
 from dagster import solid
 from sqlmodel import Session, desc, func, select
 
@@ -6,7 +8,7 @@ from ptbmodels.models import ArticleCluster, ArticleClusterLink
 
 
 @solid(required_resource_keys={"database_client"})
-def get_latest_article_clusters(context: Context) -> list[ArticleCluster]:
+def get_latest_clusters(context: Context) -> list[ArticleCluster]:
     db_client: Session = context.resources.database_client
 
     statement1 = select(
@@ -17,6 +19,7 @@ def get_latest_article_clusters(context: Context) -> list[ArticleCluster]:
     sub1 = statement1.subquery("s1")
     sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
     statement2 = select(ArticleCluster).join(sub1).where(ArticleCluster.added_at == sub2).order_by(desc("size"))
+
     context.log.info(f"Attempting to execute: {statement2}")
     entities = db_client.exec(statement2).all()
     context.log.info(f"Got {len(entities)} rows of {ArticleCluster.__name__}")
@@ -24,7 +27,7 @@ def get_latest_article_clusters(context: Context) -> list[ArticleCluster]:
 
 
 @solid
-def prep_latest_clusters(context: Context, clusters: list[ArticleCluster]):
+def prep_latest_clusters(context: Context, clusters: list[ArticleCluster]) -> dict:
     prepped_clusters = [
         {
             "topics": [{"term": k.term, "weight": k.weight} for k in c.keywords],
@@ -37,3 +40,9 @@ def prep_latest_clusters(context: Context, clusters: list[ArticleCluster]):
         "added_at": clusters[0].added_at,
         "clusters": prepped_clusters
     }
+
+
+@solid
+def write_to_bucket(context: Context, prepped_data: dict):
+    # json.dumps(prepped_data)
+    ...
