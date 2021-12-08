@@ -1,13 +1,16 @@
 import json
 
-from dagster import solid
+from dagster import Field, Int, solid
 from sqlmodel import Session, desc, func, select
 
 from etl.common import Context
 from ptbmodels.models import ArticleCluster, ArticleClusterLink
 
 
-@solid(required_resource_keys={"database_client"})
+ClusterLimit = Field(config=Int, default_value=10, is_required=False)
+
+
+@solid(required_resource_keys={"database_client"}, config_schema={"cluster_limit": ClusterLimit})
 def get_latest_clusters(context: Context) -> list[ArticleCluster]:
     db_client: Session = context.resources.database_client
 
@@ -15,10 +18,10 @@ def get_latest_clusters(context: Context) -> list[ArticleCluster]:
         ArticleClusterLink.article_cluster_id,
         func.count(ArticleClusterLink.article_id).
             label("size")).group_by(ArticleClusterLink.article_cluster_id). \
-        order_by(desc("size")).limit(10)
+        order_by(desc("size"))
     sub1 = statement1.subquery("s1")
     sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
-    statement2 = select(ArticleCluster).join(sub1).where(ArticleCluster.added_at == sub2).order_by(desc("size"))
+    statement2 = select(ArticleCluster).join(sub1).where(ArticleCluster.added_at == sub2).order_by(desc("size")).limit(context.solid_config["cluster_limit"])
 
     context.log.info(f"Attempting to execute: {statement2}")
     entities = db_client.exec(statement2).all()
