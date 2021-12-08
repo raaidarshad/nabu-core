@@ -52,7 +52,7 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
         runtime = runtime.astimezone(tz=timezone.utc)
-    begin = datetime_to_str(runtime - timedelta(hours=12))
+    begin = datetime_to_str(runtime - timedelta(days=1))
     runtime = datetime_to_str(runtime)
     return {"solids": {
         "get_term_counts": {"config": {"begin": begin, "end": runtime}},
