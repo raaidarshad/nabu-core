@@ -1,6 +1,7 @@
 import json
 
-from dagster import Field, Int, solid
+from botocore.client import BaseClient
+from dagster import Field, Int, String, solid
 from sqlmodel import Session, desc, column, func, select
 
 from etl.common import Context
@@ -46,7 +47,12 @@ def prep_latest_clusters(context: Context, clusters: list[(ArticleCluster, int)]
     }
 
 
-@solid
+@solid(required_resource_keys={"boto_client"}, config_schema={"bucket": String, "key": String})
 def write_to_bucket(context: Context, prepped_data: dict):
-    # json.dumps(prepped_data)
-    ...
+    boto_client: BaseClient = context.resources.boto_client
+
+    boto_client.put_object(
+        Bucket=context.solid_config["bucket"],
+        Key=context.solid_config["key"],
+        Body=json.dumps(prepped_data),
+    )
