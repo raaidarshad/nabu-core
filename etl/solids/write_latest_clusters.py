@@ -2,7 +2,7 @@ import json
 
 from botocore.client import BaseClient
 from dagster import Field, Int, String, solid
-from sqlmodel import Session, desc, column, func, select
+from sqlmodel import Session, column, desc, func, select
 
 from etl.common import Context
 from ptbmodels.models import ArticleCluster, ArticleClusterLink
