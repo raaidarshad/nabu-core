@@ -11,11 +11,20 @@ region = "nyc3"
 config = Config()
 
 # create bucket
+do_provider = do.Provider("do-provider",
+                          args=do.ProviderArgs(
+                              spaces_access_id=config.require_secret("spaces_access"),
+                              spaces_secret_key=config.require_secret("spaces_secret")
+                          ))
+do_opts = ResourceOptions(provider=do_provider)
+
 bucket_name = "ptb-bucket"
 space = do.SpacesBucket("ptb-bucket",
                         acl="public-read",
                         name=bucket_name,
-                        region=region)
+                        region=region,
+                        opts=do_opts
+                        )
 
 # create a db cluster, dbs, and users
 db_cluster = do.DatabaseCluster("ptb-postgres",
@@ -33,7 +42,8 @@ db_user_monitor = do.DatabaseUser("db_user_monitor", cluster_id=db_cluster.id)
 
 # create db conn strings for each user to the right db
 db_cluster_port = db_cluster.port.apply(lambda port: str(port))
-db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.password, "@", db_cluster.private_host, ":", db_cluster_port, "/", db_etl.name)
+db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.password, "@", db_cluster.private_host,
+                            ":", db_cluster_port, "/", db_etl.name)
 # db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
 
 # create a k8s cluster and node pools
@@ -43,7 +53,9 @@ k8s = do.KubernetesCluster("ptb-k8s",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
                                size="s-1vcpu-2gb",
-                               node_count=3
+                               min_nodes=2,
+                               max_nodes=4,
+                               auto_scale=True
                            ))
 
 kube_provider = Provider("ptb-k8s-provider", args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
@@ -79,8 +91,8 @@ docker_secret = Secret("docker-secret",
                            string_data={".dockerconfigjson": ptb_registry.docker_credentials},
                            metadata=ObjectMetaArgs(name=docker_secret_name)
                        ), opts=opts)
-# helm
 
+# helm
 release_args = ReleaseArgs(
     name="dagster-etl",
     chart="dagster",
