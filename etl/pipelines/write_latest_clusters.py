@@ -50,7 +50,7 @@ def write_latest_clusters_sensor(context: SensorEvaluationContext, asset_event: 
         run_config={
             "solids": {
                 "write_to_bucket": {
-                    "config": {"bucket": os.getenv("BUCKET_NAME"), "key": os.getenv("LATEST_FILE_NAME", "latest.json")}}
+                    "config": {"bucket": os.getenv("SPACES_BUCKET_NAME"), "key": os.getenv("LATEST_FILE_NAME", "latest.json")}}
             }
         }
     )
