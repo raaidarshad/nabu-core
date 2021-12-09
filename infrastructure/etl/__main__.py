@@ -10,6 +10,13 @@ from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 region = "nyc3"
 config = Config()
 
+# create bucket
+bucket_name = "ptb-bucket"
+space = do.SpacesBucket("ptb-bucket",
+                        acl="public-read",
+                        name=bucket_name,
+                        region=region)
+
 # create a db cluster, dbs, and users
 db_cluster = do.DatabaseCluster("ptb-postgres",
                                 engine="pg",
@@ -46,7 +53,14 @@ opts = ResourceOptions(provider=kube_provider)
 etl_secret_name = "etl-db-secret"
 etl_secret = Secret("etl-db-secret",
                     args=SecretInitArgs(
-                        string_data={"DB_CONNECTION_STRING": db_conn_etl},
+                        string_data={
+                            "DB_CONNECTION_STRING": db_conn_etl,
+                            "SPACES_REGION": region,
+                            "SPACES_ENDPOINT": f"https://{region}.digitaloceanspaces.com",
+                            "SPACES_KEY": config.require_secret("spaces_access"),
+                            "SPACES_SECRET": config.require_secret("spaces_secret"),
+                            "SPACES_BUCKET_NAME": bucket_name
+                        },
                         metadata=ObjectMetaArgs(name=etl_secret_name)
                     ), opts=opts)
 dagster_secret_name = "dagster-db-secret"

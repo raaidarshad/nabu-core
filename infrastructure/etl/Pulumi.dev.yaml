@@ -1,4 +1,8 @@
 config:
   digitalocean:token:
     secure: AAABAPpcV+QjSWCFast1wpmN6c3XrsQ1aarD7Imf6zzbMyoPmqJhLA+GqvU9LJ8uOfPz4Hewda9FIThERpsO98s3W9yyZnP1xoEJvCsu+b3hSQ/BJdfJTVGhe0giWMur
+  etl:spaces_access:
+    secure: AAABACjK+aBzbGEFHhuRSLk6RIMvWH9CQhwv9Qr375VMxab87CnUD5ErGMIdIxnpNxQWkw==
+  etl:spaces_secret:
+    secure: AAABAJaCvCq8E2o0h+y1DtpiTTWmmUEPvz/WXJszrfAmtdhrZTZXZFMPOVXbjsVS2nTsi2+BdOTK0FBYsQ81WGg1JN0aM+myi2W1
   etl:tag: latest
