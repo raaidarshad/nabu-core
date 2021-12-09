@@ -5,6 +5,7 @@ import pytest
 
 from etl.common import datetime_to_str, get_current_time
 from etl.pipelines.compute_article_clusters import compute_article_clusters
+from etl.pipelines.write_latest_clusters import write_latest_clusters
 
 runtime = get_current_time()
 begin = datetime_to_str(runtime - timedelta(minutes=5))
@@ -28,6 +29,22 @@ def test_compute_article_clusters():
                                                 }},
                 "load_article_clusters": {"config": {"runtime": runtime}}
             }}
+    )
+
+    assert result.success
+
+
+@pytest.mark.order(8)
+def test_write_latest_clusters():
+    result: PipelineExecutionResult = execute_pipeline(
+        write_latest_clusters,
+        mode="local",
+        run_config={
+            "solids": {
+                "write_to_bucket": {
+                    "config": {"bucket": "my-bucket", "key": "myfile.json"}}
+            }
+        }
     )
 
     assert result.success

@@ -17,7 +17,7 @@ cloud_resource_defs = {
 
 local_resource_defs = {
     "database_client": local_database_client,
-    "boto_client": boto_client
+    "boto_client": mock_boto_client
 }
 
 test_resource_defs = {

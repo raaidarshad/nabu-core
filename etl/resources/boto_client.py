@@ -17,6 +17,7 @@ def boto_client(init_context) -> BaseClient:
                           aws_secret_access_key=os.getenv("SPACES_SECRET"))
 
 
+@resource
 def mock_boto_client() -> BaseClient:
     client = MagicMock(BaseClient)
     client.put_object = Mock(return_value=1)
