@@ -87,7 +87,7 @@ release_args = ReleaseArgs(
     repository_opts=RepositoryOptsArgs(
         repo="https://dagster-io.github.io/helm"
     ),
-    version="0.12.11",
+    version="0.13.10",
     values={
         "global": {"postgresqlSecretName": dagster_secret_name},
         "generatePostgresqlPasswordSecret": False,
