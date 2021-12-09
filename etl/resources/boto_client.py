@@ -1,5 +1,5 @@
 import os
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 from dagster import resource
 
@@ -17,5 +17,7 @@ def boto_client(init_context) -> BaseClient:
                           aws_secret_access_key=os.getenv("SPACES_SECRET"))
 
 
-def mock_boto_client(init_context) -> BaseClient:
-    return MagicMock(BaseClient)
+def mock_boto_client() -> BaseClient:
+    client = MagicMock(BaseClient)
+    client.put_object = Mock(return_value=1)
+    return client

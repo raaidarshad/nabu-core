@@ -4,9 +4,11 @@ from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 
+from etl.resources.boto_client import mock_boto_client
 from etl.resources.database_client import mock_database_client
-from etl.solids.write_latest_clusters import get_latest_clusters, prep_latest_clusters
+from etl.solids.write_latest_clusters import get_latest_clusters, prep_latest_clusters, write_to_bucket
 from ptbmodels.models import Article, ArticleCluster, ArticleClusterKeyword, Source
+
 
 sid1 = uuid4()
 sid2 = uuid4()
@@ -118,4 +120,20 @@ def test_prep_latest_clusters():
 
 
 def test_write_to_bucket():
-    ...
+    boto_client = mock_boto_client()
+
+    def _test_boto_client(_init_context):
+        return boto_client
+
+    result: SolidExecutionResult = execute_solid(
+        write_to_bucket,
+        mode_def=ModeDefinition(name="test",
+                                resource_defs={"boto_client": ResourceDefinition(_test_boto_client)}),
+        input_values={"prepped_data": {"fake": "data"}},
+        run_config={"solids": {
+            "write_to_bucket": {"config": {"bucket": "my-bucket", "key": "my-file.json"}}
+        }}
+    )
+
+    assert result.success
+    assert boto_client.put_object.called_once()
