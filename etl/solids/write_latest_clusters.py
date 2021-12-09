@@ -12,7 +12,7 @@ ClusterLimit = Field(config=Int, default_value=10, is_required=False)
 
 
 @solid(required_resource_keys={"database_client"}, config_schema={"cluster_limit": ClusterLimit})
-def get_latest_clusters(context: Context) -> list[(ArticleCluster, int)]:
+def get_latest_clusters(context: Context) -> list[tuple[ArticleCluster, int]]:
     db_client: Session = context.resources.database_client
 
     statement1 = select(
