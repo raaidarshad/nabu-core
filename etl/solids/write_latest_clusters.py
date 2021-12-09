@@ -31,7 +31,7 @@ def get_latest_clusters(context: Context) -> list[tuple[ArticleCluster, int]]:
 
 
 @solid
-def prep_latest_clusters(context: Context, clusters: list[(ArticleCluster, int)]) -> dict:
+def prep_latest_clusters(context: Context, clusters: list[tuple[ArticleCluster, int]]) -> dict:
     prepped_clusters = [
         {
             "topics": [{"term": k.term, "weight": k.weight} for k in c[0].keywords],
