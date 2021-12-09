@@ -52,9 +52,9 @@ k8s = do.KubernetesCluster("ptb-k8s",
                            version="1.21.3-do.0",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
-                               size="s-1vcpu-2gb",
+                               size="s-2vcpu-4gb",
                                min_nodes=2,
-                               max_nodes=4,
+                               max_nodes=3,
                                auto_scale=True
                            ))
 
