@@ -49,7 +49,7 @@ db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.
 # create a k8s cluster and node pools
 k8s = do.KubernetesCluster("ptb-k8s",
                            region=region,
-                           version="1.21.3-do.0",
+                           version="1.21.5-do.0",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
                                size="s-2vcpu-4gb",
