@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, execute_solid
 
+from etl.common import datetime_to_str
 from etl.resources.boto_client import mock_boto_client
 from etl.resources.database_client import mock_database_client
 from etl.solids.write_latest_clusters import get_latest_clusters, prep_latest_clusters, write_to_bucket
@@ -98,7 +99,7 @@ def test_get_latest_clusters():
 
 def test_prep_latest_clusters():
     expected_prepped = {
-        "added_at": expected_clusters[0][0].added_at,
+        "added_at": datetime_to_str(expected_clusters[0][0].added_at),
         "clusters": [
             {
                 "topics": [{"term": k.term, "weight": k.weight} for k in c[0].keywords],
