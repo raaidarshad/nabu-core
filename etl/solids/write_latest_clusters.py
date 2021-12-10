@@ -4,7 +4,7 @@ from botocore.client import BaseClient
 from dagster import Field, Int, String, solid
 from sqlmodel import Session, column, desc, func, select
 
-from etl.common import Context
+from etl.common import Context, datetime_to_str
 from ptbmodels.models import ArticleCluster, ArticleClusterLink
 
 
@@ -42,7 +42,7 @@ def prep_latest_clusters(context: Context, clusters) -> dict:
     ]
 
     return {
-        "added_at": clusters[0][0].added_at,
+        "added_at": datetime_to_str(clusters[0][0].added_at),
         "clusters": prepped_clusters
     }
 
