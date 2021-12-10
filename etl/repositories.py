@@ -7,6 +7,7 @@ from etl.pipelines.transform_parsed_article_content import transform_parsed_arti
     transform_parsed_article_content_sensor
 from etl.pipelines.extract_raw_article_content import extract_raw_article_content, extract_raw_article_content_sensor
 from etl.pipelines.load_sources import load_biases, load_rss_feeds, load_sources
+from etl.pipelines.write_latest_clusters import write_latest_clusters, write_latest_clusters_sensor
 
 
 @repository
@@ -21,11 +22,13 @@ def ptb_repository():
         load_biases,
         load_sources,
         load_rss_feeds,
+        write_latest_clusters,
         # schedules
         main_schedule,
         article_cluster_schedule,
         # sensors
         extract_raw_article_content_sensor,
         transform_parsed_article_content_sensor,
-        compute_counts_sensor
+        compute_counts_sensor,
+        write_latest_clusters_sensor
     ]
