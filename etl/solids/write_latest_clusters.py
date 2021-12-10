@@ -12,7 +12,7 @@ ClusterLimit = Field(config=Int, default_value=10, is_required=False)
 
 
 @solid(required_resource_keys={"database_client"}, config_schema={"cluster_limit": ClusterLimit})
-def get_latest_clusters(context: Context) -> list[tuple[ArticleCluster, int]]:
+def get_latest_clusters(context: Context):
     db_client: Session = context.resources.database_client
 
     statement1 = select(
@@ -31,7 +31,7 @@ def get_latest_clusters(context: Context) -> list[tuple[ArticleCluster, int]]:
 
 
 @solid
-def prep_latest_clusters(context: Context, clusters: list[tuple[ArticleCluster, int]]) -> dict:
+def prep_latest_clusters(context: Context, clusters) -> dict:
     prepped_clusters = [
         {
             "topics": [{"term": k.term, "weight": k.weight} for k in c[0].keywords],
