@@ -54,5 +54,6 @@ def write_to_bucket(context: Context, prepped_data: dict):
     boto_client.put_object(
         Bucket=context.solid_config["bucket"],
         Key=context.solid_config["key"],
-        Body=json.dumps(prepped_data)
+        Body=json.dumps(prepped_data),
+        ACL="public-read"
     )
