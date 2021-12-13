@@ -2,10 +2,10 @@ import json
 
 from botocore.client import BaseClient
 from dagster import Field, Int, String, solid
-from sqlmodel import Session, column, desc, func, select
+from sqlmodel import Session, column, desc, distinct, func, select
 
 from etl.common import Context, datetime_to_str
-from ptbmodels.models import ArticleCluster, ArticleClusterLink
+from ptbmodels.models import Article, ArticleCluster, ArticleClusterLink, Source
 
 
 ClusterLimit = Field(config=Int, default_value=10, is_required=False)
@@ -17,8 +17,10 @@ def get_latest_clusters(context: Context):
 
     statement1 = select(
         ArticleClusterLink.article_cluster_id,
-        func.count(ArticleClusterLink.article_id).
-            label("size")).group_by(ArticleClusterLink.article_cluster_id). \
+        func.count(distinct(Source.id)).label("size")). \
+        join(Article, Article.id == ArticleClusterLink.article_id). \
+        join(Source, Source.id == Article.source_id). \
+        group_by(ArticleClusterLink.article_cluster_id). \
         order_by(desc("size"))
     sub1 = statement1.subquery("s1")
     sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
