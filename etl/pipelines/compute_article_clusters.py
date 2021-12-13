@@ -58,7 +58,7 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
         "get_term_counts": {"config": {"begin": begin, "end": runtime}},
         "cluster_articles": {"config": {"runtime": runtime,
                                         "cluster_type": "PTB0",
-                                        "cluster_parameters": {"threshold": 0.4},
+                                        "cluster_parameters": {"threshold": 0.45},
                                         "begin": begin,
                                         "end": runtime
                                         }},
