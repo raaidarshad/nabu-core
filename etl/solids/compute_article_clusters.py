@@ -2,6 +2,7 @@ import enum
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
+import json
 
 from dagster import AssetMaterialization, Enum, EnumValue, Field, Output, solid
 import numpy as np
@@ -236,7 +237,7 @@ def load_article_clusters(context: Context, entities: list[ArticleCluster]):
                 asset_key=f"{ArticleCluster.__tablename__}_table",
                 description=f"New rows added to {ArticleCluster.__tablename__} table",
                 tags={"runtime": context.solid_config["runtime"],
-                      "cluster_range": context.solid_config["cluster_range"]}
+                      "cluster_range": json.dumps(context.solid_config["cluster_range"])}
             )
         yield Output(entities)
     else:
