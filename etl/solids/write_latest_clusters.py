@@ -4,7 +4,7 @@ from botocore.client import BaseClient
 from dagster import Field, Int, String, solid
 from sqlmodel import Session, column, desc, distinct, func, select
 
-from etl.common import Context, datetime_to_str
+from etl.common import Context, datetime_to_str, format_cluster_range
 from ptbmodels.models import Article, ArticleCluster, ArticleClusterLink, Source
 
 ClusterLimit = Field(config=Int, default_value=10, is_required=False)
@@ -15,8 +15,7 @@ ClusterLimit = Field(config=Int, default_value=10, is_required=False)
 def get_latest_clusters(context: Context):
     db_client: Session = context.resources.database_client
     cluster_range = context.solid_config["cluster_range"]
-    for item in cluster_range:
-        formatted_cluster_range = f"{item[1]} {item[0]}"
+    formatted_cluster_range = format_cluster_range(cluster_range)
 
     statement1 = select(
         ArticleClusterLink.article_cluster_id,

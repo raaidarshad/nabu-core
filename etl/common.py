@@ -55,6 +55,12 @@ DagsterTime = Field(
 )
 
 
+def format_cluster_range(raw_cluster_range: dict) -> str:
+    assert len(raw_cluster_range) == 1, "raw_cluster_range must have exactly one key/value pair"
+    for item in raw_cluster_range:
+        return f"{item[1]} {item[0]}"
+
+
 # TODO will likely add config to filter by source, and perhaps a "by id" override filter
 def get_rows_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     @solid(name=name,
