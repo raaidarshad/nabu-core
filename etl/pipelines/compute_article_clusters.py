@@ -46,6 +46,7 @@ def compute_article_clusters():
     load_article_clusters(clusters)
 
 
+# schedules/sensors
 @schedule(cron_schedule="25 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
 def article_cluster_schedule_12h(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
@@ -55,9 +56,7 @@ def article_cluster_schedule_12h(context: ScheduleExecutionContext):
     cluster_range = {"hours": 12}
     begin = datetime_to_str(runtime - timedelta(**cluster_range))
     runtime = datetime_to_str(runtime)
-    return RunRequest(
-        run_key=None,
-        run_config={
+    return {
             "solids": {
                 "get_term_counts": {"config": {"begin": begin, "end": runtime}},
                 "cluster_articles": {"config": {"runtime": runtime,
@@ -68,10 +67,9 @@ def article_cluster_schedule_12h(context: ScheduleExecutionContext):
                                                 }},
                 "load_article_clusters": {"config": {"runtime": runtime,
                                                      "cluster_range": cluster_range}}
-            }})
+            }}
 
 
-# schedules/sensors
 @schedule(cron_schedule="30 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
 def article_cluster_schedule_1d(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
@@ -80,9 +78,7 @@ def article_cluster_schedule_1d(context: ScheduleExecutionContext):
     cluster_range = {"days": 1}
     begin = datetime_to_str(runtime - timedelta(**cluster_range))
     runtime = datetime_to_str(runtime)
-    return RunRequest(
-        run_key=None,
-        run_config={
+    return {
             "solids": {
                 "get_term_counts": {"config": {"begin": begin, "end": runtime}},
                 "cluster_articles": {"config": {"runtime": runtime,
@@ -93,7 +89,7 @@ def article_cluster_schedule_1d(context: ScheduleExecutionContext):
                                                 }},
                 "load_article_clusters": {"config": {"runtime": runtime,
                                                      "cluster_range": cluster_range}}
-            }})
+            }}
 
 
 @schedule(cron_schedule="35 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
@@ -105,9 +101,7 @@ def article_cluster_schedule_3d(context: ScheduleExecutionContext):
     cluster_range = {"days": 3}
     begin = datetime_to_str(runtime - timedelta(**cluster_range))
     runtime = datetime_to_str(runtime)
-    return RunRequest(
-        run_key=None,
-        run_config={
+    return {
             "solids": {
                 "get_term_counts": {"config": {"begin": begin, "end": runtime}},
                 "cluster_articles": {"config": {"runtime": runtime,
@@ -118,4 +112,4 @@ def article_cluster_schedule_3d(context: ScheduleExecutionContext):
                                                 }},
                 "load_article_clusters": {"config": {"runtime": runtime,
                                                      "cluster_range": cluster_range}}
-            }})
+            }}
