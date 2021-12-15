@@ -46,18 +46,19 @@ def compute_article_clusters():
     load_article_clusters(clusters)
 
 
-# schedules/sensors
-@schedule(cron_schedule="30 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
-def article_cluster_schedule(context: ScheduleExecutionContext):
+@schedule(cron_schedule="25 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+def article_cluster_schedule_12h(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
         runtime = runtime.astimezone(tz=timezone.utc)
-    for cluster_range in [{"hours": 12}, {"days": 1}, {"days": 3}]:
-        begin = datetime_to_str(runtime - timedelta(**cluster_range))
-        runtime = datetime_to_str(runtime)
-        yield RunRequest(
-            run_key=None,
-            run_config={"solids": {
+    # for cluster_range in [{"days": 1}]:
+    cluster_range = {"hours": 12}
+    begin = datetime_to_str(runtime - timedelta(**cluster_range))
+    runtime = datetime_to_str(runtime)
+    return RunRequest(
+        run_key=None,
+        run_config={
+            "solids": {
                 "get_term_counts": {"config": {"begin": begin, "end": runtime}},
                 "cluster_articles": {"config": {"runtime": runtime,
                                                 "cluster_type": "PTB0",
@@ -66,6 +67,55 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
                                                 "end": runtime
                                                 }},
                 "load_article_clusters": {"config": {"runtime": runtime,
-                                                     "cluster_range": cluster_range
-                                                     }}
+                                                     "cluster_range": cluster_range}}
+            }})
+
+
+# schedules/sensors
+@schedule(cron_schedule="30 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+def article_cluster_schedule_1d(context: ScheduleExecutionContext):
+    runtime = context.scheduled_execution_time
+    if not runtime.tzinfo:
+        runtime = runtime.astimezone(tz=timezone.utc)
+    cluster_range = {"days": 1}
+    begin = datetime_to_str(runtime - timedelta(**cluster_range))
+    runtime = datetime_to_str(runtime)
+    return RunRequest(
+        run_key=None,
+        run_config={
+            "solids": {
+                "get_term_counts": {"config": {"begin": begin, "end": runtime}},
+                "cluster_articles": {"config": {"runtime": runtime,
+                                                "cluster_type": "PTB0",
+                                                "cluster_parameters": {"threshold": 0.45},
+                                                "begin": begin,
+                                                "end": runtime
+                                                }},
+                "load_article_clusters": {"config": {"runtime": runtime,
+                                                     "cluster_range": cluster_range}}
+            }})
+
+
+@schedule(cron_schedule="35 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+def article_cluster_schedule_3d(context: ScheduleExecutionContext):
+    runtime = context.scheduled_execution_time
+    if not runtime.tzinfo:
+        runtime = runtime.astimezone(tz=timezone.utc)
+    # for cluster_range in [{"days": 1}]:
+    cluster_range = {"days": 3}
+    begin = datetime_to_str(runtime - timedelta(**cluster_range))
+    runtime = datetime_to_str(runtime)
+    return RunRequest(
+        run_key=None,
+        run_config={
+            "solids": {
+                "get_term_counts": {"config": {"begin": begin, "end": runtime}},
+                "cluster_articles": {"config": {"runtime": runtime,
+                                                "cluster_type": "PTB0",
+                                                "cluster_parameters": {"threshold": 0.45},
+                                                "begin": begin,
+                                                "end": runtime
+                                                }},
+                "load_article_clusters": {"config": {"runtime": runtime,
+                                                     "cluster_range": cluster_range}}
             }})
