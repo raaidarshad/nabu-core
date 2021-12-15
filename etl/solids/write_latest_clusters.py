@@ -4,15 +4,18 @@ from botocore.client import BaseClient
 from dagster import Field, Int, String, solid
 from sqlmodel import Session, column, desc, distinct, func, select
 
-from etl.common import Context, datetime_to_str
+from etl.common import Context, datetime_to_str, format_cluster_range
 from ptbmodels.models import Article, ArticleCluster, ArticleClusterLink, Source
 
 ClusterLimit = Field(config=Int, default_value=10, is_required=False)
 
 
-@solid(required_resource_keys={"database_client"}, config_schema={"cluster_limit": ClusterLimit})
+@solid(required_resource_keys={"database_client"},
+       config_schema={"cluster_limit": ClusterLimit, "cluster_range": Field(config=dict, is_required=True)})
 def get_latest_clusters(context: Context):
     db_client: Session = context.resources.database_client
+    cluster_range = context.solid_config["cluster_range"]
+    formatted_cluster_range = format_cluster_range(cluster_range)
 
     statement1 = select(
         ArticleClusterLink.article_cluster_id,
@@ -23,8 +26,10 @@ def get_latest_clusters(context: Context):
         order_by(desc("size"))
     sub1 = statement1.subquery("s1")
     sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
-    statement2 = select(ArticleCluster, column("size")).join(sub1).where(ArticleCluster.added_at == sub2).order_by(
-        desc("size")).limit(context.solid_config["cluster_limit"])
+    statement2 = select(ArticleCluster, column("size")).join(sub1).\
+        where(ArticleCluster.added_at == sub2).\
+        where(ArticleCluster.end - ArticleCluster.begin == formatted_cluster_range).\
+        order_by(desc("size")).limit(context.solid_config["cluster_limit"])
 
     context.log.info(f"Attempting to execute: {statement2}")
     entities = db_client.exec(statement2).all()

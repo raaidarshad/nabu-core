@@ -1,6 +1,6 @@
 from datetime import timedelta, timezone
 
-from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
+from dagster import ModeDefinition, PresetDefinition, RunRequest, ScheduleExecutionContext, pipeline, schedule
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
@@ -52,15 +52,20 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
         runtime = runtime.astimezone(tz=timezone.utc)
-    begin = datetime_to_str(runtime - timedelta(days=1))
-    runtime = datetime_to_str(runtime)
-    return {"solids": {
-        "get_term_counts": {"config": {"begin": begin, "end": runtime}},
-        "cluster_articles": {"config": {"runtime": runtime,
-                                        "cluster_type": "PTB0",
-                                        "cluster_parameters": {"threshold": 0.45},
-                                        "begin": begin,
-                                        "end": runtime
-                                        }},
-        "load_article_clusters": {"config": {"runtime": runtime}}
-    }}
+    for cluster_range in [{"hours": 12}, {"days": 1}, {"days": 3}]:
+        begin = datetime_to_str(runtime - timedelta(**cluster_range))
+        runtime = datetime_to_str(runtime)
+        yield RunRequest(
+            run_key=None,
+            run_config={"solids": {
+                "get_term_counts": {"config": {"begin": begin, "end": runtime}},
+                "cluster_articles": {"config": {"runtime": runtime,
+                                                "cluster_type": "PTB0",
+                                                "cluster_parameters": {"threshold": 0.45},
+                                                "begin": begin,
+                                                "end": runtime
+                                                }},
+                "load_article_clusters": {"config": {"runtime": runtime,
+                                                     "cluster_range": cluster_range
+                                                     }}
+            }})

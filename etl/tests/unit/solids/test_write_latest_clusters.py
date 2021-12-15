@@ -89,6 +89,7 @@ def test_get_latest_clusters():
 
     result: SolidExecutionResult = execute_solid(
         get_latest_clusters,
+        run_config={"solids": {"get_latest_clusters": {"config": {"cluster_range": {"days": 1}}}}},
         mode_def=ModeDefinition(name="test",
                                 resource_defs={"database_client": ResourceDefinition(_test_db_client)})
     )
