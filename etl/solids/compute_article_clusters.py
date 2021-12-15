@@ -216,7 +216,9 @@ def _get_indices(seq):
     return ((key, locs) for key, locs in tally.items() if len(locs) > 1)
 
 
-@solid(required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime})
+@solid(required_resource_keys={"database_client"},
+       config_schema={"runtime": DagsterTime,
+                      "cluster_range": Field(config=dict, default_value={"days": 1}, is_required=False)})
 def load_article_clusters(context: Context, entities: list[ArticleCluster]):
     db_client: Session = context.resources.database_client
 
@@ -233,7 +235,8 @@ def load_article_clusters(context: Context, entities: list[ArticleCluster]):
             yield AssetMaterialization(
                 asset_key=f"{ArticleCluster.__tablename__}_table",
                 description=f"New rows added to {ArticleCluster.__tablename__} table",
-                tags={"runtime": context.solid_config["runtime"]}
+                tags={"runtime": context.solid_config["runtime"],
+                      "cluster_range": context.solid_config["cluster_range"]}
             )
         yield Output(entities)
     else:

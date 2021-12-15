@@ -65,5 +65,7 @@ def article_cluster_schedule(context: ScheduleExecutionContext):
                                                 "begin": begin,
                                                 "end": runtime
                                                 }},
-                "load_article_clusters": {"config": {"runtime": runtime}}
+                "load_article_clusters": {"config": {"runtime": runtime,
+                                                     "cluster_range": cluster_range
+                                                     }}
             }})

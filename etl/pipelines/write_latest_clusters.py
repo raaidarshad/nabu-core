@@ -45,10 +45,13 @@ def write_latest_clusters():
 # schedules/sensors
 @asset_sensor(asset_key=AssetKey("articlecluster_table"), pipeline_name="write_latest_clusters", mode="cloud")
 def write_latest_clusters_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
+    cluster_range = asset_event.dagster_event.event_specific_data.materialization.tags["cluster_range"]
+
     yield RunRequest(
         run_key=context.cursor,
         run_config={
             "solids": {
+                "get_latest_clusters": {"config": {"cluster_range": cluster_range}},
                 "write_to_bucket": {
                     "config": {"bucket": os.getenv("SPACES_BUCKET_NAME"), "key": os.getenv("LATEST_FILE_NAME", "latest.json")}}
             }
