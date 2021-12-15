@@ -1,3 +1,4 @@
+import json
 import os
 
 from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, SensorEvaluationContext, \
@@ -45,7 +46,7 @@ def write_latest_clusters():
 # schedules/sensors
 @asset_sensor(asset_key=AssetKey("articlecluster_table"), pipeline_name="write_latest_clusters", mode="cloud")
 def write_latest_clusters_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
-    cluster_range = asset_event.dagster_event.event_specific_data.materialization.tags["cluster_range"]
+    cluster_range = json.loads(asset_event.dagster_event.event_specific_data.materialization.tags["cluster_range"])
     formatted_cluster_range = format_cluster_range(cluster_range).replace(" ", "_")
     yield RunRequest(
         run_key=context.cursor,
