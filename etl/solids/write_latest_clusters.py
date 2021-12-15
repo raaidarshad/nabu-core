@@ -7,7 +7,6 @@ from sqlmodel import Session, column, desc, distinct, func, select
 from etl.common import Context, datetime_to_str
 from ptbmodels.models import Article, ArticleCluster, ArticleClusterLink, Source
 
-
 ClusterLimit = Field(config=Int, default_value=10, is_required=False)
 
 
@@ -24,7 +23,8 @@ def get_latest_clusters(context: Context):
         order_by(desc("size"))
     sub1 = statement1.subquery("s1")
     sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
-    statement2 = select(ArticleCluster, column("size")).join(sub1).where(ArticleCluster.added_at == sub2).order_by(desc("size")).limit(context.solid_config["cluster_limit"])
+    statement2 = select(ArticleCluster, column("size")).join(sub1).where(ArticleCluster.added_at == sub2).order_by(
+        desc("size")).limit(context.solid_config["cluster_limit"])
 
     context.log.info(f"Attempting to execute: {statement2}")
     entities = db_client.exec(statement2).all()
@@ -37,7 +37,9 @@ def prep_latest_clusters(context: Context, clusters) -> dict:
     prepped_clusters = [
         {
             "topics": [{"term": k.term, "weight": k.weight} for k in c[0].keywords],
-            "articles": [{"title": a.title, "url": a.url, "source": a.source.name, "date": a.published_at.strftime("%d-%m-%Y")} for a in c[0].articles],
+            "articles": [
+                {"title": a.title, "url": a.url, "source": a.source.name, "date": a.published_at.strftime("%d-%m-%Y")}
+                for a in sorted(c[0].articles, key=lambda item: item.published_at, reverse=True)],
             "source_count": c[1]
         }
         for c in clusters
