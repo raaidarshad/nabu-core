@@ -57,7 +57,7 @@ DagsterTime = Field(
 
 def format_cluster_range(raw_cluster_range: dict) -> str:
     assert len(raw_cluster_range) == 1, "raw_cluster_range must have exactly one key/value pair"
-    for item in raw_cluster_range:
+    for item in raw_cluster_range.items():
         return f"{item[1]} {item[0]}"
 
 

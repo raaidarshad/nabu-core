@@ -16,6 +16,8 @@ def get_latest_clusters(context: Context):
     db_client: Session = context.resources.database_client
     cluster_range = context.solid_config["cluster_range"]
     formatted_cluster_range = format_cluster_range(cluster_range)
+    context.log.debug(f"Raw cluster range is: {cluster_range}")
+    context.log.debug(f"Formatted cluster range is: {formatted_cluster_range}")
 
     statement1 = select(
         ArticleClusterLink.article_cluster_id,
@@ -25,7 +27,8 @@ def get_latest_clusters(context: Context):
         group_by(ArticleClusterLink.article_cluster_id). \
         order_by(desc("size"))
     sub1 = statement1.subquery("s1")
-    sub2 = select(func.max(ArticleCluster.added_at)).scalar_subquery()
+    sub2 = select(func.max(ArticleCluster.added_at)).\
+        where(ArticleCluster.end - ArticleCluster.begin == formatted_cluster_range).scalar_subquery()
     statement2 = select(ArticleCluster, column("size")).join(sub1).\
         where(ArticleCluster.added_at == sub2).\
         where(ArticleCluster.end - ArticleCluster.begin == formatted_cluster_range).\
