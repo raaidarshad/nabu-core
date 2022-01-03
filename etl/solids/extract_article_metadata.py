@@ -1,10 +1,10 @@
+import pydantic
 from dagster import Array, Enum, EnumValue, Field, solid
 
 from sqlmodel import Session, select, update
 
 from etl.common import DagsterTime, Context, clean_text, get_source_names, load_rows_factory, str_to_datetime
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
-
 
 # we want to restrict developer selection of source by name to only source names that we know of, so we use an Enum
 SourceDenum = Enum("SourceDenum", [EnumValue("all")] + [EnumValue(n) for n in get_source_names()])
@@ -57,12 +57,17 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
                 rss_feed_id=rss_feed.id,
                 published_at=str_to_datetime(e.published),
                 **e) for e in raw.entries]
-            return RawFeed(
-                entries=entries,
-                source_id=rss_feed.source_id,
-                rss_feed_id=rss_feed.id,
-                **raw.feed
-            )
+            try:
+                return RawFeed(
+                    entries=entries,
+                    source_id=rss_feed.source_id,
+                    rss_feed_id=rss_feed.id,
+                    **raw.feed
+                )
+            except pydantic.ValidationError as e:
+                context.log.debug(f"The error: {e}, for rss_feed of id {rss_feed.id} and url {rss_feed.url}")
+                context.log.debug(f"The raw.feed values of concern are: {raw.feed}")
+
         # see https://pythonhosted.org/feedparser/http-redirect.html for details for 301 and 410 codes
         elif raw.status in [301, 410]:
             db_client: Session = context.resources.database_client
