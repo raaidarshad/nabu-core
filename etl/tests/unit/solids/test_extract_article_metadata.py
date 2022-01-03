@@ -84,7 +84,7 @@ def test_get_raw_feeds():
     rss_feeds = [
         RssFeed(
             source_id=idx,
-            url="https://fake.com",
+            url="https://www.fake.com",
             parser_config={"fake": "config"}
         ) for idx, n in enumerate(source_names)]
 
@@ -138,50 +138,6 @@ def test_get_raw_feeds():
                                  link=parsed.feed.link,
                                  source_id=rss_feeds[idx].source_id,
                                  rss_feed_id=rss_feeds[idx].id)
-
-
-def test_get_raw_feeds_validation_error():
-    source_names = get_source_names()[:3]
-
-    rss_feeds = [
-        RssFeed(
-            source_id=idx,
-            url="https://fake.com",
-            parser_config={"fake": "config"}
-        ) for idx, n in enumerate(source_names)]
-
-    parsed = feedparser.FeedParserDict({
-        "status": 200,
-        "feed": feedparser.FeedParserDict(
-            {"updated": datetime_to_str(get_current_time()),
-             "linkBadName": "https://www.fake.com",
-             "title": "myfeed_title",
-             "subtitle": "myfeed_subtitle"
-             }),
-        "entries": [feedparser.FeedParserDict(
-            {"title": "fake_title",
-             "summary": "fake_summary",
-             "published": datetime_to_str(get_current_time()),
-             "link": "https://www.fake.com",
-             "author": "pencil mcpen"
-             })]
-    })
-
-    def _test_rss_parser(_init_context):
-        rss_mock = mock_rss_parser()
-        rss_mock.parse = Mock(return_value=parsed)
-        return rss_mock
-
-    result: SolidExecutionResult = execute_solid(
-        get_raw_feeds,
-        input_values={"rss_feeds": rss_feeds},
-        mode_def=ModeDefinition(name="test",
-                                resource_defs={"rss_parser": ResourceDefinition(_test_rss_parser),
-                                               "database_client": mock_database_client})
-    )
-
-    assert result.success
-    assert len(result.output_value()) == 0
 
 
 def test_get_new_raw_feed_entries():

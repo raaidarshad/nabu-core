@@ -62,7 +62,11 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
                     entries=entries,
                     source_id=rss_feed.source_id,
                     rss_feed_id=rss_feed.id,
-                    **raw.feed
+                    title=raw.feed.title,
+                    # this is still aliased as 'link' in the model because we used to
+                    # unpack the whole raw.feed object into this; couldn't hurt to update
+                    # the model and all uses of it to say url and remove the alias
+                    link=rss_feed.url
                 )
             except pydantic.ValidationError as e:
                 context.log.debug(f"The error: {e}, for rss_feed of id {rss_feed.id} and url {rss_feed.url}")
