@@ -31,7 +31,7 @@ db_cluster = do.DatabaseCluster("ptb-postgres",
                                 engine="pg",
                                 node_count=1,
                                 region=region,
-                                size="db-s-1vcpu-1gb",
+                                size="db-s-1vcpu-2gb",
                                 version="13")
 
 db_dagster = do.DatabaseDb("db_dagster", cluster_id=db_cluster.id)
