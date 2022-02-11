@@ -1,58 +1,72 @@
 [
   {
     "id": 0,
-    "name": "Jacobin Magazine"
+    "name": "Jacobin Magazine",
+    "url": "jacobinmag.com"
   },
   {
     "id": 1,
-    "name": "The Intercept"
+    "name": "The Intercept",
+    "url": "theintercept.com"
   },
   {
     "id": 2,
-    "name": "Vox"
+    "name": "Vox",
+    "url": "www.vox.com"
   },
   {
     "id": 3,
-    "name": "New York Times"
+    "name": "New York Times",
+    "url": "www.nytimes.com"
   },
   {
     "id": 4,
-    "name": "The Guardian"
+    "name": "The Guardian",
+    "url": "www.theguardian.com"
   },
   {
     "id": 5,
-    "name": "The Washington Post"
+    "name": "The Washington Post",
+    "url": "www.washingtonpost.com"
   },
   {
     "id": 6,
-    "name": "National Public Radio"
+    "name": "National Public Radio",
+    "url": "www.npr.org"
   },
   {
     "id": 7,
-    "name": "The Wall Street Journal"
+    "name": "The Wall Street Journal",
+    "url": "www.wsj.com"
   },
   {
     "id": 8,
-    "name": "Reuters"
+    "name": "Reuters",
+    "url": "www.reuters.com"
   },
   {
     "id": 9,
-    "name": "Fox News"
+    "name": "Fox News",
+    "url": "www.foxnews.com"
   },
   {
     "id": 10,
-    "name": "The Washington Times"
+    "name": "The Washington Times",
+    "url": "www.washingtontimes.com"
   },
   {
     "id": 11,
-    "name": "Newsmax"
+    "name": "Newsmax",
+    "url": "www.newsmax.com"
   },
   {
     "id": 12,
-    "name": "One America News Network"
+    "name": "One America News Network",
+    "url": "www.oann.com"
   },
   {
     "id": 13,
-    "name": "Breitbart News"
+    "name": "Breitbart News",
+    "url": "www.breitbart.com"
   }
 ]
