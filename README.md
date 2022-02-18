@@ -13,7 +13,7 @@ Project requires a running Postgres instance. Raaid, you have a shortcut set up 
 actually: `docker run --rm --name postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_HOST_AUTH_METHOD=trust 
 -p 127.0.0.1:5432:5432/tcp postgres`
 
-Then run `init_db.py` with the correct credentials for the local PostgreSQL instance.
+Then run `init_db.py` with the correct credentials for the local PostgreSQL instance. (This might not be necessary)
 
 Next, From the project root directory, run `dagit -f etl/repositories.py` in one terminal, then run 
 `dagster-daemon run` in another. Go to `http://127.0.0.1:3000` in your browser. Use the UI to turn on schedules
