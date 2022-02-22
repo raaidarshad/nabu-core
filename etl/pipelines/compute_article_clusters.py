@@ -47,7 +47,7 @@ def compute_article_clusters():
 
 
 # schedules/sensors
-@schedule(cron_schedule="25 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+@schedule(cron_schedule="0 * * * *", pipeline_name="compute_article_clusters", mode="cloud")
 def article_cluster_schedule_12h(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
@@ -70,7 +70,7 @@ def article_cluster_schedule_12h(context: ScheduleExecutionContext):
             }}
 
 
-@schedule(cron_schedule="30 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+@schedule(cron_schedule="*/5 * * * *", pipeline_name="compute_article_clusters", mode="cloud")
 def article_cluster_schedule_1d(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
@@ -92,7 +92,7 @@ def article_cluster_schedule_1d(context: ScheduleExecutionContext):
             }}
 
 
-@schedule(cron_schedule="35 */1 * * *", pipeline_name="compute_article_clusters", mode="cloud")
+@schedule(cron_schedule="0 */6 * * *", pipeline_name="compute_article_clusters", mode="cloud")
 def article_cluster_schedule_3d(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:

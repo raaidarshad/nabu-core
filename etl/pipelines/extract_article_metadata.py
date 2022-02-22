@@ -57,7 +57,7 @@ def extract_article_metadata():
 
 
 # schedules/sensors
-@schedule(cron_schedule="13 */1 * * *", pipeline_name="extract_article_metadata", mode="cloud")
+@schedule(cron_schedule="*/5 * * * *", pipeline_name="extract_article_metadata", mode="cloud")
 def main_schedule(context: ScheduleExecutionContext):
     runtime = context.scheduled_execution_time
     if not runtime.tzinfo:
