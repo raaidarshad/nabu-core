@@ -11,6 +11,9 @@ psycopg = "^3.0.9"
 uvicorn = {version = "^0.17.5", extras = ["standard"]}
 gunicorn = "^20.1.0"
 
+[tool.poetry.dev-dependencies]
+requests = "^2.27.1"
+pytest = "^7.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
