@@ -29,7 +29,7 @@ async def submit_search(search_body: SearchBody):
     # if the url is found and there are similar articles, return a 200 and a full body
     async with await psycopg.AsyncConnection.connect(os.getenv("DB_CONNECTION_STRING")) as aconn:
         async with aconn.cursor(row_factory=dict_row) as acur:
-            await acur.execute("SELECT * FROM article WHERE url ilike %s", (search_body.url, ))
+            await acur.execute("SELECT * FROM article WHERE url like %s", (search_body.url, ))
             found_article = await acur.fetchone()
             if found_article:
                 await acur.execute("""
