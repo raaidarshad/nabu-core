@@ -99,7 +99,7 @@ nginx_release_args = ReleaseArgs(
     name="nginx-ingress",
     chart="ingress-nginx",
     repository_opts=RepositoryOptsArgs(repo="https://kubernetes.github.io/ingress-nginx"),
-    version="1.1.1"
+    version="4.0.17"
 )
 
 nginx_release = Release("nginx-ingress-controller", args=nginx_release_args, opts=opts)
