@@ -111,7 +111,7 @@ release_args = ReleaseArgs(
     repository_opts=RepositoryOptsArgs(
         repo="https://dagster-io.github.io/helm"
     ),
-    version="0.13.10",
+    version="0.14.2",
     values={
         "global": {"postgresqlSecretName": dagster_secret_name},
         "generatePostgresqlPasswordSecret": False,
@@ -151,8 +151,10 @@ release_args = ReleaseArgs(
         "ingress": {
             "enabled": True,
             "ingressClassName": "nginx",
-            "dagit": {
-                "host": "dagster.nabu.news"
+            "readOnlyDagit": {
+                "host": "dagster.nabu.news",
+                "path": "/",
+                "pathType": "Prefix"
             }
         }
     }
