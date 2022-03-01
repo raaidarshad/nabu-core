@@ -147,6 +147,13 @@ release_args = ReleaseArgs(
             "service": {
                 "port": db_cluster.port
             }
+        },
+        "ingress": {
+            "enabled": True,
+            "ingressClassName": "nginx",
+            "dagit": {
+                "host": "dagster.nabu.news"
+            }
         }
     }
 )
