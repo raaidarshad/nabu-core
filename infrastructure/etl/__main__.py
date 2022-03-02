@@ -168,13 +168,13 @@ dagster_release = Release("ptb", args=dagster_release_args, opts=opts)
 cert_manager_ns = Namespace("cert-manager-ns", opts=opts)
 
 
-# cert_manager_release_args = ReleaseArgs(
-#     name="cert-manager",
-#     chart="cert-manager",
-#     repository_opts=RepositoryOptsArgs(repo="https://charts.jetstack.io"),
-#     version="1.7.1",
-#     values={"installCRDs": True},
-#     namespace=cert_manager_ns
-# )
+cert_manager_release_args = ReleaseArgs(
+    name="cert-manager",
+    chart="cert-manager",
+    repository_opts=RepositoryOptsArgs(repo="https://charts.jetstack.io"),
+    version="1.7.1",
+    values={"installCRDs": True},
+    namespace=cert_manager_ns.id
+)
 
-# cert_manager_release = Release("cert-manager", args=cert_manager_release_args, opts=opts)
+cert_manager_release = Release("cert-manager", args=cert_manager_release_args, opts=opts)
