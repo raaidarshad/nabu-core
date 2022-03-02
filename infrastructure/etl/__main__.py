@@ -151,7 +151,7 @@ release_args = ReleaseArgs(
         "ingress": {
             "enabled": True,
             "ingressClassName": "nginx",
-            "readOnlyDagit": {
+            "dagit": {
                 "host": "dagster.nabu.news",
                 "path": "/",
                 "pathType": "Prefix"
