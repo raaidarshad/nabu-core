@@ -1,9 +1,9 @@
 """A DigitalOcean Python Pulumi program"""
 
-from pulumi import Config, Output, ResourceOptions
+from pulumi import Config, Output, ResourceOptions, export
 import pulumi_digitalocean as do
 from pulumi_kubernetes import Provider, ProviderArgs
-from pulumi_kubernetes.core.v1 import Secret, SecretInitArgs
+from pulumi_kubernetes.core.v1 import Namespace, Secret, SecretInitArgs
 from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 
@@ -105,7 +105,7 @@ nginx_release_args = ReleaseArgs(
 nginx_release = Release("nginx-ingress-controller", args=nginx_release_args, opts=opts)
 
 # dagster
-release_args = ReleaseArgs(
+dagster_release_args = ReleaseArgs(
     name="dagster-etl",
     chart="dagster",
     repository_opts=RepositoryOptsArgs(
@@ -160,4 +160,21 @@ release_args = ReleaseArgs(
     }
 )
 
-release = Release("ptb", args=release_args, opts=opts)
+dagster_release = Release("ptb", args=dagster_release_args, opts=opts)
+
+# cert manager
+
+# create a namespace before the helm release
+cert_manager_ns = Namespace("cert-manager-ns", opts=opts)
+
+
+# cert_manager_release_args = ReleaseArgs(
+#     name="cert-manager",
+#     chart="cert-manager",
+#     repository_opts=RepositoryOptsArgs(repo="https://charts.jetstack.io"),
+#     version="1.7.1",
+#     values={"installCRDs": True},
+#     namespace=cert_manager_ns
+# )
+
+# cert_manager_release = Release("cert-manager", args=cert_manager_release_args, opts=opts)
