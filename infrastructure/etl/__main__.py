@@ -10,6 +10,10 @@ from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 region = "nyc3"
 config = Config()
 
+###############
+### STORAGE ###
+###############
+
 # create bucket
 do_provider = do.Provider("do-provider",
                           args=do.ProviderArgs(
@@ -25,6 +29,10 @@ space = do.SpacesBucket("ptb-bucket",
                         region=region,
                         opts=do_opts
                         )
+
+################
+### DATABASE ###
+################
 
 # create a db cluster, dbs, and users
 db_cluster = do.DatabaseCluster("ptb-postgres",
@@ -45,6 +53,11 @@ db_cluster_port = db_cluster.port.apply(lambda port: str(port))
 db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.password, "@", db_cluster.private_host,
                             ":", db_cluster_port, "/", db_etl.name)
 # db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
+
+
+##################
+### KUBERNETES ###
+##################
 
 # create a k8s cluster and node pools
 k8s = do.KubernetesCluster("ptb-k8s",
@@ -92,7 +105,9 @@ docker_secret = Secret("docker-secret",
                            metadata=ObjectMetaArgs(name=docker_secret_name)
                        ), opts=opts)
 
-# helm
+#####################
+### HELM RELEASES ###
+#####################
 
 # nginx ingress controller
 nginx_release_args = ReleaseArgs(
