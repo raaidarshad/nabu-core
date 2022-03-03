@@ -105,6 +105,9 @@ nginx_release_args = ReleaseArgs(
 nginx_release = Release("nginx-ingress-controller", args=nginx_release_args, opts=opts)
 
 # dagster
+issuer_secret = "letsencrypt-key"
+issuer_name = "letsencrypt"
+
 dagster_release_args = ReleaseArgs(
     name="dagster-etl",
     chart="dagster",
@@ -150,11 +153,16 @@ dagster_release_args = ReleaseArgs(
         },
         "ingress": {
             "enabled": True,
+            "annotations": {"cert-manager.io/cluster-issuer": issuer_name},
             "ingressClassName": "nginx",
             "dagit": {
                 "host": "dagster.nabu.news",
                 "path": "/",
-                "pathType": "Prefix"
+                "pathType": "Prefix",
+                "tls": {
+                    "enabled": True,
+                    "secretName": issuer_secret
+                }
             }
         }
     }
@@ -178,3 +186,16 @@ cert_manager_release_args = ReleaseArgs(
 )
 
 cert_manager_release = Release("cert-manager", args=cert_manager_release_args, opts=opts)
+
+# issuer
+issuer_release_args = ReleaseArgs(
+    name="cert-issuer",
+    chart="./helm_charts/issuer",
+    version="0.1.0",
+    values={
+        "name": issuer_name,
+        "secretName": issuer_secret
+    }
+)
+
+issuer_release = Release("cert-issuer", args=issuer_release_args, opts=opts)
