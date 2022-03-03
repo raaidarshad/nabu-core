@@ -1,6 +1,6 @@
 """A DigitalOcean Python Pulumi program"""
 
-from pulumi import Config, Output, ResourceOptions, export
+from pulumi import Config, Output, ResourceOptions
 import pulumi_digitalocean as do
 from pulumi_kubernetes import Provider, ProviderArgs
 from pulumi_kubernetes.core.v1 import Namespace, Secret, SecretInitArgs
