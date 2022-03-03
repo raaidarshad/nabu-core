@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.name }}
+spec:
+  acme:
+    # Email address used for ACME registration
+    email: {{ .Values.email }}
+    server: {{ .Values.server }}
+    privateKeySecretRef:
+      # Name of a secret used to store the ACME account private key
+      name: {{ .Values.secretName }}
+    # Add a single challenge solver, HTTP01
+    solvers:
+    - http01:
+        ingress:
+          class: {{ .Values.ingressClassName }}
