@@ -47,12 +47,14 @@ db_etl = do.DatabaseDb("db_etl", cluster_id=db_cluster.id)
 db_user_dagster = do.DatabaseUser("db_user_dagster", cluster_id=db_cluster.id)
 db_user_etl = do.DatabaseUser("db_user_etl", cluster_id=db_cluster.id)
 db_user_monitor = do.DatabaseUser("db_user_monitor", cluster_id=db_cluster.id)
+db_user_api = do.DatabaseUser("db_user_api", cluster_id=db_cluster.id)
 
 # create db conn strings for each user to the right db
 db_cluster_port = db_cluster.port.apply(lambda port: str(port))
 db_conn_etl = Output.concat("postgresql://", db_user_etl.name, ":", db_user_etl.password, "@", db_cluster.private_host,
                             ":", db_cluster_port, "/", db_etl.name)
-# db_conn_monitor = f"postgresql://{db_user_monitor.name}:{db_user_monitor.password}@{db_cluster.private_host}:{db_cluster.port}/{db_etl.name}"
+db_conn_api = Output.concat("postgresql://", db_user_api.name, ":", db_user_api.password, "@", db_cluster.private_host,
+                            ":", db_cluster_port, "/", db_etl.name)
 
 
 ##################
@@ -87,6 +89,15 @@ etl_secret = Secret("etl-db-secret",
                             "SPACES_BUCKET_NAME": bucket_name
                         },
                         metadata=ObjectMetaArgs(name=etl_secret_name)
+                    ), opts=opts)
+api_secret_name = "api-db-secret"
+api_secret_key = "DB_CONNECTION_STRING"
+api_secret = Secret("api-db-secret",
+                    args=SecretInitArgs(
+                        string_data={
+                            api_secret_key: db_conn_api
+                        },
+                        metadata=ObjectMetaArgs(name=api_secret_name)
                     ), opts=opts)
 dagster_secret_name = "dagster-db-secret"
 dagster_secret = Secret("dagster-postgresql-secret",
@@ -214,3 +225,37 @@ issuer_release_args = ReleaseArgs(
 )
 
 issuer_release = Release("cert-issuer", args=issuer_release_args, opts=opts)
+
+# api server
+api_host = "api.nabu.news"
+
+api_release_args = ReleaseArgs(
+    name="api-server",
+    chart="../../api/helm/nabu-api",
+    version="0.1.0",
+    values={
+        "server": {
+            "dbSecret": {
+                "name": api_secret_name,
+                "key": api_secret_key
+            }
+        },
+        "imagePullSecrets": [{"name": docker_secret_name}],
+        "ingress": {
+            "annotations": {"cert-manager.io/cluster-issuer": issuer_name},
+            "hosts": [{
+                "host": api_host,
+                "paths": [{
+                    "pathType": "Prefix",
+                    "path": "/"
+                }]
+            }],
+            "tls": [{
+                "secretName": issuer_secret,
+                "hosts": [api_host]
+            }]
+        }
+    }
+)
+
+api_release = Release("api-server", args=api_release_args, opts=opts)

@@ -5,8 +5,8 @@
 server:
   replicaCount: 1
   dbSecret:
-    name: todo
-    key: todo
+    name: fake
+    key: fake
 
 image:
   repository: registry.digitalocean.com/ptb/api
@@ -44,17 +44,13 @@ ingress:
   className: nginx
   annotations:
      cert-manager.io/cluster-issuer: letsencrypt
-  issuer:
-    name: letsencrypt
-    email: raaid@protonmail.com
-    secret: todo
   hosts:
     - host: "api.nabu.news"
       paths:
       - pathType: Prefix
         path: "/"
   tls:
-    - secretName: todo
+    - secretName: fake
       hosts:
         - "api.nabu.news"
 
