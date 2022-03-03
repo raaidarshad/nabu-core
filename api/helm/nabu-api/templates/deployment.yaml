@@ -23,10 +23,10 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.version }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-              containerPort: 80
+            - containerPort: 80
           env:
             - name: DB_CONNECTION_STRING
               valueFrom:
