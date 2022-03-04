@@ -51,6 +51,7 @@ space = do.SpacesBucket(bucket_name,
 ################
 
 # create a db cluster, dbs, and users
+# TODO likely want to configure prod vs non-prod db specs
 db_cluster = do.DatabaseCluster(format_name("ptb-postgres"),
                                 engine="pg",
                                 node_count=1,
@@ -78,6 +79,7 @@ db_conn_api = Output.concat("postgresql://", db_user_api.name, ":", db_user_api.
 ##################
 
 # create a k8s cluster and node pools
+# TODO likely want to configure prod vs non-prod k8s specs
 k8s = do.KubernetesCluster(format_name("ptb-k8s"),
                            region=region,
                            version="1.21.5-do.0",
@@ -167,7 +169,7 @@ dagster_release_args = ReleaseArgs(
                     "name": "etl",
                     "image": {
                         "repository": "registry.digitalocean.com/ptb/etl",
-                        "tag": config.require("tag"),
+                        "tag": config.require("dagster_tag"),
                         "pullPolicy": "Always"
                     },
                     "dagsterApiGrpcArgs": ["-f", "etl/repositories.py"],
@@ -255,6 +257,9 @@ api_release_args = ReleaseArgs(
                 "name": api_secret_name,
                 "key": api_secret_key
             }
+        },
+        "image": {
+            "version": config.require("api_tag")
         },
         "imagePullSecrets": [{"name": docker_secret_name}],
         "ingress": {
