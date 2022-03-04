@@ -129,3 +129,6 @@ todo
 
 #### Need to update the CloudFlare Access controls?
 todo
+
+#### Need a DB user?
+todo pulumi plus granting permissions manually
