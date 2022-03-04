@@ -7,3 +7,5 @@ config:
     secure: AAABAGn0C4G55fSBvPJcvaEhqYkM19/EtiDnmzkzuWtHmnsmW5c/3i41uNk+dt+CqXAFvY0CedcZU9l+8zxb4ZqnMojlqu1YaSmv
   etl:api_tag: latest
   etl:dagster_tag: latest
+  etl:db_node_count: 1
+  etl:db_size: db-s-1vcpu-1gb

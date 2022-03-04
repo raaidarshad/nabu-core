@@ -54,9 +54,9 @@ space = do.SpacesBucket(bucket_name,
 # TODO likely want to configure prod vs non-prod db specs
 db_cluster = do.DatabaseCluster(format_name("ptb-postgres"),
                                 engine="pg",
-                                node_count=1,
+                                node_count=config.require("db_node_count"),
                                 region=region,
-                                size="db-s-1vcpu-2gb",
+                                size=config.require("db_size"),
                                 version="13")
 
 db_dagster = do.DatabaseDb("db_dagster", cluster_id=db_cluster.id)
