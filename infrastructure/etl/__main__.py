@@ -30,7 +30,7 @@ def format_name(initial_name: str) -> str:
 
 
 # need to explicitly pass spaces access information, so we need a specific provider
-do_provider = do.Provider(format_name("do-provider"),
+do_provider = do.Provider("do-provider",
                           args=do.ProviderArgs(
                               spaces_access_id=config.require_secret("spaces_access"),
                               spaces_secret_key=config.require_secret("spaces_secret")
