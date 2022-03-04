@@ -10,6 +10,9 @@ This repo contains all the code to run the data processing side of Nabu.
 [Chrome Extension](https://chrome.google.com/webstore/detail/nabu/bgmcmbjhfdnfaplfiiphlefclhhhnajb)
 [Extension code repository](https://github.com/raaidarshad/nabu-browser-extension)
 
+Note: Many things referenced here and in the code may have the acronym "ptb" as a part of them. This is because this
+project used to be named "pop the bubble".
+
 ## ETL
 This project heavily uses Dagster for scheduling and coordination of pipeline runs. Note: The code needs to be updated
 to use the latest version/syntax from Dagster, but this "legacy" syntax still works.
@@ -28,13 +31,6 @@ Next, From the project root directory, run `dagit -f etl/repositories.py` in one
 `dagster-daemon run` in another. Go to `http://127.0.0.1:3000` in your browser. Use the UI to turn on schedules
 and sensors or manually kick off jobs.
 
-### Run remotely
-TODO, but look at `infrastructure/etl/__main__.py` for guidance. You need a Postgres instance to point to,
-and otherwise we use the official Dagster Helm chart and pass in appropriate values to point to our Docker image
-for the "user code" to deploy.
-
-Docker image is automatically tested and updated from GitHub actions whenever there is a code change.
-
 ### Run tests
 We use pytest.
 
@@ -42,10 +38,11 @@ For unit tests: `pytest etl/tests/unit`
 For integration tests (needs a running Postgres instance, see instructions above for that): `pytest etl/tests/it`
 
 ### Container
-todo
+The Docker image is automatically tested and updated from GitHub actions whenever there is a code change. The registry
+is located at registry.digitalocean.com/ptb/etl
 
 ### Helm
-todo
+As mentioned above, we use the [official Dagster Helm chart](https://github.com/dagster-io/dagster/tree/master/helm/dagster) to deploy our instance.
 
 ### Dagit UI
 The Dagit UI for Dagster is available to those who have access [here](https://dagster.nabu.news).
@@ -84,20 +81,23 @@ master to PyPi.
 ## API
 TODO
 ### Run locally
-todo
-
-### Run remotely
-todo
+You need to point the API to a database with a schema as defined in `ptbmodels`. Do so by providing an environment
+variable named `DB_CONNECTION_STRING`. The following is an example of running the API server locally from api/api:
+`DB_CONNECTION_STRING=my_fake_conn_string uvicorn main:app --reload`
 
 ### Run tests
-todo
+We use pytest.
+
+For all tests: `pytest api/tests`
 
 ### Container
-todo
+The Docker image is automatically tested and updated from GitHub actions whenever there is a code change. The registry
+is located at registry.digitalocean.com/ptb/api
 
 ### Helm
-todo
-
+We have a straightforward Helm chart defined at `api/helm/nabu-api` in this project. It is not published to a Helm
+repository anywhere, as the only place it is referred to and released from is also within this project, therefore we
+save ourselves the burden of setting up a Helm repository and just point to it locally.
 
 ## Making changes
 
@@ -125,10 +125,21 @@ todo
 Follow the same steps above for a new rss feed, making sure the source exists and referring to it.
 
 #### Need to add a new DNS record?
-todo
+
+- Navigate to the [CloudFlare dashboard](https://dash.cloudflare.com), go to the nabu.news section, and click DNS.
+- Click the "add record" button and do what you need!
 
 #### Need to update the CloudFlare Access controls?
-todo
+
+- Navigate to the [CloudFlare dashboard](https://dash.cloudflare.com), go to the nabu.news section, and click Access.
+- Click the "launch zero trust" button.
+- Go to Access -> Applications, and click on the edit button for the target application.
+- Make whatever policy, rule, auth, etc. changes are needed.
 
 #### Need a DB user?
-todo pulumi plus granting permissions manually
+
+- In infrastructure/etl/__main__.py, in the `DATABASE` section, create a new db user.
+- You can follow the template of other users: `db_user_new = do.DatabaseUser("db_user_new", cluster_id=db_cluster.id)`
+- If needed, create a connection string to store in a k8s secret
+- After running `pulumi up` for the desired environment, you will need to [specifically grant](https://www.postgresql.org/docs/13/sql-grant.html) the new user the necessary permissions
+- Assuming the user has been granted their necessary permissions, you should be all set!
