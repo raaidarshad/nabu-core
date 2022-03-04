@@ -9,3 +9,6 @@ config:
   etl:api_tag: ca01599
   etl:db_node_count: 1
   etl:db_size: db-s-1vcpu-2gb
+  etl:k8s_size: s-2vcpu-4gb
+  etl:k8s_min_nodes: 2
+  etl:k8s_max_nodes: 3

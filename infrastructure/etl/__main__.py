@@ -51,7 +51,6 @@ space = do.SpacesBucket(bucket_name,
 ################
 
 # create a db cluster, dbs, and users
-# TODO likely want to configure prod vs non-prod db specs
 db_cluster = do.DatabaseCluster(format_name("ptb-postgres"),
                                 engine="pg",
                                 node_count=config.require("db_node_count"),
@@ -79,15 +78,14 @@ db_conn_api = Output.concat("postgresql://", db_user_api.name, ":", db_user_api.
 ##################
 
 # create a k8s cluster and node pools
-# TODO likely want to configure prod vs non-prod k8s specs
 k8s = do.KubernetesCluster(format_name("ptb-k8s"),
                            region=region,
                            version="1.21.5-do.0",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
-                               size="s-2vcpu-4gb",
-                               min_nodes=2,
-                               max_nodes=3,
+                               size=config.require("k8s_size"),
+                               min_nodes=config.require("k8s_min_nodes"),
+                               max_nodes=config.require("k8s_max_nodes"),
                                auto_scale=True
                            ))
 
