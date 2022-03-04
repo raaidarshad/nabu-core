@@ -1,6 +1,6 @@
 """A DigitalOcean Python Pulumi program"""
 
-from pulumi import Config, Output, ResourceOptions
+from pulumi import Config, Output, ResourceOptions, get_stack
 import pulumi_digitalocean as do
 from pulumi_kubernetes import Provider, ProviderArgs
 from pulumi_kubernetes.core.v1 import Namespace, Secret, SecretInitArgs
@@ -9,21 +9,37 @@ from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 
 region = "nyc3"
 config = Config()
+stack = get_stack()
+
+### UTILS ###
+
+
+def format_name(initial_name: str) -> str:
+    if stack != "prod":
+        # if not prod, we want to be explicit about what env we're in
+        out_name = f"{stack}-{initial_name}"
+    else:
+        # just use the provided name for prod
+        out_name = initial_name
+    return out_name
+
 
 ###############
 ### STORAGE ###
 ###############
 
-# create bucket
-do_provider = do.Provider("do-provider",
+
+# need to explicitly pass spaces access information, so we need a specific provider
+do_provider = do.Provider(format_name("do-provider"),
                           args=do.ProviderArgs(
                               spaces_access_id=config.require_secret("spaces_access"),
                               spaces_secret_key=config.require_secret("spaces_secret")
                           ))
 do_opts = ResourceOptions(provider=do_provider)
 
-bucket_name = "ptb-bucket"
-space = do.SpacesBucket("ptb-bucket",
+# create bucket
+bucket_name = format_name("ptb-bucket")
+space = do.SpacesBucket(bucket_name,
                         acl="public-read",
                         name=bucket_name,
                         region=region,
@@ -35,7 +51,7 @@ space = do.SpacesBucket("ptb-bucket",
 ################
 
 # create a db cluster, dbs, and users
-db_cluster = do.DatabaseCluster("ptb-postgres",
+db_cluster = do.DatabaseCluster(format_name("ptb-postgres"),
                                 engine="pg",
                                 node_count=1,
                                 region=region,
@@ -62,7 +78,7 @@ db_conn_api = Output.concat("postgresql://", db_user_api.name, ":", db_user_api.
 ##################
 
 # create a k8s cluster and node pools
-k8s = do.KubernetesCluster("ptb-k8s",
+k8s = do.KubernetesCluster(format_name("ptb-k8s"),
                            region=region,
                            version="1.21.5-do.0",
                            node_pool=do.KubernetesClusterNodePoolArgs(
@@ -73,7 +89,7 @@ k8s = do.KubernetesCluster("ptb-k8s",
                                auto_scale=True
                            ))
 
-kube_provider = Provider("ptb-k8s-provider", args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
+kube_provider = Provider(format_name("ptb-k8s-provider"), args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
 opts = ResourceOptions(provider=kube_provider)
 
 # put db credentials in secret in cluster
@@ -182,7 +198,7 @@ dagster_release_args = ReleaseArgs(
             "annotations": {"cert-manager.io/cluster-issuer": issuer_name},
             "ingressClassName": "nginx",
             "dagit": {
-                "host": "dagster.nabu.news",
+                "host": format_name("dagster.nabu.news"),
                 "path": "/",
                 "pathType": "Prefix",
                 "tls": {
@@ -227,7 +243,7 @@ issuer_release_args = ReleaseArgs(
 issuer_release = Release("cert-issuer", args=issuer_release_args, opts=opts)
 
 # api server
-api_host = "api.nabu.news"
+api_host = format_name("api.nabu.news")
 
 api_release_args = ReleaseArgs(
     name="api-server",
