@@ -1,0 +1,15 @@
+config:
+  digitalocean:token:
+    secure: AAABAGvN7d2zlhBhua5HLyA6y0WsIHjmxG/FYxJZkyOTNiJENu6uJA6QODNA666b/ED4eWruu6LRidT72QWaYkNXQfu+otgmc6TRJHE88dh+5TAzlIh4eoonRva9i1OJ
+  etl:spaces_access:
+    secure: AAABAFGbQIhyrsBwLdz8DWmWkLr9b1XDcPrhkFP/PZ8RoiR0pb52BXPVNOlZML7iXmDXsQ==
+  etl:spaces_secret:
+    secure: AAABAGn0C4G55fSBvPJcvaEhqYkM19/EtiDnmzkzuWtHmnsmW5c/3i41uNk+dt+CqXAFvY0CedcZU9l+8zxb4ZqnMojlqu1YaSmv
+  etl:api_tag: latest
+  etl:dagster_tag: latest
+  etl:db_node_count: 1
+  etl:db_size: db-s-1vcpu-1gb
+  etl:k8s_size: s-1vcpu-2gb
+  etl:k8s_version: 1.20.15-do.1
+  etl:k8s_min_nodes: 2
+  etl:k8s_max_nodes: 3
