@@ -138,7 +138,7 @@ Follow the same steps above for a new rss feed, making sure the source exists an
 
 #### Need a DB user?
 
-- In infrastructure/etl/__main__.py, in the `DATABASE` section, create a new db user.
+- In `infrastructure/etl/__main__.py`, in the `DATABASE` section, create a new db user.
 - You can follow the template of other users: `db_user_new = do.DatabaseUser("db_user_new", cluster_id=db_cluster.id)`
 - If needed, create a connection string to store in a k8s secret
 - After running `pulumi up` for the desired environment, you will need to [specifically grant](https://www.postgresql.org/docs/13/sql-grant.html) the new user the necessary permissions
