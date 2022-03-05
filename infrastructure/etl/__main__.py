@@ -53,7 +53,7 @@ space = do.SpacesBucket(bucket_name,
 # create a db cluster, dbs, and users
 db_cluster = do.DatabaseCluster(format_name("ptb-postgres"),
                                 engine="pg",
-                                node_count=config.require("db_node_count"),
+                                node_count=config.require_int("db_node_count"),
                                 region=region,
                                 size=config.require("db_size"),
                                 version="13")
@@ -84,10 +84,11 @@ k8s = do.KubernetesCluster(format_name("ptb-k8s"),
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
                                size=config.require("k8s_size"),
-                               min_nodes=config.require("k8s_min_nodes"),
-                               max_nodes=config.require("k8s_max_nodes"),
+                               min_nodes=config.require_int("k8s_min_nodes"),
+                               max_nodes=config.require_int("k8s_max_nodes"),
                                auto_scale=True
-                           ))
+                           ),
+                           opts=ResourceOptions(depends_on=[db_cluster, db_user_etl, db_user_api]))
 
 kube_provider = Provider(format_name("ptb-k8s-provider"), args=ProviderArgs(kubeconfig=k8s.kube_configs[0].raw_config))
 opts = ResourceOptions(provider=kube_provider)
@@ -144,12 +145,49 @@ nginx_release_args = ReleaseArgs(
     version="4.0.17"
 )
 
-nginx_release = Release("nginx-ingress-controller", args=nginx_release_args, opts=opts)
+nginx_release = Release("nginx-ingress-controller",
+                        args=nginx_release_args,
+                        opts=ResourceOptions(provider=kube_provider, depends_on=k8s))
 
-# dagster
+# cert manager
+
+# create a namespace before the helm release
+cert_manager_ns = Namespace("cert-manager-ns", opts=ResourceOptions(provider=kube_provider, depends_on=k8s))
+
+
+cert_manager_release_args = ReleaseArgs(
+    name="cert-manager",
+    chart="cert-manager",
+    repository_opts=RepositoryOptsArgs(repo="https://charts.jetstack.io"),
+    version="1.7.1",
+    values={"installCRDs": True},
+    namespace=cert_manager_ns.id
+)
+
+cert_manager_release = Release("cert-manager",
+                               args=cert_manager_release_args,
+                               opts=ResourceOptions(provider=kube_provider, depends_on=cert_manager_ns))
+
+# issuer
+
 issuer_secret = "letsencrypt-key"
 issuer_name = "letsencrypt"
 
+issuer_release_args = ReleaseArgs(
+    name="cert-issuer",
+    chart="./helm_charts/issuer",
+    version="0.1.0",
+    values={
+        "name": issuer_name,
+        "secretName": issuer_secret
+    }
+)
+
+issuer_release = Release("cert-issuer",
+                         args=issuer_release_args,
+                         opts=ResourceOptions(provider=kube_provider, depends_on=cert_manager_release))
+
+# dagster
 dagster_release_args = ReleaseArgs(
     name="dagster-etl",
     chart="dagster",
@@ -210,37 +248,10 @@ dagster_release_args = ReleaseArgs(
     }
 )
 
-dagster_release = Release("ptb", args=dagster_release_args, opts=opts)
-
-# cert manager
-
-# create a namespace before the helm release
-cert_manager_ns = Namespace("cert-manager-ns", opts=opts)
-
-
-cert_manager_release_args = ReleaseArgs(
-    name="cert-manager",
-    chart="cert-manager",
-    repository_opts=RepositoryOptsArgs(repo="https://charts.jetstack.io"),
-    version="1.7.1",
-    values={"installCRDs": True},
-    namespace=cert_manager_ns.id
-)
-
-cert_manager_release = Release("cert-manager", args=cert_manager_release_args, opts=opts)
-
-# issuer
-issuer_release_args = ReleaseArgs(
-    name="cert-issuer",
-    chart="./helm_charts/issuer",
-    version="0.1.0",
-    values={
-        "name": issuer_name,
-        "secretName": issuer_secret
-    }
-)
-
-issuer_release = Release("cert-issuer", args=issuer_release_args, opts=opts)
+dagster_release = Release("ptb",
+                          args=dagster_release_args,
+                          opts=ResourceOptions(provider=kube_provider,
+                                               depends_on=[issuer_release, etl_secret, db_user_dagster]))
 
 # api server
 api_host = format_name("api.nabu.news")
@@ -277,4 +288,7 @@ api_release_args = ReleaseArgs(
     }
 )
 
-api_release = Release("api-server", args=api_release_args, opts=opts)
+api_release = Release("api-server",
+                      args=api_release_args,
+                      opts=ResourceOptions(provider=kube_provider,
+                                           depends_on=[issuer_release, api_secret, db_user_api]))
