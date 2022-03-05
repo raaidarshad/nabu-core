@@ -5,4 +5,11 @@ config:
     secure: AAABACjK+aBzbGEFHhuRSLk6RIMvWH9CQhwv9Qr375VMxab87CnUD5ErGMIdIxnpNxQWkw==
   etl:spaces_secret:
     secure: AAABAJaCvCq8E2o0h+y1DtpiTTWmmUEPvz/WXJszrfAmtdhrZTZXZFMPOVXbjsVS2nTsi2+BdOTK0FBYsQ81WGg1JN0aM+myi2W1
-  etl:tag: latest
+  etl:dagster_tag: 402e835
+  etl:api_tag: ca01599
+  etl:db_node_count: 1
+  etl:db_size: db-s-1vcpu-2gb
+  etl:k8s_size: s-2vcpu-4gb
+  etl:k8s_version: 1.21.5-do.0
+  etl:k8s_min_nodes: 2
+  etl:k8s_max_nodes: 3
