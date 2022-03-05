@@ -80,7 +80,7 @@ db_conn_api = Output.concat("postgresql://", db_user_api.name, ":", db_user_api.
 # create a k8s cluster and node pools
 k8s = do.KubernetesCluster(format_name("ptb-k8s"),
                            region=region,
-                           version="1.21.5-do.0",
+                           version="1.20.15-do.1",
                            node_pool=do.KubernetesClusterNodePoolArgs(
                                name="main-pool",
                                size=config.require("k8s_size"),
