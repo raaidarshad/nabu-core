@@ -79,7 +79,8 @@ master to PyPi.
 - From `ptbmodels/`, run `poetry publish --build -u {username} -p {password}`
 
 ## API
-TODO
+The API is built using FastAPI and run with uvicorn or gunicorn.
+
 ### Run locally
 You need to point the API to a database with a schema as defined in `ptbmodels`. Do so by providing an environment
 variable named `DB_CONNECTION_STRING`. The following is an example of running the API server locally from api/api:
