@@ -22,5 +22,6 @@
   {"source_id": 15, "url": "https://www.independent.co.uk/news/world/rss", "parser_config": {"id": "main"}},
   {"source_id": 15, "url": "https://www.independent.co.uk/news/uk/rss", "parser_config": {"id": "main"}},
   {"source_id": 16, "url": "https://www.telegraph.co.uk/news/rss.xml", "parser_config": {"name": "div", "attrs": {"itemprop": "articleBody"}}},
-  {"source_id": 16, "url": "https://www.telegraph.co.uk/politics/rss.xml", "parser_config": {"name": "div", "attrs": {"itemprop": "articleBody"}}}
+  {"source_id": 16, "url": "https://www.telegraph.co.uk/politics/rss.xml", "parser_config": {"name": "div", "attrs": {"itemprop": "articleBody"}}},
+  {"source_id": 17, "url": "https://www.aljazeera.com/xml/rss/all.xml", "parser_config": {"class_": "all-content", "regex": true}}
 ]
