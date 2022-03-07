@@ -5,7 +5,7 @@ from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, ex
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.resources.html_parser import mock_html_parser
+from etl.resources.html_parser import html_parser
 from etl.solids.transform_parsed_article_content import get_raw_content, parse_raw_content, load_parsed_content
 from ptbmodels.models import Article, ParsedContent, RawContent, RssFeed
 
@@ -41,7 +41,7 @@ def test_parse_raw_content():
         id=uuid4(),
         source_id=0,
         url="https://fake.com/feed",
-        parser_config={"parser": "config"}
+        parser_config={"id": "my-id"}
     )
 
     article = Article(
@@ -55,20 +55,68 @@ def test_parse_raw_content():
         rss_feed=rss_feed
     )
 
+    content1 = "fake joined"
+    content2 = "text"
+
     raw_content = RawContent(article_id=article.id,
-                             content="<p>it don't maaattterr nooo</p>",
+                             content=f"<div id='my-id'><p>{content1}</p><p>{content2}</p></div><div><p>hi</p></div>",
                              added_at=get_current_time(),
                              article=article
                              )
 
     expected_parsed_content = ParsedContent(article_id=article.id,
-                                            content="fake joined text",
+                                            content=" ".join([content1, content2]),
                                             added_at=added_at)
 
     result: SolidExecutionResult = execute_solid(
         parse_raw_content,
         mode_def=ModeDefinition(name="test",
-                                resource_defs={"html_parser": mock_html_parser}),
+                                resource_defs={"html_parser": html_parser}),
+        input_values={"raw_content": [raw_content]},
+        run_config={"solids": {"parse_raw_content": {"config": {"runtime": datetime_to_str(added_at)}}}}
+    )
+
+    assert result.success
+    assert result.output_value() == [expected_parsed_content]
+
+
+def test_parse_raw_content_regex():
+    added_at = get_current_time()
+    rss_feed = RssFeed(
+        id=uuid4(),
+        source_id=0,
+        url="https://fake.com/feed",
+        parser_config={"class_": "MyClass", "regex": True}
+    )
+
+    article = Article(
+        id=uuid4(),
+        source_id=0,
+        rss_feed_id=rss_feed.id,
+        url="https://fake.com/article-link",
+        summary="summary",
+        title="title",
+        published_at=get_current_time(),
+        rss_feed=rss_feed
+    )
+
+    content1 = "oh na na"
+    content2 = "what's my name"
+
+    raw_content = RawContent(article_id=article.id,
+                             content=f"<div class='MyClass'><p>{content1}</p><p>{content2}</p></div><div><p>merp</p></div>",
+                             added_at=get_current_time(),
+                             article=article
+                             )
+
+    expected_parsed_content = ParsedContent(article_id=article.id,
+                                            content=" ".join([content1, content2]),
+                                            added_at=added_at)
+
+    result: SolidExecutionResult = execute_solid(
+        parse_raw_content,
+        mode_def=ModeDefinition(name="test",
+                                resource_defs={"html_parser": html_parser}),
         input_values={"raw_content": [raw_content]},
         run_config={"solids": {"parse_raw_content": {"config": {"runtime": datetime_to_str(added_at)}}}}
     )

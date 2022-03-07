@@ -68,5 +68,25 @@
     "id": 13,
     "name": "Breitbart News",
     "url": "www.breitbart.com"
+  },
+  {
+    "id": 14,
+    "name": "BBC",
+    "url": "www.bbc.com"
+  },
+  {
+    "id": 15,
+    "name": "The Independent",
+    "url": "www.independent.co.uk"
+  },
+  {
+    "id": 16,
+    "name": "The Telegraph",
+    "url": "www.telegraph.co.uk"
+  },
+  {
+    "id": 17,
+    "name": "Al Jazeera",
+    "url": "www.aljazeera.com"
   }
 ]
