@@ -78,5 +78,10 @@
     "id": 15,
     "name": "The Independent",
     "url": "www.independent.co.uk"
+  },
+  {
+    "id": 16,
+    "name": "The Telegraph",
+    "url": "www.telegraph.co.uk"
   }
 ]
