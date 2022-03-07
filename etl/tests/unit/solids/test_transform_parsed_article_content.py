@@ -5,7 +5,7 @@ from dagster import ModeDefinition, ResourceDefinition, SolidExecutionResult, ex
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import mock_database_client
-from etl.resources.html_parser import html_parser, mock_html_parser
+from etl.resources.html_parser import html_parser
 from etl.solids.transform_parsed_article_content import get_raw_content, parse_raw_content, load_parsed_content
 from ptbmodels.models import Article, ParsedContent, RawContent, RssFeed
 
