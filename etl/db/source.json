@@ -69,9 +69,14 @@
     "name": "Breitbart News",
     "url": "www.breitbart.com"
   },
-    {
+  {
     "id": 14,
     "name": "BBC",
     "url": "www.bbc.com"
+  },
+  {
+    "id": 15,
+    "name": "The Independent",
+    "url": "www.independent.co.uk"
   }
 ]
