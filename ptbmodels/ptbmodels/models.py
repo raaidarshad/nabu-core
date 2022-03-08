@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Union, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
@@ -141,7 +141,7 @@ class RssFeed(PTBModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True))
-    parser_config: dict = Field(sa_column=Column(JSON))
+    parser_config: Union[dict, list] = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
     is_okay: bool = Field(default=True)
 
