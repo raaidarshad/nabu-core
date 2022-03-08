@@ -185,7 +185,7 @@ issuer_release_args = ReleaseArgs(
 
 issuer_release = Release("cert-issuer",
                          args=issuer_release_args,
-                         opts=ResourceOptions(provider=kube_provider, depends_on=cert_manager_release))
+                         opts=ResourceOptions(provider=kube_provider, depends_on=[cert_manager_release, nginx_release]))
 
 # dagster
 dagster_release_args = ReleaseArgs(
