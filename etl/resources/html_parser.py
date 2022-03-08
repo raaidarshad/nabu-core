@@ -1,4 +1,5 @@
 import re
+from typing import Union
 from unittest.mock import Mock
 
 from bs4 import BeautifulSoup
@@ -6,9 +7,23 @@ from dagster import resource
 
 
 class BaseParser:
+    def extract(self, content: str, parse_config: Union[dict, list]) -> str:
+        try:
+            # dictionary case (our default/common one), treat parse_config as a dictionary with a single configuration
+            return self.single_config_extract(content, parse_config)
+        except TypeError:
+            # list case, a TypeError will be thrown if it isn't a dictionary, so now try to treat it as a list of dict
+            for idx, config in enumerate(parse_config):
+                try:
+                    return self.single_config_extract(content, config)
+                except AttributeError as e:
+                    # this means that this particular config did not find anything, so try the next one unless it is
+                    # the last one
+                    if idx + 1 == len(parse_config):
+                        raise e
+
     @staticmethod
-    def extract(content: str, parse_config: dict) -> str:
-        # TODO change this so that it considers the possibility that parse_config is a list of possible configs
+    def single_config_extract(content: str, parse_config: dict) -> str:
         soup = BeautifulSoup(content, "html.parser")
         # check if there is a regex config
         try:
