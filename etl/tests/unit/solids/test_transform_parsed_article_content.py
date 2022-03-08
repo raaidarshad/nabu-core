@@ -131,7 +131,7 @@ def test_parse_raw_content_list_config():
         id=uuid4(),
         source_id=0,
         url="https://fake.com/feed",
-        parser_config={"multiple": [{"class_": "MyClass", "regex": True}, {"class_": "article-body"}]}
+        parser_config=[{"class_": "MyClass", "regex": True}, {"class_": "article-body"}]
     )
 
     article = Article(
