@@ -125,6 +125,51 @@ def test_parse_raw_content_regex():
     assert result.output_value() == [expected_parsed_content]
 
 
+def test_parse_raw_content_list_config():
+    added_at = get_current_time()
+    rss_feed = RssFeed(
+        id=uuid4(),
+        source_id=0,
+        url="https://fake.com/feed",
+        parser_config={"multiple": [{"class_": "MyClass", "regex": True}, {"class_": "article-body"}]}
+    )
+
+    article = Article(
+        id=uuid4(),
+        source_id=0,
+        rss_feed_id=rss_feed.id,
+        url="https://fake.com/article-link",
+        summary="summary",
+        title="title",
+        published_at=get_current_time(),
+        rss_feed=rss_feed
+    )
+
+    content1 = "oh na na"
+    content2 = "what's my name"
+
+    raw_content = RawContent(article_id=article.id,
+                             content=f"<div class='article-body'><p>{content1}</p><p>{content2}</p></div><div><p>merp</p></div>",
+                             added_at=get_current_time(),
+                             article=article
+                             )
+
+    expected_parsed_content = ParsedContent(article_id=article.id,
+                                            content=" ".join([content1, content2]),
+                                            added_at=added_at)
+
+    result: SolidExecutionResult = execute_solid(
+        parse_raw_content,
+        mode_def=ModeDefinition(name="test",
+                                resource_defs={"html_parser": html_parser}),
+        input_values={"raw_content": [raw_content]},
+        run_config={"solids": {"parse_raw_content": {"config": {"runtime": datetime_to_str(added_at)}}}}
+    )
+
+    assert result.success
+    assert result.output_value() == [expected_parsed_content]
+
+
 def test_load_parsed_content():
     parsed_content = [
         ParsedContent(
