@@ -115,6 +115,9 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
         else:
             rfe.summary = rfe.title
 
+        # if query params, grab everything before it; if none, will not mutate the url
+        rfe.url = rfe.url.split("?")[0]
+
     return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
 
 
