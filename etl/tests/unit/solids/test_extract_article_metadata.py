@@ -211,6 +211,39 @@ def test_transform_raw_feed_entries_to_articles():
         assert res.rss_feed_id == entries[idx].rss_feed_id
 
 
+def test_transform_raw_feed_entries_to_articles_query_params_present():
+    def _summary_if_idx_even(idx: int):
+        if idx % 2 == 0:
+            return "<p>textytexttext</p>"
+
+    entries = [
+        RawFeedEntry(
+            title=f"rfe{idx}",
+            summary=_summary_if_idx_even(idx),
+            published_at=get_current_time(),
+            link=f"https://fake{idx}.com?falafel=yum",
+            source_id=idx,
+            rss_feed_id=uuid4()
+        )
+        for idx in range(10)
+    ]
+
+    result: SolidExecutionResult = execute_solid(
+        transform_raw_feed_entries_to_articles,
+        input_values={"raw_feed_entries": entries}
+    )
+
+    assert result.success
+    assert len(result.output_value()) == len(entries)
+    for idx, res in enumerate(result.output_value()):
+        assert res.title == entries[idx].title
+        assert res.published_at == entries[idx].published_at
+        assert res.url == entries[idx].url.split("?")[0]
+        assert res.summary in [entries[idx].title, clean_text(entries[idx].summary)]
+        assert res.source_id == entries[idx].source_id
+        assert res.rss_feed_id == entries[idx].rss_feed_id
+
+
 def test_load_articles():
     articles = [
         Article(id=uuid4(),
