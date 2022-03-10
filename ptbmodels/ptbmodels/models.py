@@ -141,15 +141,15 @@ class RssFeed(PTBModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True))
-    parser_config: Union[dict, list] = Field(sa_column=Column(JSON))
+    parser_config: Union[list, dict] = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
     is_okay: bool = Field(default=True)
 
     source: Source = Relationship(back_populates="rss_feeds")
 
     # setting the smart_union flag so that parser_config handles dicts and lists appropriately
-    class Config:
-        smart_union = True
+    # class Config:
+    #     smart_union = True
 
 
 class Article(PTBTagModel, table=True):
