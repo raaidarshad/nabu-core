@@ -147,6 +147,10 @@ class RssFeed(PTBModel, table=True):
 
     source: Source = Relationship(back_populates="rss_feeds")
 
+    # setting the smart_union flag so that parser_config handles dicts and lists appropriately
+    class Config:
+        smart_union = True
+
 
 class Article(PTBTagModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
