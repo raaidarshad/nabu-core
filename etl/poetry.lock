@@ -83,14 +83,14 @@ numpy = ">=1.15.0"
 
 [[package]]
 name = "boto3"
-version = "1.21.14"
+version = "1.21.16"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.14,<1.25.0"
+botocore = ">=1.24.16,<1.25.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -99,7 +99,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.14"
+version = "1.24.16"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -954,14 +954,14 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "ptbmodels"
-version = "0.2.17"
+version = "0.2.17.dev1"
 description = "SQLModel common code for Pop the Bubble"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-pydantic = ">=1.8.2,<2.0.0"
+pydantic = "1.8.2"
 sqlmodel = ">=0.0.4,<0.0.5"
 
 [[package]]
@@ -1648,7 +1648,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "9281faa254f8da46b09f29b4090e718b6ccd7f84e445bfd179a7a39854a4e947"
+content-hash = "2c81f0d35f1d5035a0efb0d185a523b0b95ac22a0d9831119459be3037d5e6d0"
 
 [metadata.files]
 alembic = [
@@ -1694,12 +1694,12 @@ blis = [
     {file = "blis-0.7.6.tar.gz", hash = "sha256:fe97b10f68a1c7b54c0e54beada84e18f4efb68dd40c906fb8748f5114743ec6"},
 ]
 boto3 = [
-    {file = "boto3-1.21.14-py3-none-any.whl", hash = "sha256:d674fcd10c9603984599157941db66aa212d217dd073581c0ba2eab5e5da84fa"},
-    {file = "boto3-1.21.14.tar.gz", hash = "sha256:20d29e7b845eed3a39b43633443859bfa719ddbe3c8702ddfd999bc737fba9db"},
+    {file = "boto3-1.21.16-py3-none-any.whl", hash = "sha256:15fa6d1acac422d2d34f7811e02acfc7ac222cea24db3f463d5c52f2f87baa52"},
+    {file = "boto3-1.21.16.tar.gz", hash = "sha256:c974a7fa781c500b7067441f9883ed939cf8c80bcd74c88b11965b336cabb4b6"},
 ]
 botocore = [
-    {file = "botocore-1.24.14-py3-none-any.whl", hash = "sha256:2c40f4fc3925b9057869beda1413a7b77edb7a28eb05c6265eaf6ca1ca7d3b63"},
-    {file = "botocore-1.24.14.tar.gz", hash = "sha256:9fe55f6eab0977b00afd90e770ef2c8b989fa7b18e5c14b22ba62216ec3b564a"},
+    {file = "botocore-1.24.16-py3-none-any.whl", hash = "sha256:0a809efb821d81dc29f2e6c404ed123176b8d2eb43103758f31d89b291af2a8b"},
+    {file = "botocore-1.24.16.tar.gz", hash = "sha256:dcff7f9b5fea98701d0b520eba99385c538825f10e6d1cab1e7da213293d141e"},
 ]
 cachetools = [
     {file = "cachetools-5.0.0-py3-none-any.whl", hash = "sha256:8fecd4203a38af17928be7b90689d8083603073622229ca7077b72d8e5a976e4"},
@@ -2378,8 +2378,8 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.9.3-cp39-cp39-win_amd64.whl", hash = "sha256:accfe7e982411da3178ec690baaceaad3c278652998b2c45828aaac66cd8285f"},
 ]
 ptbmodels = [
-    {file = "ptbmodels-0.2.17-py3-none-any.whl", hash = "sha256:3d3b7c5f91ad9f15bb349f819a488c7697b45124d881c5d9d45a6bc329c34126"},
-    {file = "ptbmodels-0.2.17.tar.gz", hash = "sha256:e11b198a5a4ca9d0ec6a4813771b53fd59722d24b7320cd023d8489a1fd65831"},
+    {file = "ptbmodels-0.2.17.dev1-py3-none-any.whl", hash = "sha256:c3673e36212db853ae3f4d99235899f6850e1ec673c601795016300af9ceebc7"},
+    {file = "ptbmodels-0.2.17.dev1.tar.gz", hash = "sha256:5aecadbe644dcb7109519ba4b9072c5f6f623f5d1a48eaefd92c2356d415b895"},
 ]
 py = [
     {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
