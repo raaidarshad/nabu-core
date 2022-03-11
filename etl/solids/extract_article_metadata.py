@@ -51,40 +51,43 @@ def get_raw_feeds(context: Context, rss_feeds: list[RssFeed]) -> list[RawFeed]:
     def _get_raw_feed(rss_feed: RssFeed) -> RawFeed:
         raw = context.resources.rss_parser.parse(rss_feed.url)
         # if okay, parse entries
-        if raw.status == 200:
-            entries = [RawFeedEntry(
-                source_id=rss_feed.source_id,
-                rss_feed_id=rss_feed.id,
-                published_at=str_to_datetime(e.published),
-                **e) for e in raw.entries]
-            try:
-                return RawFeed(
-                    entries=entries,
+        try:
+            if raw.status == 200:
+                entries = [RawFeedEntry(
                     source_id=rss_feed.source_id,
                     rss_feed_id=rss_feed.id,
-                    title=raw.feed.title,
-                    # this is still aliased as 'link' in the model because we used to
-                    # unpack the whole raw.feed object into this; couldn't hurt to update
-                    # the model and all uses of it to say url and remove the alias
-                    link=rss_feed.url
-                )
-            except pydantic.ValidationError as e:
-                context.log.debug(f"The error: {e}, for rss_feed of id {rss_feed.id} and url {rss_feed.url}")
-                context.log.debug(f"The raw.feed values of concern are: {raw.feed}")
+                    published_at=str_to_datetime(e.published),
+                    **e) for e in raw.entries]
+                try:
+                    return RawFeed(
+                        entries=entries,
+                        source_id=rss_feed.source_id,
+                        rss_feed_id=rss_feed.id,
+                        title=raw.feed.title,
+                        # this is still aliased as 'link' in the model because we used to
+                        # unpack the whole raw.feed object into this; couldn't hurt to update
+                        # the model and all uses of it to say url and remove the alias
+                        link=rss_feed.url
+                    )
+                except pydantic.ValidationError as e:
+                    context.log.debug(f"The error: {e}, for rss_feed of id {rss_feed.id} and url {rss_feed.url}")
+                    context.log.debug(f"The raw.feed values of concern are: {raw.feed}")
 
-        # see https://pythonhosted.org/feedparser/http-redirect.html for details for 301 and 410 codes
-        elif raw.status in [301, 410]:
-            db_client: Session = context.resources.database_client
-            if raw.status == 301:
-                # if 310 or "permanent redirect", update rss feed url
-                statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(url=raw.href)
+            # see https://pythonhosted.org/feedparser/http-redirect.html for details for 301 and 410 codes
+            elif raw.status in [301, 410]:
+                db_client: Session = context.resources.database_client
+                if raw.status == 301:
+                    # if 310 or "permanent redirect", update rss feed url
+                    statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(url=raw.href)
+                else:
+                    # if 410 or "gone", set rss feed column of is_okay to False so we don't use it
+                    statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(is_okay=False)
+                db_client.execute(statement)
+                db_client.commit()
             else:
-                # if 410 or "gone", set rss feed column of is_okay to False so we don't use it
-                statement = update(RssFeed).where(RssFeed.id == rss_feed.id).values(is_okay=False)
-            db_client.execute(statement)
-            db_client.commit()
-        else:
-            context.log.warning(f"RssFeed with url {rss_feed.url} not parsed, code: {raw.status}")
+                context.log.warning(f"RssFeed with url {rss_feed.url} not parsed, code: {raw.status}")
+        except AttributeError as e:
+            context.log.warning(f"RssFeed with url {rss_feed.url} not retrieved. Error: {e}")
 
     raw_feeds = list(filter(None, [_get_raw_feed(rss_feed) for rss_feed in rss_feeds]))
     context.log.info(f"Got {len(raw_feeds)} raw rss feeds, expected {len(rss_feeds)}")
