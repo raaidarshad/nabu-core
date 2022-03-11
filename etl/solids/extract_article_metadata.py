@@ -124,4 +124,9 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
     return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
 
 
+@solid(required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime})
+def dedupe_titles(context: Context, articles: list[Article]) -> list[Article]:
+    ...
+
+
 load_articles = load_rows_factory("load_articles", Article, [Article.url])
