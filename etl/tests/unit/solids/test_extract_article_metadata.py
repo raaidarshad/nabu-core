@@ -286,7 +286,44 @@ def test_dedupe_titles_pass_through():
 
 
 def test_dedupe_titles_dedupes():
-    ...
+    articles = [
+        Article(id=uuid4(),
+                url=f"https://fake.com/{idx}",
+                source_id=0,
+                summary="summary",
+                title=f"title-{idx}",
+                published_at=get_current_time() - timedelta(hours=1),
+                added_at=get_current_time())
+        for idx in range(5)
+    ]
+
+    existing_articles = [
+        Article(id=uuid4(),
+                url=f"https://fake.com/{idx}-old",
+                source_id=0,
+                summary="summary",
+                title=f"title-{idx}",
+                published_at=get_current_time() - timedelta(hours=1),
+                added_at=get_current_time())
+        for idx in range(2)
+    ]
+
+    def _test_db_client(_init_context):
+        db = mock_database_client()
+        t_query = Mock()
+        t_query.all = Mock(return_value=existing_articles)
+        db.exec = Mock(return_value=t_query)
+        return db
+
+    result: SolidExecutionResult = execute_solid(
+        dedupe_titles,
+        mode_def=ModeDefinition(name="test_dedupe_titles",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
+        input_values={"new_articles": articles}
+    )
+
+    assert result.success
+    assert result.output_value() == articles[2:]
 
 
 def test_load_articles():

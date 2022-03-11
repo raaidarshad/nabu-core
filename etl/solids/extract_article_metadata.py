@@ -139,17 +139,20 @@ def dedupe_titles(context: Context, new_articles: list[Article]) -> list[Article
     existing_articles = db_client.exec(select_statement).all()
     context.log.info(f"Got {len(existing_articles)} rows of {Article.__name__}")
 
-    # see if any of these impending new ones are the same source_id and title but different url
-    context.log.info(f"Starting with {len(new_articles)} new articles")
-    for na in new_articles:
+    def _is_duplicate(na: Article) -> bool:
         for ea in existing_articles:
-            if (na.title, na.source_id) == (ea.title, ea.source_id) and na.url != ea.url:
+            if ((na.title, na.source_id) == (ea.title, ea.source_id)) and (na.url != ea.url):
                 # if yes, remove them from the list
                 context.log.debug(f"Deduping article with title {na.title} and existing url of {ea.url}")
-                new_articles.remove(na)
-    context.log.info(f"After title-source-based deduping, now have {len(new_articles)} remaining")
+                return True
+        return False
 
-    return new_articles
+    # see if any of these impending new ones are the same source_id and title but different url
+    context.log.info(f"Starting with {len(new_articles)} new articles")
+    deduped = [na for na in new_articles if not _is_duplicate(na)]
+    context.log.info(f"After title-source-based deduping, now have {len(deduped)} remaining")
+
+    return deduped
 
 
 load_articles = load_rows_factory("load_articles", Article, [Article.url])
