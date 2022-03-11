@@ -112,7 +112,8 @@ class Source(PTBModel, table=True):
     id: int = Field(primary_key=True)
     name: str = Field(sa_column=Column(String, unique=True))
     # homepage url, "human-sensible", as opposed to the rss feed urls
-    url: HttpUrl = Field(sa_column=Column(String, unique=True))
+    # also used for tld check in extension, so must correspond to window.location.host in browser console
+    url: str = Field(sa_column=Column(String, unique=True))
 
     biases: List["Bias"] = Relationship(back_populates="source")
     accuracies: List["Accuracy"] = Relationship(back_populates="source")
