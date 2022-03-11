@@ -8,8 +8,8 @@ import feedparser
 from etl.common import clean_text, get_source_names, get_current_time, datetime_to_str
 from etl.resources.database_client import mock_database_client
 from etl.resources.rss_parser import mock_rss_parser
-from etl.solids.extract_article_metadata import get_raw_feed_entries, get_raw_feeds, get_rss_feeds, get_sources,\
-    load_articles, transform_raw_feed_entries_to_articles
+from etl.solids.extract_article_metadata import dedupe_titles, get_raw_feed_entries, get_raw_feeds, get_rss_feeds,\
+    get_sources,load_articles, transform_raw_feed_entries_to_articles
 from ptbmodels.models import Article, RawFeed, RawFeedEntry, RssFeed, Source
 
 
@@ -242,6 +242,51 @@ def test_transform_raw_feed_entries_to_articles_query_params_present():
         assert res.summary in [entries[idx].title, clean_text(entries[idx].summary)]
         assert res.source_id == entries[idx].source_id
         assert res.rss_feed_id == entries[idx].rss_feed_id
+
+
+def test_dedupe_titles_pass_through():
+    articles = [
+        Article(id=uuid4(),
+                url=f"https://fake.com/{idx}",
+                source_id=0,
+                summary="summary",
+                title=f"title-{idx}",
+                published_at=get_current_time() - timedelta(hours=1),
+                added_at=get_current_time())
+        for idx in range(5)
+    ]
+
+    existing_articles = [
+        Article(id=uuid4(),
+                url=f"https://fake.com/politics/{idx}",
+                source_id=0,
+                summary="summary",
+                title=f"different-title-{idx}",
+                published_at=get_current_time() - timedelta(hours=1),
+                added_at=get_current_time())
+        for idx in range(5)
+    ]
+
+    def _test_db_client(_init_context):
+        db = mock_database_client()
+        t_query = Mock()
+        t_query.all = Mock(return_value=existing_articles)
+        db.exec = Mock(return_value=t_query)
+        return db
+
+    result: SolidExecutionResult = execute_solid(
+        dedupe_titles,
+        mode_def=ModeDefinition(name="test_dedupe_titles",
+                                resource_defs={"database_client": ResourceDefinition(_test_db_client)}),
+        input_values={"new_articles": articles}
+    )
+
+    assert result.success
+    assert result.output_value() == articles
+
+
+def test_dedupe_titles_dedupes():
+    ...
 
 
 def test_load_articles():
