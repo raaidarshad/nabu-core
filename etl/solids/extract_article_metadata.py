@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pydantic
 from dagster import Array, Enum, EnumValue, Field, solid
 
@@ -122,6 +124,35 @@ def transform_raw_feed_entries_to_articles(context: Context, raw_feed_entries: l
         rfe.url = rfe.url.split("?")[0]
 
     return [Article(added_at=current_time, **rfe.dict()) for rfe in raw_feed_entries]
+
+
+@solid(required_resource_keys={"database_client"}, config_schema={"runtime": DagsterTime})
+def dedupe_titles(context: Context, new_articles: list[Article]) -> list[Article]:
+    # this is necessary because sometimes an article title will remain the same while the url changes and is re-posted
+    db_client: Session = context.resources.database_client
+    # in observation, it happens quickly (within a few hours) so we will start with a small threshold
+    threshold = str_to_datetime(context.solid_config["runtime"]) - timedelta(hours=6)
+
+    # reach out to db and grab article urls, titles, and source_ids from past 24h
+    select_statement = select(Article).where((Article.added_at > threshold))
+    context.log.info(f"Attempting to execute: {select_statement}")
+    existing_articles = db_client.exec(select_statement).all()
+    context.log.info(f"Got {len(existing_articles)} rows of {Article.__name__}")
+
+    def _is_duplicate(na: Article) -> bool:
+        for ea in existing_articles:
+            if ((na.title, na.source_id) == (ea.title, ea.source_id)) and (na.url != ea.url):
+                # if yes, remove them from the list
+                context.log.debug(f"Deduping article with title {na.title} and existing url of {ea.url}")
+                return True
+        return False
+
+    # see if any of these impending new ones are the same source_id and title but different url
+    context.log.info(f"Starting with {len(new_articles)} new articles")
+    deduped = [na for na in new_articles if not _is_duplicate(na)]
+    context.log.info(f"After title-source-based deduping, now have {len(deduped)} remaining")
+
+    return deduped
 
 
 load_articles = load_rows_factory("load_articles", Article, [Article.url])
