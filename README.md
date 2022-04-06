@@ -108,10 +108,10 @@ save ourselves the burden of setting up a Helm repository and just point to it l
 - Bump the version in `ptbmodels/pyproject.toml`, line 3
 - From `ptbmodels/`, run `poetry publish --build -u {username} -p {password}` (or let the CI/CD autopublish it)
 - To use the updates in code: Bump the ptbmodels version in `etl/pyproject.toml`
-- To propogate the changes to the DB: From `ptbmodels/alembic/` run `alembic revision --autogenerate -m "revision message"`
-- Edit the newly created revision file in `ptbmodels/alembic/alembic/versions/` as needed
+- To propogate the changes to the DB: From `ptbmodels/db/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic revision --autogenerate -m "revision message"`
+- Edit the newly created revision file in `ptbmodels/db/alembic/versions/` as needed
 - TODO need to set up CD for Alembic revisions
-- To propogate the Alembic changes, from `ptbmodels/alembic/alembic/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic upgrade head`
+- To propogate the Alembic changes, from `ptbmodels/db/alembic/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic upgrade head`
 - Should be good to go!
 
 #### Need to add a new source?
