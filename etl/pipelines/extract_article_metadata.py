@@ -6,7 +6,7 @@ from etl.common import datetime_to_str, get_current_time, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     extract_articles_test_database_client
 from etl.resources.rss_parser import mock_rss_parser, rss_parser
-from etl.solids.extract_article_metadata import get_rss_feeds, get_raw_feeds, get_raw_feed_entries, \
+from etl.solids.extract_article_metadata import dedupe_titles, get_rss_feeds, get_raw_feeds, get_raw_feed_entries, \
     transform_raw_feed_entries_to_articles, load_articles
 
 # resource definitions
@@ -53,7 +53,8 @@ def extract_article_metadata():
     raw_feeds = get_raw_feeds(rss_feeds)
     raw_feed_entries = get_raw_feed_entries(raw_feeds)
     articles = transform_raw_feed_entries_to_articles(raw_feed_entries)
-    load_articles(articles)
+    deduped = dedupe_titles(articles)
+    load_articles(deduped)
 
 
 # schedules/sensors

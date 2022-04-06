@@ -5,7 +5,7 @@ config:
     secure: AAABACjK+aBzbGEFHhuRSLk6RIMvWH9CQhwv9Qr375VMxab87CnUD5ErGMIdIxnpNxQWkw==
   etl:spaces_secret:
     secure: AAABAJaCvCq8E2o0h+y1DtpiTTWmmUEPvz/WXJszrfAmtdhrZTZXZFMPOVXbjsVS2nTsi2+BdOTK0FBYsQ81WGg1JN0aM+myi2W1
-  etl:dagster_tag: 402e835
+  etl:dagster_tag: 87e6bd6
   etl:api_tag: ca01599
   etl:db_node_count: 1
   etl:db_size: db-s-1vcpu-2gb

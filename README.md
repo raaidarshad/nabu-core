@@ -1,14 +1,13 @@
 # Nabu
 This repo contains all the code to run the data processing side of Nabu.
 
-[API Base URL](https://api.nabu.news)
-[Dagit UI](https://dagster.nabu.news) - Note that this is not publicly accessible
-
-[Website](https://www.nabu.news)
-[Website code repository](https://github.com/raaidarshad/nabu-website)
-[Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/nabu/)
-[Chrome Extension](https://chrome.google.com/webstore/detail/nabu/bgmcmbjhfdnfaplfiiphlefclhhhnajb)
-[Extension code repository](https://github.com/raaidarshad/nabu-browser-extension)
+- [API Base URL](https://api.nabu.news)
+- [Dagit UI](https://dagster.nabu.news) - Note that this is not publicly accessible
+- [Website](https://www.nabu.news)
+- [Website code repository](https://github.com/raaidarshad/nabu-website)
+- [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/nabu/)
+- [Chrome Extension](https://chrome.google.com/webstore/detail/nabu/bgmcmbjhfdnfaplfiiphlefclhhhnajb)
+- [Extension code repository](https://github.com/raaidarshad/nabu-browser-extension)
 
 Note: Many things referenced here and in the code may have the acronym "ptb" as a part of them. This is because this
 project used to be named "pop the bubble".
