@@ -146,4 +146,10 @@ Follow the same steps above for a new rss feed, making sure the source exists an
 - After running `pulumi up` for the desired environment, you will need to [specifically grant](https://www.postgresql.org/docs/13/sql-grant.html) the new user the necessary permissions
 - Assuming the user has been granted their necessary permissions, you should be all set!
 
-Note that many of the alembic revisions do not account for various user permissions. This is still done manually per environment.
+Note that the alembic revisions do not account for various user permissions.
+This is still done manually per environment.
+
+The etl user needs full access to all tables in the default schema.
+The api user needs full access to logs.table, and read-only access to all tables in the default schema.
+The monitor user needs read-only access to all tables.
+The dagster user should handle its own permissions and tables.
