@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Union, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
+from sqlalchemy import DDL, event
 from sqlmodel import Column, Field, Index, JSON, Relationship, String, SQLModel, func
 
 from enum import Enum
@@ -230,3 +231,24 @@ class ArticleClusterKeyword(PTBModel, table=True):
 
 
 Index("ix_articleclusterkeyword_term", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
+###################
+### LOGS SCHEMA ###
+###################
+
+event.listen(SQLModel.metadata, "before_create", DDL("CREATE SCHEMA IF NOT EXISTS logs"))
+
+
+def _now_factory():
+    return datetime.now(tz=timezone.utc)
+
+
+class Api(SQLModel, table=True):
+    __table_args__ = {"schema": "logs"}
+    timestamp: Optional[datetime] = Field(primary_key=True, default_factory=_now_factory)
+    status_code: int
+    target_url: HttpUrl = Field(sa_column=Column(String))
+    client_id: Optional[str]
+    referer: Optional[str]
+    response_count: Optional[int] = None
