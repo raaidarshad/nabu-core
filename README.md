@@ -108,10 +108,12 @@ save ourselves the burden of setting up a Helm repository and just point to it l
 - Bump the version in `ptbmodels/pyproject.toml`, line 3
 - From `ptbmodels/`, run `poetry publish --build -u {username} -p {password}` (or let the CI/CD autopublish it)
 - To use the updates in code: Bump the ptbmodels version in `etl/pyproject.toml`
-- To propogate the changes to the DB: From `ptbmodels/db/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic revision --autogenerate -m "revision message"`
+- To propogate the changes to the DB: From `ptbmodels/db/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic revision --autogenerate -- -m "revision message"`
+- For dev, change to `alembic revision --branch-label=dev --version-path=alembic/dev -m "message"`
 - Edit the newly created revision file in `ptbmodels/db/alembic/versions/` as needed
 - TODO need to set up CD for Alembic revisions
 - To propogate the Alembic changes, from `ptbmodels/db/alembic/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic upgrade head`
+- For dev, change to `alembic upgrade dev@head`
 - Should be good to go!
 
 #### Need to add a new source?
@@ -143,3 +145,5 @@ Follow the same steps above for a new rss feed, making sure the source exists an
 - If needed, create a connection string to store in a k8s secret
 - After running `pulumi up` for the desired environment, you will need to [specifically grant](https://www.postgresql.org/docs/13/sql-grant.html) the new user the necessary permissions
 - Assuming the user has been granted their necessary permissions, you should be all set!
+
+Note that many of the alembic revisions do not account for various user permissions. This is still done manually per environment.
