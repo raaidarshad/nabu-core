@@ -1,16 +1,19 @@
 import os
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import psycopg
 from psycopg.rows import dict_row
 from pydantic import BaseModel
 
+from ptbmodels.models import Api
+
 
 class SearchBody(BaseModel):
     url: str
     limit: Optional[int] = None
+    client_id: Optional[str] = None
 
 
 app = FastAPI()
@@ -21,15 +24,26 @@ def read_root():
     return {"Hello": "World"}
 
 
+def prepare_url(url: str) -> str:
+    without_query_params = url.split("?")[0]
+    # percent signs on either side for the postgres "like" text search
+    return f"%{without_query_params}%"
+
+
+def extract_referer(request: Request) -> Optional[str]:
+    return request.headers.get("Referer", request.headers.get("Origin"))
+
+
 # endpoint to submitSearch (lets just call it search)
 @app.post("/search")
-async def submit_search(search_body: SearchBody):
+async def submit_search(search_body: SearchBody, request: Request):
+    referer = extract_referer(request)
     # if the url is not found, return a 404 code
     # if the url is found but no similar articles, return a 200 with an empty body
     # if the url is found and there are similar articles, return a 200 and a full body
     async with await psycopg.AsyncConnection.connect(os.getenv("DB_CONNECTION_STRING")) as aconn:
         async with aconn.cursor(row_factory=dict_row) as acur:
-            await acur.execute("SELECT * FROM article WHERE url like %s", (search_body.url, ))
+            await acur.execute("SELECT * FROM article WHERE url like %s", (prepare_url(search_body.url), ))
             found_article = await acur.fetchone()
             if found_article:
                 await acur.execute("""
@@ -51,6 +65,39 @@ async def submit_search(search_body: SearchBody):
                     ORDER BY added_at DESC;
                 """, found_article)
                 rows = await acur.fetchall()
+
+                # TODO this should be replaced with SQLAlchemy "add" type stuff once it works with psycopg3
+                log_entry = Api(
+                    status_code=200,
+                    target_url=search_body.url,
+                    client_id=search_body.client_id,
+                    referer=referer,
+                    response_count=len(rows)
+                )
+                await acur.execute("""
+                INSERT INTO logs.api (timestamp, status_code, target_url, client_id, referer, response_count)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """, (log_entry.timestamp,
+                      log_entry.status_code,
+                      log_entry.target_url,
+                      log_entry.client_id,
+                      log_entry.referer,
+                      log_entry.response_count))
                 return rows
             else:
+                log_entry = Api(
+                    status_code=404,
+                    target_url=search_body.url,
+                    client_id=search_body.client_id,
+                    referer=referer
+                )
+                await acur.execute("""
+                INSERT INTO logs.api (timestamp, status_code, target_url, client_id, referer, response_count)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """, (log_entry.timestamp,
+                      log_entry.status_code,
+                      log_entry.target_url,
+                      log_entry.client_id,
+                      log_entry.referer,
+                      log_entry.response_count))
                 return JSONResponse(status_code=404, content={"message": "The submitted URL was not found."})

@@ -6,6 +6,7 @@ authors = ["Raaid <raaid@protonmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+ptbmodels = "0.2.17.dev2"
 fastapi = "^0.74.1"
 psycopg = "^3.0.9"
 uvicorn = {version = "^0.17.5", extras = ["standard"]}
