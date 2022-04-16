@@ -24,4 +24,4 @@ jobs:
     - name: run integration tests
       run: pytest api/tests/it
       env:
-        DB_CONNECTION_STRING: ${{ secrets.DEV_RO_DB_CONN_STRING }}
+        DB_CONNECTION_STRING: ${{ secrets.PROD_RO_DB_CONN_STRING }}
