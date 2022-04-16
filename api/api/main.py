@@ -38,9 +38,7 @@ def extract_referer(request: Request) -> Optional[str]:
 @app.post("/search")
 async def submit_search(search_body: SearchBody, request: Request):
     referer = extract_referer(request)
-    # if the url is not found, return a 404 code
-    # if the url is found but no similar articles, return a 200 with an empty body
-    # if the url is found and there are similar articles, return a 200 and a full body
+
     async with await psycopg.AsyncConnection.connect(os.getenv("DB_CONNECTION_STRING")) as aconn:
         async with aconn.cursor(row_factory=dict_row) as acur:
             await acur.execute("SELECT * FROM article WHERE url like %s", (prepare_url(search_body.url), ))
