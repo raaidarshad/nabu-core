@@ -34,7 +34,8 @@ def extract_referer(request: Request) -> Optional[str]:
     return request.headers.get("Referer", request.headers.get("Origin"))
 
 
-# endpoint to submitSearch (lets just call it search)
+# TODO once SQLAlchemy is compatible with psycopg3, convert as much as possible to SQLAlchemy statements
+# TODO also create a session or equivalent resource instead of directly creating a connection once compatible
 @app.post("/search")
 async def submit_search(search_body: SearchBody, request: Request):
     referer = extract_referer(request)
