@@ -129,7 +129,7 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
 
 def truncate_table_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     @solid(name=name, required_resource_keys={"database_client"}, **kwargs)
-    def _truncate_table_solid(context: Context):
+    def _truncate_table_solid(context: Context, trigger_input):
         db_client: Session = context.resources.database_client
 
         statement = text("TRUNCATE :table")

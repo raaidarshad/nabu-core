@@ -1,6 +1,7 @@
 from dagster import solid
 
-from etl.common import DagsterTime, Context, get_rows_factory, load_rows_factory, str_to_datetime
+from etl.common import DagsterTime, Context, get_rows_factory, load_rows_factory, str_to_datetime,\
+    truncate_table_factory
 from etl.resources.html_parser import BaseParser
 from ptbmodels.models import ParsedContent, RawContent
 
@@ -31,3 +32,5 @@ def parse_raw_content(context: Context, raw_content: list[RawContent]) -> list[P
 load_parsed_content = load_rows_factory("load_parsed_content",
                                         ParsedContent,
                                         [ParsedContent.article_id])
+
+truncate_raw_content = truncate_table_factory("truncate_raw_content", RawContent)
