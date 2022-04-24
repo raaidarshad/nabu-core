@@ -10,7 +10,7 @@ from dagster import AssetMaterialization, Backoff, Field, Output, RetryPolicy, S
 from dateutil import parser
 from dateutil.tz import tzutc
 from sqlalchemy.dialects.postgresql import insert
-from sqlmodel import Session, select
+from sqlmodel import Session, select, text
 
 
 from ptbmodels.models import PTBModel, PTBTagModel
@@ -125,3 +125,15 @@ def load_rows_factory(name: str, entity_type: Type[PTBModel], on_conflict: list,
             yield Output(entities)
 
     return _load_rows_solid
+
+
+def truncate_table_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
+    @solid(name=name, required_resource_keys={"database_client"}, **kwargs)
+    def _truncate_table_solid(context: Context):
+        db_client: Session = context.resources.database_client
+
+        statement = text("TRUNCATE :table")
+        context.log.info(f"Attempting to truncate table: {entity_type.__tablename__}")
+        db_client.execute(statement, {"table": entity_type.__tablename__})
+        context.log.info(f"Removed all content of table: {entity_type.__tablename__}")
+    return _truncate_table_solid
