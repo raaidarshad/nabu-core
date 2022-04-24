@@ -4,7 +4,7 @@ from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, R
 from etl.common import datetime_to_str, get_current_time, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_counts_test_database_client
-from etl.solids.compute_term_counts import get_parsed_content, compute_counts, load_term_counts
+from etl.solids.compute_term_counts import get_parsed_content, compute_counts, load_term_counts, truncate_parsed_content
 
 # resources
 cloud_resource_defs = {"database_client": cloud_database_client}
@@ -38,7 +38,8 @@ timed_preset = PresetDefinition(name="timed",
 def compute_term_counts():
     parsed_content = get_parsed_content()
     term_counts = compute_counts(parsed_content)
-    load_term_counts(term_counts)
+    loaded_rows = load_term_counts(term_counts)
+    truncate_parsed_content(loaded_rows)
 
 
 # sensors

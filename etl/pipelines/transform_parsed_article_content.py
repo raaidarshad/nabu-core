@@ -5,7 +5,8 @@ from etl.common import get_current_time, datetime_to_str, ptb_retry_policy
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     extract_articles_test_database_client
 from etl.resources.html_parser import html_parser, mock_html_parser
-from etl.solids.transform_parsed_article_content import get_raw_content, parse_raw_content, load_parsed_content
+from etl.solids.transform_parsed_article_content import get_raw_content, parse_raw_content, load_parsed_content, \
+    truncate_raw_content
 
 # resource definitions
 cloud_resource_defs = {
@@ -49,7 +50,8 @@ timed_preset = PresetDefinition(name="timed",
 def transform_parsed_article_content():
     raw_content = get_raw_content()
     parsed_content = parse_raw_content(raw_content)
-    load_parsed_content(parsed_content)
+    loaded_rows = load_parsed_content(parsed_content)
+    truncate_raw_content(loaded_rows)
 
 
 # schedules/sensors

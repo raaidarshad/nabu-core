@@ -1,11 +1,12 @@
 from datetime import timedelta, timezone
 
-from dagster import ModeDefinition, PresetDefinition, RunRequest, ScheduleExecutionContext, pipeline, schedule
+from dagster import ModeDefinition, PresetDefinition, ScheduleExecutionContext, pipeline, schedule
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
     compute_clusters_test_database_client
-from etl.solids.compute_article_clusters import get_term_counts, compute_tfidf, cluster_articles, load_article_clusters
+from etl.solids.compute_article_clusters import get_term_counts, compute_tfidf, cluster_articles,\
+    load_article_clusters, truncate_term_count
 
 cloud_resource_defs = {"database_client": cloud_database_client}
 local_resource_defs = {"database_client": local_database_client}
@@ -43,7 +44,8 @@ def compute_article_clusters():
     counts = get_term_counts()
     tfidf = compute_tfidf(counts)
     clusters = cluster_articles(tfidf)
-    load_article_clusters(clusters)
+    loaded_rows = load_article_clusters(clusters)
+    truncate_term_count(loaded_rows)
 
 
 # schedules/sensors

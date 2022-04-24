@@ -13,7 +13,7 @@ from sklearn.cluster import AgglomerativeClustering, DBSCAN, OPTICS
 from sklearn.feature_extraction.text import TfidfTransformer
 from sqlmodel import Session
 
-from etl.common import Context, DagsterTime, get_rows_factory, str_to_datetime
+from etl.common import Context, DagsterTime, get_rows_factory, str_to_datetime, truncate_table_factory
 from ptbmodels.models import Article, ArticleCluster, ArticleClusterKeyword, TermCount
 
 
@@ -243,3 +243,6 @@ def load_article_clusters(context: Context, entities: list[ArticleCluster]):
     else:
         context.log.info("No entities to add")
         yield Output(entities)
+
+
+truncate_term_count = truncate_table_factory("truncate_term_count", TermCount)
