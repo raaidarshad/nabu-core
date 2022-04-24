@@ -132,8 +132,8 @@ def truncate_table_factory(name: str, entity_type: Type[PTBTagModel], **kwargs):
     def _truncate_table_solid(context: Context, trigger_input):
         db_client: Session = context.resources.database_client
 
-        statement = text("TRUNCATE :table")
+        statement = text(f"TRUNCATE {entity_type.__tablename__}")
         context.log.info(f"Attempting to truncate table: {entity_type.__tablename__}")
-        db_client.execute(statement, {"table": entity_type.__tablename__})
+        db_client.execute(statement)
         context.log.info(f"Removed all content of table: {entity_type.__tablename__}")
     return _truncate_table_solid
