@@ -2,7 +2,8 @@ from dagster import solid
 from sklearn.feature_extraction.text import CountVectorizer
 import spacy
 
-from etl.common import Context, DagsterTime, get_rows_factory, load_rows_factory, str_to_datetime
+from etl.common import Context, DagsterTime, get_rows_factory, load_rows_factory, str_to_datetime,\
+    truncate_table_factory
 from ptbmodels.models import ParsedContent, TermCount
 
 
@@ -41,6 +42,8 @@ def compute_counts(context: Context, parsed_content: list[ParsedContent]) -> lis
 
 load_term_counts = load_rows_factory("load_term_counts", TermCount,
                                      [TermCount.article_id, TermCount.term])
+
+truncate_parsed_content = truncate_table_factory("truncate_parsed_content", ParsedContent)
 
 
 def _spacy_tokenizer(document):
