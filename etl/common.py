@@ -38,7 +38,14 @@ def get_current_time() -> datetime:
 
 
 def str_to_datetime(target: str) -> datetime:
-    parsed = parser.parse(target, tzinfos={"EDT": -14400, "EST": -18000})
+    try:
+        parsed = parser.parse(target, tzinfos={"EDT": -14400, "EST": -18000})
+    except parser.ParserError as e:
+        # if the target string does not contain a date, use the current time instead
+        if "does not contain a date" in str(e):
+            parsed = get_current_time()
+        else:
+            raise e
     if not parsed.tzinfo:
         parsed = parsed.astimezone(tz=tzutc())
     return parsed

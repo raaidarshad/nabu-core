@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Union, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, HttpUrl
+from sqlalchemy import DDL, event
 from sqlmodel import Column, Field, Index, JSON, Relationship, String, SQLModel, func
 
 from enum import Enum
@@ -142,15 +143,15 @@ class RssFeed(PTBModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True, nullable=False)
     source_id: int = Field(foreign_key="source.id")
     url: HttpUrl = Field(sa_column=Column(String, unique=True))
-    parser_config: Union[dict, list] = Field(sa_column=Column(JSON))
+    parser_config: Union[list, dict] = Field(sa_column=Column(JSON))
     # whether or not the http status code was 2XX on the most recent test
     is_okay: bool = Field(default=True)
 
     source: Source = Relationship(back_populates="rss_feeds")
 
     # setting the smart_union flag so that parser_config handles dicts and lists appropriately
-    class Config:
-        smart_union = True
+    # class Config:
+    #     smart_union = True
 
 
 class Article(PTBTagModel, table=True):
@@ -231,3 +232,24 @@ class ArticleClusterKeyword(PTBModel, table=True):
 
 
 Index("ix_articleclusterkeyword_term", func.to_tsvector('english', RawContent.content), postgresql_using="gin")
+
+
+###################
+### LOGS SCHEMA ###
+###################
+
+event.listen(SQLModel.metadata, "before_create", DDL("CREATE SCHEMA IF NOT EXISTS logs"))
+
+
+def _now_factory():
+    return datetime.now(tz=timezone.utc)
+
+
+class Api(SQLModel, table=True):
+    __table_args__ = {"schema": "logs"}
+    timestamp: Optional[datetime] = Field(primary_key=True, default_factory=_now_factory)
+    status_code: int
+    target_url: HttpUrl = Field(sa_column=Column(String))
+    client_id: Optional[str]
+    referer: Optional[str]
+    response_count: Optional[int] = None

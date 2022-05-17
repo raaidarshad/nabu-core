@@ -8,6 +8,7 @@ authors = ["Raaid <raaid@protonmail.com>"]
 python = "^3.9"
 fastapi = "^0.74.1"
 psycopg = "^3.0.9"
+ptbmodels = "0.2.17.dev2"
 uvicorn = {version = "^0.17.5", extras = ["standard"]}
 gunicorn = "^20.1.0"
 

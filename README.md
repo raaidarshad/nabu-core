@@ -1,14 +1,13 @@
 # Nabu
 This repo contains all the code to run the data processing side of Nabu.
 
-[API Base URL](https://api.nabu.news)
-[Dagit UI](https://dagster.nabu.news) - Note that this is not publicly accessible
-
-[Website](https://www.nabu.news)
-[Website code repository](https://github.com/raaidarshad/nabu-website)
-[Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/nabu/)
-[Chrome Extension](https://chrome.google.com/webstore/detail/nabu/bgmcmbjhfdnfaplfiiphlefclhhhnajb)
-[Extension code repository](https://github.com/raaidarshad/nabu-browser-extension)
+- [API Base URL](https://api.nabu.news)
+- [Dagit UI](https://dagster.nabu.news) - Note that this is not publicly accessible
+- [Website](https://www.nabu.news)
+- [Website code repository](https://github.com/raaidarshad/nabu-website)
+- [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/nabu/)
+- [Chrome Extension](https://chrome.google.com/webstore/detail/nabu/bgmcmbjhfdnfaplfiiphlefclhhhnajb)
+- [Extension code repository](https://github.com/raaidarshad/nabu-browser-extension)
 
 Note: Many things referenced here and in the code may have the acronym "ptb" as a part of them. This is because this
 project used to be named "pop the bubble".
@@ -109,10 +108,12 @@ save ourselves the burden of setting up a Helm repository and just point to it l
 - Bump the version in `ptbmodels/pyproject.toml`, line 3
 - From `ptbmodels/`, run `poetry publish --build -u {username} -p {password}` (or let the CI/CD autopublish it)
 - To use the updates in code: Bump the ptbmodels version in `etl/pyproject.toml`
-- To propogate the changes to the DB: From `etl/db/` run `alembic revision --autogenerate -m "revision message"`
-- Edit the newly created revision file in `etl/db/alembic/versions/` as needed
+- To propogate the changes to the DB: From `ptbmodels/db/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic revision --autogenerate -- -m "revision message"`. Make sure the db connection string is for the `doadmin` user on the prod instance.
+- For dev, change to `alembic revision --branch-label=dev --version-path=alembic/dev -m "message"`. Make sure the db connection string is for the `doadmin` user on the dev instance.
+- Edit the newly created revision file in `ptbmodels/db/alembic/versions/` as needed
 - TODO need to set up CD for Alembic revisions
-- To propogate the Alembic changes, from `etl/db/alembic/` run `alembic upgrade head`
+- To propogate the Alembic changes, from `ptbmodels/db/alembic/` run `DB_CONNECTION_STRING='postgres-conn-string' alembic upgrade head`
+- For dev, change to `alembic upgrade dev@head`
 - Should be good to go!
 
 #### Need to add a new source?
@@ -144,3 +145,11 @@ Follow the same steps above for a new rss feed, making sure the source exists an
 - If needed, create a connection string to store in a k8s secret
 - After running `pulumi up` for the desired environment, you will need to [specifically grant](https://www.postgresql.org/docs/13/sql-grant.html) the new user the necessary permissions
 - Assuming the user has been granted their necessary permissions, you should be all set!
+
+Note that the alembic revisions do not account for various user permissions.
+This is still done manually per environment.
+
+The etl user needs full access to all tables in the default schema.
+The api user needs full access to logs.table, and read-only access to all tables in the default schema.
+The monitor user needs read-only access to all tables.
+The dagster user should handle its own permissions and tables.
