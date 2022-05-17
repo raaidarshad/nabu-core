@@ -44,16 +44,15 @@ def compute_term_counts():
 # sensors
 @asset_sensor(asset_key=AssetKey("parsedcontent_table"), pipeline_name="compute_term_counts", mode="cloud")
 def compute_counts_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
-    parsed_content_runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
-    term_counts_runtime = datetime_to_str(get_current_time())
+    runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
 
     yield RunRequest(
         run_key=context.cursor,
         run_config={
             "solids": {
-                "get_parsed_content": {"config": {"begin": parsed_content_runtime_tag,
-                                                  "end": parsed_content_runtime_tag}},
-                "compute_counts": {"config": {"runtime": term_counts_runtime}},
-                "load_term_counts": {"config": {"runtime": term_counts_runtime}}}
+                "get_parsed_content": {"config": {"begin": runtime_tag,
+                                                  "end": runtime_tag}},
+                "compute_counts": {"config": {"runtime": runtime_tag}},
+                "load_term_counts": {"config": {"runtime": runtime_tag}}}
         },
     )
