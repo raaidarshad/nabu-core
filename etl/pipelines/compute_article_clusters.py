@@ -1,6 +1,7 @@
 from datetime import timedelta, timezone
 
-from dagster import ModeDefinition, PresetDefinition, RunRequest, ScheduleExecutionContext, pipeline, schedule
+from dagster import AssetKey, EventLogEntry, ModeDefinition, PresetDefinition, RunRequest, ScheduleExecutionContext,\
+    SensorEvaluationContext, asset_sensor, pipeline, schedule
 
 from etl.common import datetime_to_str, get_current_time
 from etl.resources.database_client import cloud_database_client, local_database_client, \
@@ -113,3 +114,29 @@ def article_cluster_schedule_3d(context: ScheduleExecutionContext):
                 "load_article_clusters": {"config": {"runtime": runtime,
                                                      "cluster_range": cluster_range}}
             }}
+
+
+# sensors
+@asset_sensor(asset_key=AssetKey("termcount_table"), pipeline_name="compute_article_clusters", mode="cloud")
+def compute_article_clusters_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
+    runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
+    if not runtime_tag.tzinfo:
+        runtime_tag = runtime_tag.astimezone(tz=timezone.utc)
+    cluster_range = {"days": 1}
+    begin = datetime_to_str(runtime_tag - timedelta(**cluster_range))
+    runtime_tag = datetime_to_str(runtime_tag)
+    yield RunRequest(
+        run_key=context.cursor,
+        run_config={
+            "solids": {
+                "get_term_counts": {"config": {"begin": begin, "end": runtime_tag}},
+                "cluster_articles": {"config": {"runtime": runtime_tag,
+                                                "cluster_type": "PTB0",
+                                                "cluster_parameters": {"threshold": 0.45},
+                                                "begin": begin,
+                                                "end": runtime_tag
+                                                }},
+                "load_article_clusters": {"config": {"runtime": runtime_tag,
+                                                     "cluster_range": cluster_range}}
+            }}
+    )
