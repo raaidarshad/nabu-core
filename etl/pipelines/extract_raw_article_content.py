@@ -59,8 +59,7 @@ def extract_raw_article_content():
 # schedules/sensors
 @asset_sensor(asset_key=AssetKey("article_table"), pipeline_name="extract_raw_article_content", mode="cloud")
 def extract_raw_article_content_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
-    article_runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
-    raw_content_runtime = datetime_to_str(get_current_time())
+    runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
 
     yield RunRequest(
         run_key=context.cursor,
@@ -68,9 +67,9 @@ def extract_raw_article_content_sensor(context: SensorEvaluationContext, asset_e
             "solids": {
                 # we specify both begin and end as the same so it operates in "batch" or "tag" mode,
                 # where we use the exact timestamp as a batch tag to pull the right articles
-                "get_articles": {"config": {"begin": article_runtime_tag, "end": article_runtime_tag}},
-                "request_raw_content": {"config": {"runtime": raw_content_runtime}},
-                "load_raw_content": {"config": {"runtime": raw_content_runtime}}
+                "get_articles": {"config": {"begin": runtime_tag, "end": runtime_tag}},
+                "request_raw_content": {"config": {"runtime": runtime_tag}},
+                "load_raw_content": {"config": {"runtime": runtime_tag}}
             }
         }
     )

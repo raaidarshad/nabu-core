@@ -55,8 +55,7 @@ def transform_parsed_article_content():
 # schedules/sensors
 @asset_sensor(asset_key=AssetKey("rawcontent_table"), pipeline_name="transform_parsed_article_content", mode="cloud")
 def transform_parsed_article_content_sensor(context: SensorEvaluationContext, asset_event: EventLogEntry):
-    raw_content_runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
-    parsed_content_runtime = datetime_to_str(get_current_time())
+    runtime_tag = asset_event.dagster_event.event_specific_data.materialization.tags["runtime"]
 
     yield RunRequest(
         run_key=context.cursor,
@@ -64,9 +63,9 @@ def transform_parsed_article_content_sensor(context: SensorEvaluationContext, as
             "solids": {
                 # we specify both begin and end as the same so it operates in "batch" or "tag" mode,
                 # where we use the exact timestamp as a batch tag to pull the right articles
-                "get_raw_content": {"config": {"begin": raw_content_runtime_tag, "end": raw_content_runtime_tag}},
-                "parse_raw_content": {"config": {"runtime": parsed_content_runtime}},
-                "load_parsed_content": {"config": {"runtime": parsed_content_runtime}}
+                "get_raw_content": {"config": {"begin": runtime_tag, "end": runtime_tag}},
+                "parse_raw_content": {"config": {"runtime": runtime_tag}},
+                "load_parsed_content": {"config": {"runtime": runtime_tag}}
             }
         }
     )
